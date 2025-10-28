@@ -1,4 +1,5 @@
 import { createTheme } from "@mui/material/styles";
+import Fonts from "../../Utils/Fonts";
 
 const TractorLightTheme = createTheme({
   palette: {
@@ -61,28 +62,34 @@ const TractorLightTheme = createTheme({
       fontFamily: '"Impact", "Anton"',
     },
     h4: {
-      fontFamily: "Antonio Bold",
+      fontFamily: "Antonio",
+      fontWeight: 600,
     },
     h5: {
-      fontFamily: "Antonio Bold",
+      fontFamily: "Antonio",
+      fontWeight: 600,
     },
     h6: {
-      fontFamily: "Antonio Bold",
+      fontFamily: "Antonio",
+      fontWeight: 600,
     },
     button: {
-      fontFamily: "Antonio Bold",
+      fontFamily: "Antonio",
+      fontWeight: 600,
     },
     subtitle1: {
-      fontFamily: "Antonio Bold",
+      fontFamily: "Antonio",
+      fontWeight: 600,
     },
     subtitle2: {
-      fontFamily: "Antonio Bold",
+      fontFamily: "Antonio",
+      fontWeight: 600,
     },
-    body1: { fontFamily: '"Libre Baskerville", "Baskerville"' }
+    body1: { fontFamily: '"Baskervville", "Libre Baskervville"' },
   },
   shape: {
     borderRadius: 8,
   },
-});
+}, Fonts);
 
 export default TractorLightTheme;
