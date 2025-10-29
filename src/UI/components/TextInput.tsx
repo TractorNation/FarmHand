@@ -33,7 +33,7 @@ export default function TextInput(props: TextInputProps) {
       <TextField
         variant="outlined"
         multiline={multiline ?? false}
-        color={valid ? "secondary" : "error"}
+        color='secondary'
         fullWidth
         label={label}
         onChange={updateText}

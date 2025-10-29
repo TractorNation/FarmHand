@@ -13,6 +13,7 @@ import { useState } from "react";
 interface DropdownInputProps {
   label?: string;
   options: string[];
+  valid?: boolean;
   onChange?: (value: string) => void;
 }
 
@@ -21,7 +22,7 @@ interface DropdownInputProps {
  * @returns Dropdown input for the page
  */
 export default function DropdownInput(props: DropdownInputProps) {
-  const { label, options, onChange } = props;
+  const { label, options, valid, onChange } = props;
 
   const [option, setOption] = useState("");
 
@@ -31,25 +32,31 @@ export default function DropdownInput(props: DropdownInputProps) {
   };
 
   return (
-      <FormControl sx={{width: '70%'}}>
-      <InputLabel id="demo-simple-select-label" color='secondary'>{label}</InputLabel>
-        <Select
-          labelId="demo-simple-select-label"
-          id="demo-simple-select"
-          value={option}
-          label={label}
-          onChange={handleChange}
-          color="secondary"
-          sx={{
-            "& legend": {
-              transition: "unset",
-            },
-          }}
-        >
-          {options.map((option) => (
-            <MenuItem value={option}>{option}</MenuItem>
-          ))}
-        </Select>
-      </FormControl>
+    <FormControl sx={{ width: "70%" }}>
+      <InputLabel
+        id="demo-simple-select-label"
+        color={valid ? "secondary" : "error"}
+      >
+        {label}
+      </InputLabel>
+      <Select
+        labelId="demo-simple-select-label"
+        id="demo-simple-select"
+        value={option}
+        label={label}
+        onChange={handleChange}
+        color="secondary"
+        error={!valid}
+        sx={{
+          "& legend": {
+            transition: "unset",
+          },
+        }}
+      >
+        {options.map((option) => (
+          <MenuItem value={option}>{option}</MenuItem>
+        ))}
+      </Select>
+    </FormControl>
   );
 }

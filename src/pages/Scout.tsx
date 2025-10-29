@@ -28,22 +28,7 @@ export default function Scout() {
           <DropdownInput
             label={"Select an option"}
             options={["Option 1", "Option 2", "Option 3"]}
-          />
-        </InputCard>
-      </Grid>
-      <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-        <InputCard label="Dropdown Input" required={true} valid={true}>
-          <DropdownInput
-            label={"Select an option"}
-            options={["Option 1", "Option 2", "Option 3"]}
-          />
-        </InputCard>
-      </Grid>
-      <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-        <InputCard label="Dropdown Input" required={true} valid={true}>
-          <DropdownInput
-            label={"Select an option"}
-            options={["Option 1", "Option 2", "Option 3"]}
+            valid={true}
           />
         </InputCard>
       </Grid>
