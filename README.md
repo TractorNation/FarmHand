@@ -35,7 +35,6 @@ A step-by-step series of examples that tell you how to get a development environ
 
     This will usually open the app in your default browser at `http://localhost:1420`.
 
-
 ## Built With
 
 *   [React](https://reactjs.org/) - The web framework used
