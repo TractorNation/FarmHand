@@ -1,18 +1,16 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import Home from "./pages/Home";
-import { HashRouter, Route, Routes } from "react-router";
+import { ThemeProvider } from "@mui/material/styles";
 import TractorLightTheme from "./UI/themes/TractorLightTheme";
-import { ThemeProvider } from "@emotion/react";
+// import TractorDarkTheme from "./UI/themes/TractorDarkTheme";
+import App from "./app";
+import { CssBaseline } from "@mui/material";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <ThemeProvider theme={TractorLightTheme}>
-      <HashRouter>
-        <Routes>
-          <Route path="/" element={<Home />} />
-        </Routes>
-      </HashRouter>
+      <CssBaseline />
+      <App />
     </ThemeProvider>
   </React.StrictMode>
 );
