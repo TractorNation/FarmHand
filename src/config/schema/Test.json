@@ -1,0 +1,51 @@
+{
+  "sections": [
+    {
+      "title": "Testing",
+      "fields": [
+        {
+          "name": "Score counter",
+          "type": "counter",
+          "props": {
+            "default": 0
+          }
+        },
+        {
+          "name": "Favorite robot",
+          "type": "dropdown",
+          "props": {
+            "label": "select your favorite robot",
+            "options": ["robot1", "robot2", "robot3"]
+          }
+        },
+        {
+          "name": "Checkbox",
+          "type": "checkbox",
+          "props": {
+            "default": false
+          }
+        },
+        {
+          "name": "Write something",
+          "type": "text",
+          "props": {
+            "label": "Text field",
+            "multiline": true
+          }
+        }
+      ]
+    },
+    {
+      "title": "Testing 2",
+      "fields": [
+        {
+          "name": "Score counter",
+          "type": "counter",
+          "props": {
+            "default": 3
+          }
+        }
+      ]
+    }
+  ]
+}

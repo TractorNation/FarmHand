@@ -1,37 +1,35 @@
-import { Grid } from "@mui/material";
-import CounterInput from "../UI/components/CounterInput";
-import TextInput from "../UI/components/TextInput";
-import InputCard from "../UI/InputCard";
-import CheckboxInput from "../UI/components/CheckboxInput";
-import DropdownInput from "../UI/components/DropdownInput";
+import { Box, CircularProgress, Stack, Typography } from "@mui/material";
+import Section from "../UI/Section";
+import useSchema from "../hooks/useSchema";
 
 export default function Scout() {
+  const { schema, schemaName } = useSchema();
+
+  if (!schema) {
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        height="80vh"
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  const schemaData: Schema = schema;
+
   return (
-    <Grid container spacing={2}>
-      <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-        <InputCard label="Counter" required={false} valid={true}>
-          <CounterInput defaultValue={0} min={0} max={100} valid={true} />
-        </InputCard>
-      </Grid>
-      <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-        <InputCard label="Text Input" required={true} valid={true}>
-          <TextInput label="Comments" multiline valid={true} />
-        </InputCard>
-      </Grid>
-      <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-        <InputCard label="Checkbox Input" required={false} valid={true}>
-          <CheckboxInput defaultValue={false} />
-        </InputCard>
-      </Grid>
-      <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-        <InputCard label="Dropdown Input" required={true} valid={true}>
-          <DropdownInput
-            label={"Select an option"}
-            options={["Option 1", "Option 2", "Option 3"]}
-            valid={true}
-          />
-        </InputCard>
-      </Grid>
-    </Grid>
+    <Box sx={{ p: 3 }}>
+      <Typography variant="h4" sx={{ mb: 3 }}>
+        Scouting - {schemaName}
+      </Typography>
+      <Stack spacing={3}>
+        {schemaData.sections.map((section, index) => (
+          <Section key={index} section={section} />
+        ))}
+      </Stack>
+    </Box>
   );
 }
