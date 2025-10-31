@@ -1,7 +1,6 @@
 import { Card, CardContent, Typography, Box } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { ReactNode } from "react";
-import ValidationProvider from "../context/ValidationContext";
 import useValidation from "../hooks/useValidation";
 
 /**
@@ -21,7 +20,7 @@ interface InputCardProps {
  */
 export default function InputCard(props: InputCardProps) {
   const { label, required, errorMessage, children } = props;
-  const {valid, updateValidation} = useValidation();
+  const { valid } = useValidation();
   const theme = useTheme();
 
   return (

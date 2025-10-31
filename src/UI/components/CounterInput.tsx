@@ -2,7 +2,6 @@ import { Button, Stack, Typography } from "@mui/material";
 import AddIcon from "@mui/icons-material/AddRounded";
 import RemoveIcon from "@mui/icons-material/RemoveRounded";
 import { useState } from "react";
-import useValidation from "../../hooks/useValidation";
 
 /**
  * Props for the counter
