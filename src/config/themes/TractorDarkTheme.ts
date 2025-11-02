@@ -87,7 +87,7 @@ const TractorDarkTheme = createTheme(
         fontFamily: "Antonio",
         fontWeight: 600,
       },
-      body1: { fontFamily: '"Libre Baskervville", "Baskervville"' },
+      body1: { fontFamily: '"Baskervville", "Libre Baskervville"', fontWeight: 700 },
     },
     shape: {
       borderRadius: 8,

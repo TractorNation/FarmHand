@@ -60,8 +60,6 @@ export default function SchemaProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      console.log("Selected schema:", found);
-
       setSchema(found.schema);
       setSchemaName(found.name);
 

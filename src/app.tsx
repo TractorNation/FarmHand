@@ -49,8 +49,8 @@ function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <AppBar
-        position="sticky"
+      <AppBar 
+        position="static"
         sx={{ backgroundColor: theme.palette.primary.main }}
       >
         <Toolbar>
