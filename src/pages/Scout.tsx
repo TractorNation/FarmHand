@@ -15,21 +15,33 @@ import {
 import Section from "../UI/Section";
 import { useSchema } from "../context/SchemaContext";
 import { useScoutData } from "../context/ScoutDataContext";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Key } from "react";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutlineRounded";
+import QRcodeIcon from "@mui/icons-material/QrcodeRounded";
+import ResetIcon from "@mui/icons-material/ReplayRounded";
+import HelpIcon from "@mui/icons-material/HelpOutlineRounded";
 
 export default function Scout() {
   const { schema, schemaName } = useSchema();
   const theme = useTheme();
-  const { errors, clearMatchData, setSubmitted } = useScoutData();
+  const { errors, clearMatchData, setSubmitted, clearErrors } = useScoutData();
 
-  const [showErrorAlert, setShowErrorAlert] = useState(false);
+  const [resetKey, setResetKey] = useState<Key>(0);
+  const [showErrorPopup, setShowErrorPopup] = useState(false);
+  const [showResetPopup, setShowResetPopup] = useState(false);
 
   const handleSubmit = () => {
     setSubmitted(true);
     if (errors.length > 0) {
-      setShowErrorAlert(true);
+      setShowErrorPopup(true);
     }
+  };
+
+  const handleReset = async () => {
+    await clearMatchData();
+    clearErrors();
+    setResetKey((prev) => (prev as number) + 1);
+    setShowResetPopup(false);
   };
 
   useEffect(() => {
@@ -53,29 +65,70 @@ export default function Scout() {
 
   return (
     <>
-      <Box sx={{ p: 3 }}>
+      <Box sx={{ p: 3, justifyContent: "center" }}>
         <Typography variant="h4" sx={{ mb: 3 }}>
           Scouting - {schemaName}
         </Typography>
-        <Stack spacing={3}>
+        <Stack spacing={3} key={resetKey}>
           {schemaData.sections.map((section, index) => (
             <Section key={index} section={section} />
           ))}
         </Stack>
-        <Button
-          variant="contained"
-          color="secondary"
+        <Stack
+          direction={"row"}
+          spacing={2}
+          width={"100%"}
+          justifyContent={"space-between"}
           sx={{ mt: 3 }}
-          onClick={handleSubmit}
         >
-          Submit match
-        </Button>
+          <Button
+            variant="contained"
+            color="inherit"
+            sx={{ mt: 3 }}
+            onClick={() => setShowResetPopup(true)}
+          >
+            <ResetIcon sx={{ mr: 1 }} />
+            Reset form
+          </Button>
+          <Button
+            variant="contained"
+            color="secondary"
+            sx={{ mt: 3 }}
+            onClick={handleSubmit}
+          >
+            <QRcodeIcon sx={{ mr: 1 }} />
+            Complete scout
+          </Button>
+        </Stack>
       </Box>
-      <Dialog
-        open={showErrorAlert}
-        keepMounted
-        onClose={() => setShowErrorAlert(false)}
-      >
+
+      {/*Page reload confirmation popup*/}
+      <Dialog open={showResetPopup} onClose={() => setShowResetPopup(false)}>
+        <DialogTitle
+          sx={{
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <HelpIcon sx={{ mr: 1 }} />
+          Are you sure you want to reset the form?
+        </DialogTitle>
+        <DialogActions>
+          <Button
+            onClick={() => setShowResetPopup(false)}
+            color="primary"
+            variant="outlined"
+          >
+            Cancel
+          </Button>
+          <Button onClick={handleReset} color="error" variant="outlined">
+            Reset
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Form error popup */}
+      <Dialog open={showErrorPopup} onClose={() => setShowErrorPopup(false)}>
         <DialogTitle
           sx={{
             display: "flex",
@@ -100,7 +153,7 @@ export default function Scout() {
           ))}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setShowErrorAlert(false)} color="inherit">
+          <Button onClick={() => setShowErrorPopup(false)} color="inherit">
             OK
           </Button>
         </DialogActions>
