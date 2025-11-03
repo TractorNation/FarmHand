@@ -13,8 +13,8 @@ import {
   useTheme,
 } from "@mui/material";
 import Section from "../UI/Section";
-import useSchema from "../hooks/useSchema";
-import useScoutData from "../hooks/useScoutData";
+import { useSchema } from "../context/SchemaContext";
+import { useScoutData } from "../context/ScoutDataContext";
 import { useEffect, useState } from "react";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutlineRounded";
 

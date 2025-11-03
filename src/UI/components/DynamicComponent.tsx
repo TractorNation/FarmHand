@@ -4,8 +4,8 @@ import InputCard from "../InputCard";
 import DropdownInput from "./DropdownInput";
 import CheckboxInput from "./CheckboxInput";
 import TextInput from "./TextInput";
-import useValidation from "../../hooks/useValidation";
-import useScoutData from "../../hooks/useScoutData";
+import { useValidation } from "../../context/ValidationContext";
+import { useScoutData } from "../../context/ScoutDataContext";
 import { useEffect, useState } from "react";
 
 /**

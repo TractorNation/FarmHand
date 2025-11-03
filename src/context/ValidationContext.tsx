@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useState } from "react";
+import { createContext, ReactNode, useContext, useState } from "react";
 
 interface ValidationContextType {
   valid: boolean;
@@ -7,7 +7,9 @@ interface ValidationContextType {
   setTouched: (touched: boolean) => void;
 }
 
-export const ValidationContext = createContext<ValidationContextType | null>(null);
+export const ValidationContext = createContext<ValidationContextType | null>(
+  null
+);
 
 export default function ValidationProvider({
   children,
@@ -24,4 +26,11 @@ export default function ValidationProvider({
       {children}
     </ValidationContext.Provider>
   );
+}
+
+export function useValidation() {
+  const context = useContext(ValidationContext);
+  if (!context)
+    throw new Error("useValidation must be used within a ValidationProvider");
+  return context;
 }

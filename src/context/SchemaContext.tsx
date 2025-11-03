@@ -2,6 +2,7 @@ import {
   createContext,
   ReactNode,
   useCallback,
+  useContext,
   useEffect,
   useRef,
   useState,
@@ -31,12 +32,14 @@ interface SchemaContextType {
   refreshSchemas: () => Promise<void>;
 }
 
-export const SchemaContext = createContext<SchemaContextType | null>(null);
+const SchemaContext = createContext<SchemaContextType | null>(null);
 
 export default function SchemaProvider({ children }: { children: ReactNode }) {
   const [schema, setSchema] = useState<any | null>(null);
   const [schemaName, setSchemaName] = useState<string | null>(null);
-  const [availableSchemas, setAvailableSchemas] = useState<SchemaMetaData[]>([]);
+  const [availableSchemas, setAvailableSchemas] = useState<SchemaMetaData[]>(
+    []
+  );
   const initializedRef = useRef(false);
 
   const loadSchemas = useCallback(async () => {
@@ -81,13 +84,13 @@ export default function SchemaProvider({ children }: { children: ReactNode }) {
       try {
         // Load schemas first
         const schemas = await loadSchemas();
-        
+
         // Then try to get the last saved schema
         const lastSchema = await StoreManager.getLastSchema();
-        
-        if (lastSchema && schemas.find(s => s.name === lastSchema)) {
+
+        if (lastSchema && schemas.find((s) => s.name === lastSchema)) {
           // If we have a valid saved schema, select it
-          setSchema(schemas.find(s => s.name === lastSchema)!.schema);
+          setSchema(schemas.find((s) => s.name === lastSchema)!.schema);
           setSchemaName(lastSchema);
         } else if (schemas.length > 0) {
           // Otherwise, default to first schema
@@ -123,4 +126,11 @@ export default function SchemaProvider({ children }: { children: ReactNode }) {
       {children}
     </SchemaContext.Provider>
   );
+}
+
+export function useSchema() {
+  const context = useContext(SchemaContext);
+  if (!context)
+    throw new Error("useSchemaContext must be used within a SchemaProvider");
+  return context;
 }

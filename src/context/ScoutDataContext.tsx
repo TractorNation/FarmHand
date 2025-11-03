@@ -1,4 +1,10 @@
-import { createContext, ReactNode, useCallback, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useState,
+} from "react";
 import StoreManager from "../Utils/StoreManager";
 
 interface ScoutDataContextType {
@@ -87,4 +93,11 @@ export default function ScoutDataProvider(props: ScoutDataProviderProps) {
       {children}
     </ScoutDataContext.Provider>
   );
+}
+
+export function useScoutData() {
+  const context = useContext(ScoutDataContext);
+  if (!context)
+    throw new Error("useScoutData must be used within a ScoutDataProvider");
+  return context;
 }

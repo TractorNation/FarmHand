@@ -6,8 +6,9 @@ import {
   FormControl,
 } from "@mui/material";
 import { useState } from "react";
-import useValidation from "../../hooks/useValidation";
-import useScoutData from "../../hooks/useScoutData";
+import { useValidation } from "../../context/ValidationContext";
+import { useScoutData } from "../../context/ScoutDataContext";
+
 
 /**
  * Props for the dropdown input

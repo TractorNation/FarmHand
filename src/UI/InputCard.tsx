@@ -1,8 +1,8 @@
 import { Card, CardContent, Typography, Box } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import { ReactNode } from "react";
-import useValidation from "../hooks/useValidation";
-import useScoutData from "../hooks/useScoutData";
+import { useValidation } from "../context/ValidationContext";
+import { useScoutData } from "../context/ScoutDataContext";
 
 /**
  * Props for InputCard
