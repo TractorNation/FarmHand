@@ -1,7 +1,7 @@
-import { useState } from "react";
 import { Button } from "@mui/material";
 import CheckIcon from "@mui/icons-material/CheckRounded";
 import CloseIcon from "@mui/icons-material/CloseRounded";
+import useToggle from "../../hooks/useToggle";
 
 /**
  * Props for the Checkbox input
@@ -19,19 +19,15 @@ interface CheckboxInputProps {
  */
 export default function CheckboxInput(props: CheckboxInputProps) {
   const { defaultValue, onChange } = props;
-  const [active, setActive] = useState(defaultValue);
-
-
-  const toggleActive = () => {
-    const newValue = !active;
-    setActive(newValue);
-    if (onChange) onChange(newValue);
-  };
+  const { active, toggleActive } = useToggle(defaultValue);
 
   return (
     <Button
-      onClick={toggleActive}
-      variant="contained" 
+      onClick={() => {
+        toggleActive();
+        if (onChange) onChange(active);
+      }}
+      variant="contained"
       color={active ? "secondary" : "inherit"}
       sx={{
         display: "flex",

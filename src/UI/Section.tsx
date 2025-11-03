@@ -12,6 +12,7 @@ import ValidationProvider from "../context/ValidationContext";
 import { useState } from "react";
 import ExpandIcon from "@mui/icons-material/ExpandMoreRounded";
 import { useScoutData } from "../context/ScoutDataContext";
+import useToggle from "../hooks/useToggle";
 
 /**
  * Props for the section component
@@ -22,13 +23,9 @@ interface SectionProps {
 
 export default function Section(props: SectionProps) {
   const { section } = props;
-  const [expanded, setExpanded] = useState(true);
   const theme = useTheme();
+  const { active, toggleActive } = useToggle(true);
   const { errors, submitted } = useScoutData();
-
-  const handleExpansion = () => {
-    setExpanded((prevExpanded) => !prevExpanded);
-  };
 
   const sectionFields = section.fields.map((field) => field.name);
   const hasErrorInSection = sectionFields.some((field) =>
@@ -36,15 +33,15 @@ export default function Section(props: SectionProps) {
   );
 
   // Highlight the section if it has an error, is collapsed, and the form has been submitted.
-  const showErrorHighlight = hasErrorInSection && !expanded && submitted;
+  const showErrorHighlight = hasErrorInSection && !active && submitted;
 
   return (
     <>
       <Accordion
-        expanded={expanded}
+        expanded={active}
         square
         disableGutters
-        onChange={handleExpansion}
+        onChange={toggleActive}
         elevation={0}
         sx={{
           p: 3,
