@@ -1,4 +1,5 @@
 import {
+  AppBar,
   Box,
   Button,
   CircularProgress,
@@ -7,8 +8,10 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  IconButton,
   ListItem,
   Stack,
+  Toolbar,
   Typography,
   useTheme,
 } from "@mui/material";
@@ -20,21 +23,30 @@ import ErrorOutlineIcon from "@mui/icons-material/ErrorOutlineRounded";
 import QRcodeIcon from "@mui/icons-material/QrcodeRounded";
 import ResetIcon from "@mui/icons-material/ReplayRounded";
 import HelpIcon from "@mui/icons-material/HelpOutlineRounded";
+import CloseIcon from "@mui/icons-material/CloseRounded";
+import { invoke } from "@tauri-apps/api/core";
 
 export default function Scout() {
   const { schema, schemaName } = useSchema();
   const theme = useTheme();
-  const { errors, clearMatchData, setSubmitted, clearErrors } = useScoutData();
+  const { errors, clearMatchData, setSubmitted, clearErrors, getMatchData } = useScoutData();
 
   const [resetKey, setResetKey] = useState<Key>(0);
   const [showErrorPopup, setShowErrorPopup] = useState(false);
   const [showResetPopup, setShowResetPopup] = useState(false);
+  const [showQRPage, setShowQRPage] = useState(false);
+  const [qrCodeString, setQRcodeString] = useState("");
+
+  const schemaData = schema as Schema;
 
   const handleSubmit = () => {
     setSubmitted(true);
     if (errors.length > 0) {
       setShowErrorPopup(true);
+      return;
     }
+
+    handleGenerateQr();
   };
 
   const handleReset = async () => {
@@ -43,6 +55,28 @@ export default function Scout() {
     setResetKey((prev) => (prev as number) + 1);
     setShowResetPopup(false);
   };
+
+  const handleGenerateQr = async () => {
+    const sections = schemaData.sections;
+    const keys = []
+    for (const section of sections) {
+      for (const field of section.fields) {
+        keys.push(field.name)
+      }
+    }
+
+    const values = []
+    for (const key of keys) {
+      values.push(await getMatchData(key));
+    }
+
+    const valueString = values.join(" ");
+
+    const qrSvg = await invoke<string>("generate_qr_code", { data: valueString });
+    setQRcodeString(qrSvg);
+    setShowQRPage(true);
+  };
+
 
   useEffect(() => {
     clearMatchData();
@@ -60,9 +94,6 @@ export default function Scout() {
       </Box>
     );
   }
-
-  const schemaData = schema as Schema;
-
   return (
     <>
       <Box sx={{ p: 3, justifyContent: "center" }}>
@@ -157,6 +188,47 @@ export default function Scout() {
             OK
           </Button>
         </DialogActions>
+      </Dialog>
+
+      {/*Full page QR export popup */}
+      <Dialog fullScreen open={showQRPage} onClose={() => setShowQRPage(false)}>
+        <AppBar sx={{ position: "relative" }}>
+          <Toolbar>
+            <IconButton
+              edge="start"
+              color="inherit"
+              onClick={() => setShowQRPage(false)}
+              aria-label="close"
+            >
+              <CloseIcon />
+            </IconButton>
+            <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+              Export match data
+            </Typography>
+            <Button
+              autoFocus
+              color="inherit"
+              onClick={() => setShowQRPage(false)}
+            >
+              Save to match history
+            </Button>
+          </Toolbar>
+        </AppBar>
+        <DialogContent
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "white",
+          }}
+        >
+          {qrCodeString && (
+            <img
+              src={`data:image/svg+xml;base64,${btoa(qrCodeString)}`}
+              alt="QR Code"
+            />
+          )}
+        </DialogContent>
       </Dialog>
     </>
   );
