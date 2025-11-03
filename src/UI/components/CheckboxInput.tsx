@@ -37,8 +37,8 @@ export default function CheckboxInput(props: CheckboxInputProps) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        width:' 70%',
-        aspectRatio: '5/2'
+        width: "70%",
+        height: "100%",
       }}
       disableElevation
     >

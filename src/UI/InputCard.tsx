@@ -50,7 +50,8 @@ export default function InputCard(props: InputCardProps) {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          justifyContent: "center",
+          justifyContent: "flex-start",
+          height: "100%",
         }}
       >
         {showError && (
@@ -68,6 +69,7 @@ export default function InputCard(props: InputCardProps) {
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
+            flexGrow: 1,
             width: "100%",
           }}
         >
