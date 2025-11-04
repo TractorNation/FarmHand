@@ -30,3 +30,8 @@ interface ComponentProps {
   options?: string[];
   onChange?: (value: any) => void;
 }
+
+interface QrCode {
+  data: string;
+  image: string;
+}

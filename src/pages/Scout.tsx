@@ -10,6 +10,8 @@ import {
   DialogTitle,
   IconButton,
   ListItem,
+  Slide,
+  Snackbar,
   Stack,
   Toolbar,
   Typography,
@@ -18,24 +20,29 @@ import {
 import Section from "../UI/Section";
 import { useSchema } from "../context/SchemaContext";
 import { useScoutData } from "../context/ScoutDataContext";
-import { useEffect, useState, Key } from "react";
+import { useEffect, useState, Key, useRef } from "react";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutlineRounded";
 import QRcodeIcon from "@mui/icons-material/QrcodeRounded";
 import ResetIcon from "@mui/icons-material/ReplayRounded";
 import HelpIcon from "@mui/icons-material/HelpOutlineRounded";
 import CloseIcon from "@mui/icons-material/CloseRounded";
+import CopyIcon from "@mui/icons-material/ContentCopyRounded";
+import DownloadIcon from "@mui/icons-material/DownloadRounded";
+import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { invoke } from "@tauri-apps/api/core";
 
 export default function Scout() {
   const { schema, schemaName } = useSchema();
   const theme = useTheme();
-  const { errors, clearMatchData, setSubmitted, clearErrors, getMatchData } = useScoutData();
+  const { errors, clearMatchData, setSubmitted, clearErrors, getMatchData } =
+    useScoutData();
 
   const [resetKey, setResetKey] = useState<Key>(0);
   const [showErrorPopup, setShowErrorPopup] = useState(false);
   const [showResetPopup, setShowResetPopup] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [showQRPage, setShowQRPage] = useState(false);
-  const [qrCodeString, setQRcodeString] = useState("");
+  const qrCodeData = useRef<QrCode | null>(null);
 
   const schemaData = schema as Schema;
 
@@ -58,25 +65,31 @@ export default function Scout() {
 
   const handleGenerateQr = async () => {
     const sections = schemaData.sections;
-    const keys = []
+    const keys = [];
     for (const section of sections) {
       for (const field of section.fields) {
-        keys.push(field.name)
+        keys.push(field.name);
       }
     }
 
-    const values = []
+    const values = [];
     for (const key of keys) {
       values.push(await getMatchData(key));
     }
 
     const valueString = values.join(" ");
 
-    const qrSvg = await invoke<string>("generate_qr_code", { data: valueString });
-    setQRcodeString(qrSvg);
+    const qrSvg = await invoke<string>("generate_qr_code", {
+      data: valueString,
+    });
+    qrCodeData.current = { data: valueString, image: qrSvg };
     setShowQRPage(true);
   };
 
+  const handleCopy = async () => {
+    setSnackbarOpen(true);
+    await writeText(qrCodeData.current?.data!);
+  };
 
   useEffect(() => {
     clearMatchData();
@@ -192,7 +205,12 @@ export default function Scout() {
 
       {/*Full page QR export popup */}
       <Dialog fullScreen open={showQRPage} onClose={() => setShowQRPage(false)}>
-        <AppBar sx={{ position: "relative" }}>
+        <AppBar
+          sx={{
+            position: "relative",
+            backgroundColor: theme.palette.primary.main,
+          }}
+        >
           <Toolbar>
             <IconButton
               edge="start"
@@ -208,6 +226,8 @@ export default function Scout() {
             <Button
               autoFocus
               color="inherit"
+              variant="contained"
+              sx={{ backgroundColor: theme.palette.primary.dark }}
               onClick={() => setShowQRPage(false)}
             >
               Save to match history
@@ -219,17 +239,73 @@ export default function Scout() {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            backgroundColor: "white",
+            backgroundColor: theme.palette.background.paper,
           }}
         >
-          {qrCodeString && (
-            <img
-              src={`data:image/svg+xml;base64,${btoa(qrCodeString)}`}
-              alt="QR Code"
-            />
-          )}
+          <Stack direction={"column"} height={"100%"} spacing={3}>
+            <Typography variant="subtitle1">
+              Scan to import this match to another device
+            </Typography>
+            {qrCodeData.current ? (
+              <img
+                src={`data:image/svg+xml;base64,${btoa(qrCodeData.current.image)}`}
+                alt="QR Code"
+                style={{ borderRadius: 20 }}
+              />
+            ) : (
+              <Typography
+                variant="subtitle1"
+                sx={{ mt: 2, mb: 1, color: theme.palette.error.main }}
+              >
+                Failed to load QR code.
+              </Typography>
+            )}
+            <Stack
+              direction={"row"}
+              width={"100%"}
+              justifyContent={"space-evenly"}
+            >
+              <Button
+                variant="contained"
+                color="secondary"
+                onClick={handleCopy}
+              >
+                <CopyIcon sx={{ mr: 1 }} /> copy
+              </Button>
+              <Button variant="contained" color="secondary">
+                <DownloadIcon sx={{ mr: 1 }} />
+                download
+              </Button>
+            </Stack>
+          </Stack>
         </DialogContent>
       </Dialog>
+
+      <Snackbar
+        open={snackbarOpen}
+        onClose={() => setSnackbarOpen(false)}
+        slots={{ transition: Slide }}
+        slotProps={{
+          content: {
+            sx: {
+              backgroundColor: theme.palette.success.main,
+              color: theme.palette.success.contrastText,
+              fontFamily: theme.typography.subtitle1,
+            },
+          },
+        }}
+        message="Form data copied to clipboard"
+        autoHideDuration={1200}
+        action={
+          <IconButton
+            onClick={() => {
+              setSnackbarOpen(false);
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        }
+      />
     </>
   );
 }
