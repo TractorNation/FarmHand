@@ -8,6 +8,7 @@ import CheckboxInput from "./CheckboxInput";
 import TextInput from "./TextInput";
 import InputCard from "../InputCard";
 import { useAsyncFetch } from "../../hooks/useAsyncFetch";
+import { isFieldInvalid } from "../../utils/FormUtils";
 
 /**
  * Props for the dynamic component
@@ -28,16 +29,18 @@ export default function DynamicComponent(props: DynamicComponentProps) {
   const [storedValue, loading, error] = useAsyncFetch(() =>
     getMatchData(component.name)
   );
-
   const handleChange = (newValue: any) => {
     setValue(newValue);
     setTouched(true);
-    const isInvalid =
-      component.required &&
-      (newValue === "" ||
-        (component.type === "checkbox" && !newValue) ||
-        (component.type === "counter" &&
-          newValue === component.props?.default));
+
+    const isInvalid = isFieldInvalid(
+      component.required!,
+      component.type,
+      component.props?.default!,
+      newValue
+    );
+
+    console.log("IsInvalid", isInvalid);
 
     setValid(!isInvalid);
     if (isInvalid) {
@@ -68,21 +71,21 @@ export default function DynamicComponent(props: DynamicComponentProps) {
         default:
           initial = undefined;
       }
+    }
 
-      setValue(initial);
-      addMatchData(component.name, initial);
+    const isInvalid = isFieldInvalid(
+      component.required!,
+      component.type,
+      component.props?.default!,
+      initial
+    );
 
-      if (component.required) {
-        const isInvalid =
-          initial === "" ||
-          (component.type === "checkbox" && initial === false) ||
-          (component.type === "counter" &&
-            initial === component.props?.default);
-
-        setValid(!isInvalid);
-        if (isInvalid) {
-          addError(component.name);
-        }
+    setValue(initial);
+    addMatchData(component.name, initial);
+    if (component.required) {
+      setValid(!isInvalid);
+      if (isInvalid) {
+        addError(component.name);
       }
     }
 
