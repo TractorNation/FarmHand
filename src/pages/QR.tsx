@@ -1,6 +1,6 @@
 import { Box, Card, Fab, Grid, Typography, useTheme } from "@mui/material";
 import QrScanIcon from "@mui/icons-material/QrCodeScannerRounded";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   exists,
   BaseDirectory,
@@ -11,10 +11,46 @@ import QrScannerPopup from "../ui/dialog/QrScannerPopup";
 import QrShareDialog from "../ui/dialog/QrShareDialogue";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import useDialog from "../hooks/useDialog";
+import { useAsyncFetch } from "../hooks/useAsyncFetch";
+
+const fetchQrCodes = async () => {
+  const folderExists = await exists("saved-matches", {
+    baseDir: BaseDirectory.AppLocalData,
+  });
+
+  if (!folderExists) {
+    console.log("saved matches folder does not exist");
+    return;
+  }
+
+  const files = await readDir("saved-matches", {
+    baseDir: BaseDirectory.AppLocalData,
+  });
+
+  const images = await Promise.all(
+    files
+      .filter((file) => file.name.endsWith(".svg"))
+      .map(async (file) => {
+        const contents = await readTextFile(`saved-matches/${file.name}`, {
+          baseDir: BaseDirectory.AppLocalData,
+        });
+
+        const match = contents.match(/<desc><!\[CDATA\[(.*?)\]\]><\/desc>/s);
+        const data = match ? match[1] : "";
+
+        return {
+          name: file.name,
+          data: data,
+          image: contents,
+        };
+      })
+  );
+  return images;
+};
 
 export default function QRPage() {
   const theme = useTheme();
-  const [qrCodes, setQrCodes] = useState<QrCode[]>([]);
+  const [qrCodes, loadingQr, errorFetchingQr] = useAsyncFetch(fetchQrCodes);
   const [activeCode, setActiveCode] = useState<QrCode | null>(null);
   const [showQrPopup, openQrPopup, closeQrPopup] = useDialog();
   const [scannerOpen, openScanner, closeScanner] = useDialog();
@@ -28,44 +64,21 @@ export default function QRPage() {
     openQrPopup();
   };
 
-  const fetchQrCodes = async () => {
-    const folderExists = await exists("saved-matches", {
-      baseDir: BaseDirectory.AppLocalData,
-    });
-
-    if (!folderExists) {
-      console.log("saved matches folder does not exist");
-      return;
-    }
-
-    const files = await readDir("saved-matches", {
-      baseDir: BaseDirectory.AppLocalData,
-    });
-
-    const images = await Promise.all(
-      files
-        .filter((file) => file.name.endsWith(".svg"))
-        .map(async (file) => {
-          const contents = await readTextFile(`saved-matches/${file.name}`, {
-            baseDir: BaseDirectory.AppLocalData,
-          });
-
-          const match = contents.match(/<desc><!\[CDATA\[(.*?)\]\]><\/desc>/s);
-          const data = match ? match[1] : "";
-
-          return {
-            name: file.name,
-            data: data,
-            image: contents,
-          };
-        })
+  if (loadingQr) {
+    return (
+      <Typography variant="h6" color="info">
+        Loading...
+      </Typography>
     );
-    setQrCodes(images);
-  };
+  }
 
-  useEffect(() => {
-    fetchQrCodes();
-  }, []);
+  if (errorFetchingQr) {
+    return (
+      <Typography variant="h6" color="error">
+        Error fetching QR codes
+      </Typography>
+    );
+  }
 
   return (
     <>
@@ -81,7 +94,7 @@ export default function QRPage() {
       </Fab>
       <Box sx={{ px: 3, pt: 2, justifyContent: "center" }}>
         <Grid container spacing={2}>
-          {qrCodes.map((qr, i) => {
+          {qrCodes!.map((qr, i) => {
             console.log(qr);
             return (
               <Grid size={{ xs: 6, sm: 3, md: 2, lg: 1 }} key={i}>
