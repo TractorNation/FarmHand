@@ -1,5 +1,4 @@
 import {
-  AppBar,
   Box,
   Button,
   CircularProgress,
@@ -8,12 +7,8 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
-  IconButton,
   ListItem,
-  Slide,
-  Snackbar,
   Stack,
-  Toolbar,
   Typography,
   useTheme,
 } from "@mui/material";
@@ -24,14 +19,13 @@ import { useEffect, useState, Key, useRef } from "react";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutlineRounded";
 import ResetIcon from "@mui/icons-material/ReplayRounded";
 import HelpIcon from "@mui/icons-material/HelpOutlineRounded";
-import CloseIcon from "@mui/icons-material/CloseRounded";
-import CopyIcon from "@mui/icons-material/ContentCopyRounded";
-import DownloadIcon from "@mui/icons-material/DownloadRounded";
 import QrCodeIcon from "@mui/icons-material/QrCodeRounded";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { invoke } from "@tauri-apps/api/core";
 import { appLocalDataDir, resolve } from "@tauri-apps/api/path";
 import { BaseDirectory, mkdir } from "@tauri-apps/plugin-fs";
+import QrShareDialog from "../ui/dialog/QrShareDialogue";
+
 
 export default function Scout() {
   const { schema, schemaName } = useSchema();
@@ -42,7 +36,6 @@ export default function Scout() {
   const [resetKey, setResetKey] = useState<Key>(0);
   const [showErrorPopup, setShowErrorPopup] = useState(false);
   const [showResetPopup, setShowResetPopup] = useState(false);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [showQRPage, setShowQRPage] = useState(false);
   const qrCodeData = useRef<QrCode | null>(null);
 
@@ -117,7 +110,6 @@ export default function Scout() {
   };
 
   const handleCopy = async () => {
-    setSnackbarOpen(true);
     await writeText(qrCodeData.current?.data!);
   };
 
@@ -234,121 +226,13 @@ export default function Scout() {
       </Dialog>
 
       {/*QR export popup */}
-      <Dialog open={showQRPage} onClose={() => setShowQRPage(false)}>
-        {/* <AppBar
-          sx={{
-            position: "relative",
-            backgroundColor: theme.palette.primary.main,
-          }}
-        >
-          <Toolbar>
-            <IconButton
-              edge="start"
-              color="inherit"
-              onClick={() => setShowQRPage(false)}
-              aria-label="close"
-            >
-              <CloseIcon />
-            </IconButton>
-            <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-              Export match data
-            </Typography>
-            <Button
-              autoFocus
-              color="inherit"
-              variant="contained"
-              sx={{ backgroundColor: theme.palette.primary.dark }}
-              onClick={() => handleSaveQR()}
-            >
-              Save to match history
-            </Button>
-          </Toolbar>
-        </AppBar> */}
-        <DialogContent
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: theme.palette.background.paper,
-          }}
-        >
-          <Stack direction={"column"} height={"100%"} spacing={3}>
-            <Typography variant="subtitle1">
-              Scan to import this match to another device
-            </Typography>
-            {qrCodeData.current ? (
-              <img
-                src={`data:image/svg+xml;base64,${btoa(
-                  qrCodeData.current.image
-                )}`}
-                alt="QR Code"
-                style={{ borderRadius: 20 }}
-              />
-            ) : (
-              <Typography
-                variant="subtitle1"
-                sx={{ mt: 2, mb: 1, color: theme.palette.error.main }}
-              >
-                Failed to load QR code.
-              </Typography>
-            )}
-            <Stack
-              direction={"row"}
-              width={"100%"}
-              justifyContent={"space-evenly"}
-            >
-              <Button
-                variant="contained"
-                color="secondary"
-                onClick={handleCopy}
-              >
-                <CopyIcon sx={{ mr: 1 }} /> copy
-              </Button>
-              <Button variant="contained" color="secondary">
-                <DownloadIcon sx={{ mr: 1 }} />
-                download
-              </Button>
-            </Stack>
-            <Button
-              autoFocus
-              color="inherit"
-              variant="contained"
-              sx={{
-                backgroundColor: theme.palette.primary.dark,
-                width: "100%",
-              }}
-              onClick={() => handleSaveQR()}
-            >
-              Save to match history
-            </Button>
-          </Stack>
-        </DialogContent>
-      </Dialog>
-
-      <Snackbar
-        open={snackbarOpen}
-        onClose={() => setSnackbarOpen(false)}
-        slots={{ transition: Slide }}
-        slotProps={{
-          content: {
-            sx: {
-              backgroundColor: theme.palette.success.main,
-              color: theme.palette.success.contrastText,
-              fontFamily: theme.typography.subtitle1,
-            },
-          },
-        }}
-        message="Form data copied to clipboard"
-        autoHideDuration={1200}
-        action={
-          <IconButton
-            onClick={() => {
-              setSnackbarOpen(false);
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
-        }
+      <QrShareDialog
+        open={showQRPage}
+        onClose={() => setShowQRPage(false)}
+        qrCodeData={qrCodeData.current!}
+        handleSaveQR={handleSaveQR}
+        handleCopy={handleCopy}
+        allowSaveToHistory
       />
     </>
   );
