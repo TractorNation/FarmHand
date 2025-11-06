@@ -11,6 +11,7 @@ import ValidationProvider from "../context/ValidationContext";
 import ExpandIcon from "@mui/icons-material/ExpandMoreRounded";
 import { useScoutData } from "../context/ScoutDataContext";
 import useToggle from "../hooks/useToggle";
+import { useMemo } from "react";
 
 /**
  * Props for the section component
@@ -25,9 +26,13 @@ export default function Section(props: SectionProps) {
   const { active, toggleActive } = useToggle(true);
   const { errors, submitted } = useScoutData();
 
-  const sectionFields = section.fields.map((field) => field.name);
-  const hasErrorInSection = sectionFields.some((field) =>
-    errors.includes(field)
+  const getSectionFields = section.fields.map((field) => field.name);
+
+  const sectionFields = getSectionFields;
+
+  const hasErrorInSection = useMemo(
+    () => sectionFields.some((field) => errors.includes(field)),
+    [section.fields, errors]
   );
 
   // Highlight the section if it has an error, is collapsed, and the form has been submitted.

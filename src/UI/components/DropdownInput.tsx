@@ -56,7 +56,7 @@ export default function DropdownInput(props: DropdownInputProps) {
         }}
       >
         {options.map((option) => (
-          <MenuItem value={option}>{option}</MenuItem>
+          <MenuItem value={option} key={option}>{option}</MenuItem>
         ))}
       </Select>
     </FormControl>
