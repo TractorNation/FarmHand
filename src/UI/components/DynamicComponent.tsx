@@ -8,6 +8,7 @@ import CheckboxInput from "./CheckboxInput";
 import TextInput from "./TextInput";
 import InputCard from "../InputCard";
 import { isFieldInvalid } from "../../utils/FormUtils";
+import { useAsyncFetch } from "../../hooks/useAsyncFetch"; 
 
 /**
  * Props for the dynamic component
@@ -22,80 +23,81 @@ interface DynamicComponentProps {
  */
 export default function DynamicComponent(props: DynamicComponentProps) {
   const { setValid, setTouched } = useValidation();
-  const { addMatchData, addError, removeError, getMatchData } =
+  const { addMatchData, addError, removeError, getMatchData, matchData } =
     useScoutData();
   const { component } = props;
 
   const [value, setValue] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
 
+  const [storedValue, loading, error] = useAsyncFetch(
+    () => getMatchData(component.name),
+    [component.name, getMatchData, matchData] 
+  );
+  
   useEffect(() => {
+    if (loading) {
+        return;
+    }
+    if (error) {
+        console.error("Error fetching initial data:", error);
+        return;
+    }
+
     let isMounted = true;
-
-    const initializeComponent = async () => {
-      try {
-        const storedValue = await getMatchData(component.name);
-
-        console.log("Stored value", storedValue);
-
-        let initial;
-        if (storedValue !== undefined && storedValue !== null) {
-          initial = storedValue;
-        } else {
-          switch (component.type) {
+    
+    let initial;
+    if (storedValue !== undefined && storedValue !== null) {
+        initial = storedValue;
+    } else {
+        switch (component.type) {
             case "checkbox":
-              initial = component.props?.default ?? false;
-              break;
+                initial = component.props?.default ?? false;
+                break;
             case "text":
             case "dropdown":
-              initial = component.props?.default ?? "";
-              break;
+                initial = component.props?.default ?? "";
+                break;
             case "counter":
-              initial = component.props?.default ?? 0;
-              break;
+                initial = component.props?.default ?? 0;
+                break;
             default:
-              initial = undefined;
-          }
+                initial = undefined;
         }
+    }
 
-        const isInvalid = isFieldInvalid(
-          component.required!,
-          component.type,
-          component.props?.default!,
-          initial
-        );
+    const isInvalid = isFieldInvalid(
+        component.required!,
+        component.type,
+        component.props?.default!,
+        initial
+    );
 
-        if (isMounted) {
-          setValue(initial);
+    if (isMounted) {
+        setValue(initial);
 
-          if (component.required) {
+        if (component.required) {
             setValid(!isInvalid);
             if (isInvalid) {
-              addError(component.name);
+                addError(component.name);
             }
-          }
         }
-      } catch (e) {
-        if (isMounted) {
-          setError(e as Error);
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    initializeComponent();
+    }
 
     return () => {
-      isMounted = false;
-      if (component.required) {
-        removeError(component.name);
-      }
+        isMounted = false;
+        if (component.required) {
+            removeError(component.name);
+        }
     };
-  }, [component, getMatchData, setValid, addError, removeError]);
+  }, [
+      storedValue, 
+      loading, 
+      error, 
+      component, 
+      setValid, 
+      addError, 
+      removeError
+  ]);
 
   const handleChange = (newValue: any) => {
     setValue(newValue);
