@@ -7,7 +7,7 @@ import DropdownInput from "./DropdownInput";
 import CheckboxInput from "./CheckboxInput";
 import TextInput from "./TextInput";
 import InputCard from "../InputCard";
-import { isFieldInvalid } from "../../utils/FormUtils";
+import { isFieldInvalid } from "../../utils/GeneralUtils";
 import { useAsyncFetch } from "../../hooks/useAsyncFetch";
 
 /**

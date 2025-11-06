@@ -36,8 +36,3 @@ interface QrCode {
   data: string;
   image: string;
 }
-
-interface Image {
-  name: string;
-  image: string;
-}

@@ -10,6 +10,7 @@ import {
 import StoreManager from "../utils/StoreManager";
 
 import testSchema from "../config/schema/test.json";
+import { createSchemaHash } from "../utils/GeneralUtils";
 
 /**
  * Interface to store data about a single Schema
@@ -17,14 +18,15 @@ import testSchema from "../config/schema/test.json";
 interface SchemaMetaData {
   name: string;
   path: string;
-  schema: any;
+  schema: Schema;
 }
 
 /**
  * Data that will be passed through the context
  */
 interface SchemaContextType {
-  schema: any | null;
+  schema: Schema | null;
+  hash: string | null;
   schemaName: string | null;
   availableSchemas: SchemaMetaData[];
   loadSchemas: () => Promise<SchemaMetaData[]>;
@@ -35,11 +37,11 @@ interface SchemaContextType {
 const SchemaContext = createContext<SchemaContextType | null>(null);
 
 export default function SchemaProvider({ children }: { children: ReactNode }) {
-  const [schema, setSchema] = useState<any | null>(null);
+  const [schema, setSchema] = useState<Schema | null>(null);
   const [schemaName, setSchemaName] = useState<string | null>(null);
-  const [availableSchemas, setAvailableSchemas] = useState<SchemaMetaData[]>(
-    []
-  );
+  const [schemaHash, setSchemaHash] = useState<string | null>(null);
+  const availableSchemas = useRef<SchemaMetaData[] | null>(null);
+
   const initializedRef = useRef(false);
 
   const loadSchemas = useCallback(async () => {
@@ -47,25 +49,30 @@ export default function SchemaProvider({ children }: { children: ReactNode }) {
       {
         name: "Test Schema",
         path: "../config/schema/test.json",
-        schema: testSchema,
+        schema: testSchema as Schema,
       },
     ];
 
-    setAvailableSchemas(defaults);
+    availableSchemas.current = defaults;
     return defaults;
   }, []);
 
   const selectSchema = useCallback(
     async (name: string) => {
-      const found = availableSchemas.find((s) => s.name === name);
-      if (!found) {
-        console.warn(`Schema "${name}" not found`);
+      const found =
+        availableSchemas.current!.find((s) => s.name === name) ?? null;
+
+      if (found === null || found === undefined) {
+        console.warn(`Schema: "${name}" not found`);
         return;
       }
 
       setSchema(found.schema);
       setSchemaName(found.name);
 
+      const hash = await createSchemaHash(found.schema);
+      setSchemaHash(hash)
+      console.log("Setting schema hash", hash);
       await StoreManager.setLastSchema(found.name);
     },
     [availableSchemas]
@@ -88,15 +95,12 @@ export default function SchemaProvider({ children }: { children: ReactNode }) {
         // Then try to get the last saved schema
         const lastSchema = await StoreManager.getLastSchema();
 
+        // If there's a last schema
         if (lastSchema && schemas.find((s) => s.name === lastSchema)) {
-          // If we have a valid saved schema, select it
-          setSchema(schemas.find((s) => s.name === lastSchema)!.schema);
-          setSchemaName(lastSchema);
+          selectSchema(lastSchema);
         } else if (schemas.length > 0) {
           // Otherwise, default to first schema
-          setSchema(schemas[0].schema);
-          setSchemaName(schemas[0].name);
-          await StoreManager.setLastSchema(schemas[0].name);
+          selectSchema(schemas[0].name);
         }
       } catch (error) {
         console.error("Error initializing schema:", error);
@@ -116,8 +120,9 @@ export default function SchemaProvider({ children }: { children: ReactNode }) {
     <SchemaContext.Provider
       value={{
         schema: schema,
+        hash: schemaHash,
         schemaName: schemaName,
-        availableSchemas,
+        availableSchemas: availableSchemas.current!,
         loadSchemas,
         selectSchema,
         refreshSchemas,

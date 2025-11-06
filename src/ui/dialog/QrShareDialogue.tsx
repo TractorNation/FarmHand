@@ -14,6 +14,8 @@ import CopyIcon from "@mui/icons-material/ContentCopyRounded";
 import DownloadIcon from "@mui/icons-material/DownloadRounded";
 import CloseIcon from "@mui/icons-material/CloseRounded";
 import { TransitionProps } from "@mui/material/transitions";
+import { decodeQR } from "../../utils/QrUtils";
+import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 
 /**
  * Props for the QR export dialog
@@ -24,7 +26,6 @@ interface QrExportDialogProps {
   onClose: () => void;
   qrCodeData: QrCode;
   handleSaveQR?: () => void;
-  handleCopy: () => void;
   allowSaveToHistory?: boolean;
 }
 
@@ -38,20 +39,15 @@ const Transition = forwardRef(function Transition(
 });
 
 export default function QrShareDialog(props: QrExportDialogProps) {
-  const {
-    open,
-    onClose,
-    qrCodeData,
-    handleSaveQR,
-    handleCopy,
-    allowSaveToHistory,
-  } = props;
+  const { open, onClose, qrCodeData, handleSaveQR, allowSaveToHistory } = props;
   const theme = useTheme();
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
-  const copy = () => {
+  const copy = async () => {
     setSnackbarOpen(true);
-    handleCopy();
+    const decoded = decodeQR(qrCodeData.data);
+    console.log(decoded);
+    await writeText(JSON.stringify(decoded, null, 2));
   };
 
   return (

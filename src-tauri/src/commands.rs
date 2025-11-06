@@ -1,4 +1,4 @@
-use crate::core::qr;
+use crate::core::{qr, util};
 use tauri::Error;
 
 #[tauri::command]
@@ -7,9 +7,11 @@ pub fn generate_qr_code(data: String) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub fn save_qr_svg(
-    svg: String,
-    file_path: String
-) -> Result<(), Error> {
+pub fn save_qr_svg(svg: String, file_path: String) -> Result<(), Error> {
     qr::save_as_svg(&svg, &file_path)
+}
+
+#[tauri::command]
+pub fn hash_schema(schema: String) -> Result<String, String> {
+    util::hash_data(&schema)
 }

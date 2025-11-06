@@ -20,18 +20,20 @@ import ErrorOutlineIcon from "@mui/icons-material/ErrorOutlineRounded";
 import ResetIcon from "@mui/icons-material/ReplayRounded";
 import HelpIcon from "@mui/icons-material/HelpOutlineRounded";
 import QrCodeIcon from "@mui/icons-material/QrCodeRounded";
-import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { invoke } from "@tauri-apps/api/core";
 import { appLocalDataDir, resolve } from "@tauri-apps/api/path";
 import { BaseDirectory, mkdir } from "@tauri-apps/plugin-fs";
 import QrShareDialog from "../ui/dialog/QrShareDialogue";
 import useDialog from "../hooks/useDialog";
-import { EmbedDataInSvg } from "../utils/QrUtils";
+import {
+  writeDataToQrCode,
+} from "../utils/QrUtils";
+import { EmbedDataInSvg } from "../utils/GeneralUtils";
 
 export default function Scout() {
-  const { schema, schemaName } = useSchema();
+  const { schema, hash, schemaName } = useSchema();
   const theme = useTheme();
-  const { errors, clearMatchData, setSubmitted, clearErrors, getMatchData } =
+  const { errors, clearMatchData, setSubmitted, clearErrors, matchData } =
     useScoutData();
 
   const [resetKey, setResetKey] = useState<Key>(0);
@@ -40,7 +42,7 @@ export default function Scout() {
   const [showQrPopup, openQrPopup, closeQrPopup] = useDialog();
   const qrCodeData = useRef<QrCode | null>(null);
 
-  const schemaData = schema as Schema;
+  const schemaData = schema;
 
   const handleSubmit = () => {
     setSubmitted(true);
@@ -60,37 +62,16 @@ export default function Scout() {
   };
 
   const handleGenerateQr = async () => {
-    const sections = schemaData.sections;
-    const keys = [];
-    for (const section of sections) {
-      for (const field of section.fields) {
-        keys.push(field.name);
-      }
-    }
-
-    const values = [];
-    for (const key of keys) {
-      const value = await getMatchData(key);
-
-      if (value === undefined || value === null || value === "") {
-        values.push("*");
-      } else {
-        values.push(value);
-      }
-    }
-    const fileName = `match-${Date.now()}.svg`;
-
-    const valueString = "FARMHAND: " + values.join(" ");
-
-    const qrSvg = await invoke<string>("generate_qr_code", {
-      data: valueString,
-    });
-
-    qrCodeData.current = { name: fileName, data: valueString, image: qrSvg };
+    const schemaHash = hash ?? "000000";
+    const jsonObject = Object.fromEntries(matchData.entries());
+    const qr = await writeDataToQrCode("match", schemaHash, jsonObject, "id");
+    qrCodeData.current = qr;
     openQrPopup();
   };
 
   const handleSaveQR = async () => {
+    if (!qrCodeData.current) return;
+
     await mkdir("saved-matches", {
       baseDir: BaseDirectory.AppLocalData,
       recursive: true,
@@ -99,27 +80,21 @@ export default function Scout() {
     const filePath = await resolve(
       await appLocalDataDir(),
       "saved-matches",
-      qrCodeData.current?.name ?? "UNDEFINED.svg"
+      qrCodeData.current.name
     );
 
-    let svgToSave = EmbedDataInSvg(qrCodeData.current!);
+    const svgToSave = EmbedDataInSvg(qrCodeData.current);
 
     await invoke("save_qr_svg", {
       svg: svgToSave,
-      filePath: filePath,
+      filePath,
     });
+
     closeQrPopup();
   };
+  
 
-  const handleCopy = async () => {
-    const descTagContents = qrCodeData.current?.data!;
-    const decodedData = decodeURIComponent(descTagContents);
-
-    await writeText(decodedData);
-  };
-
-  if (!schema) {
-    return (
+  if (!schema) { return (
       <Box
         display="flex"
         justifyContent="center"
@@ -137,7 +112,7 @@ export default function Scout() {
           Scouting - {schemaName}
         </Typography>
         <Stack spacing={3} key={resetKey}>
-          {schemaData.sections.map((section, index) => (
+          {schemaData!.sections.map((section, index) => (
             <Section key={index} section={section} />
           ))}
         </Stack>
@@ -228,7 +203,6 @@ export default function Scout() {
         onClose={closeQrPopup}
         qrCodeData={qrCodeData.current!}
         handleSaveQR={handleSaveQR}
-        handleCopy={handleCopy}
         allowSaveToHistory
       />
     </>

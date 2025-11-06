@@ -9,10 +9,9 @@ import {
 } from "@tauri-apps/plugin-fs";
 import QrScannerPopup from "../ui/dialog/QrScannerPopup";
 import QrShareDialog from "../ui/dialog/QrShareDialogue";
-import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import useDialog from "../hooks/useDialog";
 import { useAsyncFetch } from "../hooks/useAsyncFetch";
-import { GetDescFromSvg } from "../utils/QrUtils";
+import { GetDescFromSvg } from "../utils/GeneralUtils";
 
 const fetchQrCodes = async () => {
   const folderExists = await exists("saved-matches", {
@@ -55,10 +54,6 @@ export default function QRPage() {
   const [showQrPopup, openQrPopup, closeQrPopup] = useDialog();
   const [scannerOpen, openScanner, closeScanner] = useDialog();
 
-  const handleCopy = async () => {
-    if (!activeCode) return;
-    await writeText(activeCode.data);
-  };
   const selectImage = (image: QrCode) => {
     setActiveCode(image);
     openQrPopup();
@@ -139,7 +134,6 @@ export default function QRPage() {
         open={showQrPopup}
         onClose={closeQrPopup}
         qrCodeData={activeCode!}
-        handleCopy={handleCopy}
       />
     </>
   );
