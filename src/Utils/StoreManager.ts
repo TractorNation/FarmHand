@@ -73,13 +73,23 @@ const StoreManager = {
   },
 
   async getLastSchema(): Promise<string | undefined> {
-    let name = await this.get("lastSchemaName");
+    let name = await this.get(StoreKeys.settings.LAST_SCHEMA_NAME);
     return name ?? undefined;
   },
 
   async setLastSchema(name: string) {
-    await this.set("lastSchemaName", name);
+    await this.set(StoreKeys.settings.LAST_SCHEMA_NAME, name);
   },
 };
 
 export default StoreManager;
+
+export const StoreKeys = {
+  settings: {
+    LAST_SCHEMA_NAME: "LAST_SCHEMA_NAME",
+  },
+
+  match: {
+    field: (name: string) => `match::field::${name}`,
+  },
+};

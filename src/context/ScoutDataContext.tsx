@@ -7,7 +7,7 @@ import {
   useRef,
   useEffect,
 } from "react";
-import StoreManager from "../utils/StoreManager";
+import StoreManager, { StoreKeys } from "../utils/StoreManager";
 
 interface ScoutDataContextType {
   matchData: Map<string, any>;
@@ -52,17 +52,19 @@ export default function ScoutDataProvider(props: ScoutDataProviderProps) {
       return newMap;
     });
 
-    await StoreManager.set(key, val);
+    await StoreManager.set(StoreKeys.match.field(key), val);
   }, []);
 
   const getMatchData = useCallback(
     async (key: string) => {
+      const safeKey = StoreKeys.match.field(key);
+
       const cachedValue = matchDataRef.current.get(key);
       if (cachedValue !== undefined && cachedValue !== null) {
         return cachedValue;
       }
 
-      const storedValue = await StoreManager.get(key);
+      const storedValue = await StoreManager.get(safeKey);
 
       if (storedValue !== undefined && storedValue !== null) {
         setMatchData((prevMap) => {
