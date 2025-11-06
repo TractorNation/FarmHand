@@ -12,6 +12,7 @@ import QrShareDialog from "../ui/dialog/QrShareDialogue";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import useDialog from "../hooks/useDialog";
 import { useAsyncFetch } from "../hooks/useAsyncFetch";
+import { GetDescFromSvg } from "../utils/QrUtils";
 
 const fetchQrCodes = async () => {
   const folderExists = await exists("saved-matches", {
@@ -35,8 +36,7 @@ const fetchQrCodes = async () => {
           baseDir: BaseDirectory.AppLocalData,
         });
 
-        const match = contents.match(/<desc><!\[CDATA\[(.*?)\]\]><\/desc>/s);
-        const data = match ? match[1] : "";
+        const data = GetDescFromSvg(contents);
 
         return {
           name: file.name,
