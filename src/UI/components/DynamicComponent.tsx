@@ -8,7 +8,7 @@ import CheckboxInput from "./CheckboxInput";
 import TextInput from "./TextInput";
 import InputCard from "../InputCard";
 import { isFieldInvalid } from "../../utils/FormUtils";
-import { useAsyncFetch } from "../../hooks/useAsyncFetch"; 
+import { useAsyncFetch } from "../../hooks/useAsyncFetch";
 
 /**
  * Props for the dynamic component
@@ -23,7 +23,7 @@ interface DynamicComponentProps {
  */
 export default function DynamicComponent(props: DynamicComponentProps) {
   const { setValid, setTouched } = useValidation();
-  const { addMatchData, addError, removeError, getMatchData, matchData } =
+  const { addMatchData, addError, removeError, getMatchData } =
     useScoutData();
   const { component } = props;
 
@@ -31,73 +31,65 @@ export default function DynamicComponent(props: DynamicComponentProps) {
 
   const [storedValue, loading, error] = useAsyncFetch(
     () => getMatchData(component.name),
-    [component.name, getMatchData, matchData] 
+    [component.name, getMatchData]
   );
-  
+
   useEffect(() => {
-    if (loading) {
-        return;
+    if (loading && value === null) {
+      return;
     }
     if (error) {
-        console.error("Error fetching initial data:", error);
-        return;
+      console.error("Error fetching initial data:", error);
+      return;
     }
 
     let isMounted = true;
-    
+
     let initial;
     if (storedValue !== undefined && storedValue !== null) {
-        initial = storedValue;
+      initial = storedValue;
     } else {
-        switch (component.type) {
-            case "checkbox":
-                initial = component.props?.default ?? false;
-                break;
-            case "text":
-            case "dropdown":
-                initial = component.props?.default ?? "";
-                break;
-            case "counter":
-                initial = component.props?.default ?? 0;
-                break;
-            default:
-                initial = undefined;
-        }
+      switch (component.type) {
+        case "checkbox":
+          initial = component.props?.default ?? false;
+          break;
+        case "text":
+        case "dropdown":
+          initial = component.props?.default ?? "";
+          break;
+        case "counter":
+          initial = component.props?.default ?? 0;
+          break;
+        default:
+          initial = undefined;
+      }
     }
 
     const isInvalid = isFieldInvalid(
-        component.required!,
-        component.type,
-        component.props?.default!,
-        initial
+      component.required!,
+      component.type,
+      component.props?.default!,
+      initial
     );
 
     if (isMounted) {
-        setValue(initial);
+      setValue(initial);
 
-        if (component.required) {
-            setValid(!isInvalid);
-            if (isInvalid) {
-                addError(component.name);
-            }
+      if (component.required) {
+        setValid(!isInvalid);
+        if (isInvalid) {
+          addError(component.name);
         }
+      }
     }
 
     return () => {
-        isMounted = false;
-        if (component.required) {
-            removeError(component.name);
-        }
+      isMounted = false;
+      if (component.required) {
+        removeError(component.name);
+      }
     };
-  }, [
-      storedValue, 
-      loading, 
-      error, 
-      component, 
-      setValid, 
-      addError, 
-      removeError
-  ]);
+  }, [storedValue, loading, error, component, setValid, addError, removeError]);
 
   const handleChange = (newValue: any) => {
     setValue(newValue);
@@ -165,7 +157,7 @@ export default function DynamicComponent(props: DynamicComponentProps) {
           <TextInput
             value={String(value)}
             onChange={handleChange}
-            multiline={component.props?.multiline!}
+            multiline={component.props?.multiline}
             label={component.props?.label}
           />
         );

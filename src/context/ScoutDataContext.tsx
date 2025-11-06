@@ -4,6 +4,8 @@ import {
   useCallback,
   useContext,
   useState,
+  useRef,
+  useEffect,
 } from "react";
 import StoreManager from "../utils/StoreManager";
 
@@ -35,6 +37,12 @@ export default function ScoutDataProvider(props: ScoutDataProviderProps) {
   const [errors, setErrors] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
 
+  const matchDataRef = useRef(matchData);
+
+  useEffect(() => {
+    matchDataRef.current = matchData;
+  }, [matchData]);
+
   const { children } = props;
 
   const addMatchData = useCallback(async (key: string, val: any) => {
@@ -49,7 +57,7 @@ export default function ScoutDataProvider(props: ScoutDataProviderProps) {
 
   const getMatchData = useCallback(
     async (key: string) => {
-      const cachedValue = matchData.get(key);
+      const cachedValue = matchDataRef.current.get(key);
       if (cachedValue !== undefined && cachedValue !== null) {
         return cachedValue;
       }
@@ -68,7 +76,7 @@ export default function ScoutDataProvider(props: ScoutDataProviderProps) {
 
       return undefined;
     },
-    [matchData, setMatchData]
+    [setMatchData] // Now getMatchData is stable as matchData is accessed via ref
   );
 
   const clearMatchData = async () => {

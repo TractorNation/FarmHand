@@ -17,8 +17,8 @@ import MenuIcon from "@mui/icons-material/MenuRounded";
 import HomeIcon from "@mui/icons-material/HomeRounded";
 import AddChartIcon from "@mui/icons-material/AddchartRounded";
 import SettingsIcon from "@mui/icons-material/SettingsRounded";
-import QrCodeIcon from '@mui/icons-material/QrCodeRounded';
-import React from "react";
+import QrCodeIcon from "@mui/icons-material/QrCodeRounded";
+import React, { useEffect } from "react";
 import { HashRouter, Route, Routes, useNavigate } from "react-router";
 import Home from "./pages/Home";
 import Settings from "./pages/Settings";
@@ -77,7 +77,11 @@ function Layout({ children }: { children: React.ReactNode }) {
           </Typography>
         </Toolbar>
       </AppBar>
-      <Drawer open={drawerOpen} onClose={toggleDrawer(false)} sx={{backdropFilter: "blur(2px)" }}>
+      <Drawer
+        open={drawerOpen}
+        onClose={toggleDrawer(false)}
+        sx={{ backdropFilter: "blur(2px)" }}
+      >
         <Box
           sx={{
             width: "25vw",
@@ -125,6 +129,28 @@ function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  useEffect(() => {
+    const handleKeydown = (event: KeyboardEvent) => {
+      if (event.key === "Backspace") {
+        const target = event.target as HTMLElement;
+        const isTyping =
+          target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable;
+
+        if (!isTyping) {
+          event.preventDefault();
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeydown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeydown);
+    };
+  }, []);
+
   return (
     <HashRouter>
       <Routes>

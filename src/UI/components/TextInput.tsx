@@ -27,7 +27,7 @@ export default function TextInput(props: TextInputProps) {
   const showError = !valid && (touched || submitted);
 
   const updateText = (e: ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.target.value;;
+    const newValue = e.target.value;
     if (onChange) onChange(newValue);
   };
 
