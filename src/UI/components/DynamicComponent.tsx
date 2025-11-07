@@ -30,8 +30,8 @@ export default function DynamicComponent(props: DynamicComponentProps) {
   const [value, setValue] = useState<any>(null);
 
   const [storedValue, loading, error] = useAsyncFetch(
-    () => getMatchData(component.name),
-    [component.name, getMatchData]
+    () => getMatchData(component.id),
+    [component.id, getMatchData]
   );
 
   useEffect(() => {
@@ -109,7 +109,7 @@ export default function DynamicComponent(props: DynamicComponentProps) {
       removeError(component.name);
     }
 
-    addMatchData(component.name, newValue);
+    addMatchData(component.id, newValue);
   };
 
   const renderInput = () => {

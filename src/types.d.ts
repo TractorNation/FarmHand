@@ -14,6 +14,7 @@ interface SectionData {
 /** An individual component, type and props */
 interface Component {
   name: string;
+  id: number;
   type: string;
   required?: boolean;
   props?: ComponentProps;

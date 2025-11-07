@@ -10,9 +10,9 @@ import {
 import StoreManager, { StoreKeys } from "../utils/StoreManager";
 
 interface ScoutDataContextType {
-  matchData: Map<string, any>;
-  addMatchData: (key: string, val: any) => void;
-  getMatchData: (key: string) => any;
+  matchData: Map<number, any>;
+  addMatchData: (key: number, val: any) => void;
+  getMatchData: (key: number) => any;
   clearMatchData: () => Promise<void>;
   errors: string[];
   addError: (error: string) => void;
@@ -31,8 +31,8 @@ export const ScoutDataContext = createContext<ScoutDataContextType | null>(
 );
 
 export default function ScoutDataProvider(props: ScoutDataProviderProps) {
-  const [matchData, setMatchData] = useState<Map<string, any>>(
-    new Map<string, any>()
+  const [matchData, setMatchData] = useState<Map<number, any>>(
+    new Map<number, any>()
   );
   const [errors, setErrors] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
@@ -45,19 +45,19 @@ export default function ScoutDataProvider(props: ScoutDataProviderProps) {
 
   const { children } = props;
 
-  const addMatchData = useCallback(async (key: string, val: any) => {
+  const addMatchData = useCallback(async (key: number, val: any) => {
     setMatchData((prevMap) => {
       const newMap = new Map(prevMap);
       newMap.set(key, val);
       return newMap;
     });
 
-    await StoreManager.set(StoreKeys.match.field(key), val);
+    await StoreManager.set(StoreKeys.match.field(key.toString()), val);
   }, []);
 
   const getMatchData = useCallback(
-    async (key: string) => {
-      const safeKey = StoreKeys.match.field(key);
+    async (key: number) => {
+      const safeKey = StoreKeys.match.field(key.toString());
 
       const cachedValue = matchDataRef.current.get(key);
       if (cachedValue !== undefined && cachedValue !== null) {
@@ -78,16 +78,16 @@ export default function ScoutDataProvider(props: ScoutDataProviderProps) {
 
       return undefined;
     },
-    [setMatchData] // Now getMatchData is stable as matchData is accessed via ref
+    [setMatchData]
   );
 
   const clearMatchData = async () => {
     const storeToDelete = Array.from(matchData.keys());
 
-    setMatchData(new Map<string, any>());
+    setMatchData(new Map<number, any>());
     setSubmitted(false);
 
-    await Promise.all(storeToDelete.map((key) => StoreManager.remove(key)));
+    await Promise.all(storeToDelete.map((key) => StoreManager.remove(key.toString())));
   };
 
   const addError = useCallback((error: string) => {
