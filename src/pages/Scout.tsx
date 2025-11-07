@@ -25,9 +25,7 @@ import { appLocalDataDir, resolve } from "@tauri-apps/api/path";
 import { BaseDirectory, mkdir } from "@tauri-apps/plugin-fs";
 import QrShareDialog from "../ui/dialog/QrShareDialogue";
 import useDialog from "../hooks/useDialog";
-import {
-  writeDataToQrCode,
-} from "../utils/QrUtils";
+import { QrCodeBuilder } from "../utils/QrUtils";
 import { EmbedDataInSvg } from "../utils/GeneralUtils";
 
 export default function Scout() {
@@ -63,8 +61,8 @@ export default function Scout() {
 
   const handleGenerateQr = async () => {
     const schemaHash = hash ?? "000000";
-    const jsonObject = Object.fromEntries(matchData.entries());
-    const qr = await writeDataToQrCode("match", schemaHash, jsonObject, "id");
+    const minifiedJSON = Array.from(matchData.values());
+    const qr = await QrCodeBuilder.build.MATCH(schemaHash, minifiedJSON, "id");
     qrCodeData.current = qr;
     openQrPopup();
   };
@@ -92,9 +90,9 @@ export default function Scout() {
 
     closeQrPopup();
   };
-  
 
-  if (!schema) { return (
+  if (!schema) {
+    return (
       <Box
         display="flex"
         justifyContent="center"

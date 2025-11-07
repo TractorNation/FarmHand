@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import { decodeData, encodeData } from "./GeneralUtils";
+import { compressData, decompressData } from "./GeneralUtils";
 
 export type QrType = "match" | "schema" | "theme" | "settings";
 export type EncodedQr = string;
@@ -17,44 +17,43 @@ export interface QrCode {
 
 export interface DecodedQr {
   type: QrType;
-  version: string;
   schemaHash: string;
   data: any;
 }
 
 const APP_PREFIX = "frmhnd";
-const QR_VERSION = "v1";
 
 /**
  * Builds a string that can then be encoded into qr
  * @param type the type of data encoded in the qr
  * @param schemaHash an 8 character has representing the current schema
- * @param payload the data to actually encode
+ * @param payload the compressed, base64-encoded payload (already processed by compressData)
  * @returns An encoded string
  */
-export function buildQrString(
+function buildQrString(
   type: QrType,
   schemaHash: string,
-  payload: any
+  compressedPayload: string
 ): EncodedQr {
-  const encoded = encodeData(payload);
-  return `${APP_PREFIX}:${type}:${QR_VERSION}:${schemaHash}:${encoded}`;
+  return `${APP_PREFIX}:${type.charAt(0)}:${schemaHash}:${compressedPayload}`;
 }
 
 /**
  * Decodes and validates a qr string
  * @param qrString the qr string to decode
  * @param currentSchemaHash an 8 character representation of the users current schema
- * @returns an object containing the type, version, schemaHash, and data encoded into the code
+ * @returns an object containing the type, schemaHash, and data encoded into the code
  */
-export function decodeQR(
+export async function decodeQR(
   qrString: string,
   currentSchemaHash?: string
-): DecodedQr {
-  const [prefix, type, version, schemaHash, encoded] = qrString.split(":");
+): Promise<DecodedQr> {
+  const [prefix, type, schemaHash, compressed] = qrString.split(":");
+  console.log(qrString.split(":"));
   if (prefix !== APP_PREFIX) throw new Error("Invalid QR prefix");
   if (!type) throw new Error("QR type missing");
-  if (!encoded) throw new Error("QR payload missing");
+  if (!compressed) throw new Error("QR payload missing");
+  const data = await decompressData(compressed);
 
   // If it's match data and we have a schema hash to compare
   if (
@@ -65,8 +64,7 @@ export function decodeQR(
     throw new Error("Schema mismatch");
   }
 
-  const data = decodeData(encoded);
-  return { type: type as QrType, version, schemaHash, data };
+  return { type: type as QrType, schemaHash, data };
 }
 
 /**
@@ -76,7 +74,7 @@ export function decodeQR(
  * @param identifier a unique string for this code
  * @returns
  */
-export function generateQrFileName(
+function generateQrFileName(
   type: QrType,
   schemaHash: string,
   identifier?: string
@@ -94,26 +92,28 @@ export function generateQrFileName(
  * @param identifier a unique key for this code
  * @returns an object containing filename, encoded data, and an svg string.
  */
-export async function writeDataToQrCode(
+async function writeDataToQrCode(
   type: QrType,
   schemaHash: string,
   payload: any,
   identifier?: string
 ): Promise<QrCode> {
-  const qrString = buildQrString(type, schemaHash, payload);
-  console.log("Qr String:", qrString)
+  const compressed = await compressData(payload);
+  const qrString = buildQrString(type, schemaHash, compressed);
   const qrSvg = await invoke<string>("generate_qr_code", { data: qrString });
   const fileName = generateQrFileName(type, schemaHash, identifier);
 
   return { name: fileName, data: qrString, image: qrSvg };
 }
 
+/**
+ * Builder tool for qr codes, will eventually include all types and other helpful build functions
+ */
 export const QrCodeBuilder = {
-  Headers: {
-    TITLE: APP_PREFIX,
-  },
-  Build: {
-    MATCH: (schemaHash: string, payload: any) =>
-      buildQrString("match", schemaHash, payload),
+  buildFileName: (type: QrType, schemaHash: string, identifier?: string) =>
+    generateQrFileName(type, schemaHash, identifier),
+  build: {
+    MATCH: async (schemaHash: string, payload: any, id?: string) =>
+      await writeDataToQrCode("match", schemaHash, payload, id),
   },
 };

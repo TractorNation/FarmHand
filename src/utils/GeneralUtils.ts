@@ -52,19 +52,21 @@ export async function createSchemaHash(schema: Schema): Promise<string> {
 }
 
 /**
- * Encode object into base64
- * @param data the data to encode
- * @returns the encoded data string
+ * Compresses JSON for embedding into a qr code
+ * @param data JSON object to compress
+ * @returns compressed string
  */
-export function encodeData(data: any): string {
-  return btoa(JSON.stringify(data));
+export async function compressData(data: any): Promise<string> {
+  const json = JSON.stringify(data);
+  return await invoke<string>("compress_fields", { fields: json });
 }
 
 /**
- * Decode Base64 string back to its original object
- * @param encoded the encoded Base64 string
- * @returns the original object
+ * Decompress base64-encoded compressed string
+ * @param encoded string to decompress
+ * @returns the decompressed, encoded string
  */
-export function decodeData(encoded: string): any {
-  return JSON.parse(atob(encoded));
+export async function decompressData(encoded: string): Promise<any> {
+  const json = await invoke<string>("decompress_data", { data: encoded });
+  return JSON.parse(json);
 }

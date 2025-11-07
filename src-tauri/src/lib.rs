@@ -1,4 +1,6 @@
-use crate::commands::{generate_qr_code, hash_schema, save_qr_svg};
+use crate::commands::{
+    compress_fields, decompress_data, generate_qr_code, hash_schema, save_qr_svg,
+};
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 mod commands;
@@ -14,7 +16,9 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             generate_qr_code,
             save_qr_svg,
-            hash_schema
+            hash_schema,
+            compress_fields,
+            decompress_data
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

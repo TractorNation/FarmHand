@@ -28,4 +28,4 @@ qrcode-generator = "5.0.0"
 base64 = "0.22.1"
 tauri-plugin-clipboard-manager = "2"
 md5 = "0.8.0"
-
+flate2 = "1.1.5"

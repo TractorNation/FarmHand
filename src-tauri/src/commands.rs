@@ -15,3 +15,13 @@ pub fn save_qr_svg(svg: String, file_path: String) -> Result<(), Error> {
 pub fn hash_schema(schema: String) -> Result<String, String> {
     util::hash_data(&schema)
 }
+
+#[tauri::command]
+pub fn compress_fields(fields: String) -> Result<String, String> {
+    util::deflate_data(&fields)
+}
+
+#[tauri::command]
+pub fn decompress_data(data: String) -> Result<String, String> {
+    util::inflate_data(&data)
+}

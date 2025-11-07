@@ -45,7 +45,7 @@ export default function QrShareDialog(props: QrExportDialogProps) {
 
   const copy = async () => {
     setSnackbarOpen(true);
-    const decoded = decodeQR(qrCodeData.data);
+    const decoded = await decodeQR(qrCodeData.data);
     console.log(decoded);
     await writeText(JSON.stringify(decoded, null, 2));
   };
