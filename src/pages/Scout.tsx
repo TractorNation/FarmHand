@@ -29,8 +29,13 @@ import { getFieldValueByName } from "../utils/GeneralUtils";
 export default function Scout() {
   const { schema, hash, schemaName } = useSchema();
   const theme = useTheme();
-  const { errors, clearMatchData, setSubmitted, clearErrors, matchData } =
-    useScoutData();
+  const {
+    errors,
+    clearMatchData,
+    setSubmitted,
+    clearErrors,
+    getMatchDataMap,
+  } = useScoutData();
 
   const [resetKey, setResetKey] = useState<Key>(0);
   const [showErrorPopup, openErrorPopup, closeErrorPopup] = useDialog();
@@ -58,6 +63,7 @@ export default function Scout() {
   };
 
   const handleGenerateQr = async () => {
+    const matchData = getMatchDataMap();
     const schemaHash = hash ?? "000000";
     const minifiedJSON = Array.from(matchData.values());
     const teamNumber = getFieldValueByName("Team Number", schema!, matchData);

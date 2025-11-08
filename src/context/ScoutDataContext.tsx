@@ -5,12 +5,11 @@ import {
   useContext,
   useState,
   useRef,
-  useEffect,
 } from "react";
 import StoreManager, { StoreKeys } from "../utils/StoreManager";
 
 interface ScoutDataContextType {
-  matchData: Map<number, any>;
+  getMatchDataMap: () => Map<number, any>;
   addMatchData: (key: number, val: any) => void;
   getMatchData: (key: number) => any;
   clearMatchData: () => Promise<void>;
@@ -31,63 +30,49 @@ export const ScoutDataContext = createContext<ScoutDataContextType | null>(
 );
 
 export default function ScoutDataProvider(props: ScoutDataProviderProps) {
-  const [matchData, setMatchData] = useState<Map<number, any>>(
-    new Map<number, any>()
-  );
+  const matchData = useRef<Map<number, any>>(new Map());
+
   const [errors, setErrors] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
-
-  const matchDataRef = useRef(matchData);
-
-  useEffect(() => {
-    matchDataRef.current = matchData;
-  }, [matchData]);
 
   const { children } = props;
 
   const addMatchData = useCallback(async (key: number, val: any) => {
-    setMatchData((prevMap) => {
-      const newMap = new Map(prevMap);
-      newMap.set(key, val);
-      return newMap;
-    });
+    matchData.current.set(key, val);
 
     await StoreManager.set(StoreKeys.match.field(key.toString()), val);
   }, []);
 
-  const getMatchData = useCallback(
-    async (key: number) => {
-      const safeKey = StoreKeys.match.field(key.toString());
+  const getMatchData = useCallback(async (key: number) => {
+    const safeKey = StoreKeys.match.field(key.toString());
 
-      const cachedValue = matchDataRef.current.get(key);
-      if (cachedValue !== undefined && cachedValue !== null) {
-        return cachedValue;
-      }
+    const cachedValue = matchData.current.get(key);
+    if (cachedValue !== undefined && cachedValue !== null) {
+      return cachedValue;
+    }
 
-      const storedValue = await StoreManager.get(safeKey);
+    const storedValue = await StoreManager.get(safeKey);
 
-      if (storedValue !== undefined && storedValue !== null) {
-        setMatchData((prevMap) => {
-          if (prevMap.get(key) === storedValue) return prevMap;
-          const newMap = new Map(prevMap);
-          newMap.set(key, storedValue);
-          return newMap;
-        });
-        return storedValue;
-      }
+    if (storedValue !== undefined && storedValue !== null) {
+      matchData.current.set(key, storedValue);
 
-      return undefined;
-    },
-    [setMatchData]
-  );
+      return storedValue;
+    }
+
+    return undefined;
+  }, []);
+
+  const getMatchDataMap = useCallback(() => matchData.current, []);
 
   const clearMatchData = async () => {
-    const storeToDelete = Array.from(matchData.keys());
+    const storeToDelete = Array.from(matchData.current.keys());
 
-    setMatchData(new Map<number, any>());
+    matchData.current.clear();
     setSubmitted(false);
 
-    await Promise.all(storeToDelete.map((key) => StoreManager.remove(key.toString())));
+    await Promise.all(
+      storeToDelete.map((key) => StoreManager.remove(key.toString()))
+    );
   };
 
   const addError = useCallback((error: string) => {
@@ -105,7 +90,7 @@ export default function ScoutDataProvider(props: ScoutDataProviderProps) {
   return (
     <ScoutDataContext.Provider
       value={{
-        matchData,
+        getMatchDataMap,
         addMatchData,
         getMatchData,
         clearMatchData,
