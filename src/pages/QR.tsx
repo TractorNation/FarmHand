@@ -80,18 +80,13 @@ export default function QRPage() {
   return (
     <>
       <Fab
-        color="secondary"
+        color="primary"
         size="large"
         variant="extended"
         sx={{
           position: "fixed",
           bottom: "calc(16px + env(safe-area-inset-bottom, 0px))",
           right: "calc(16px + env(safe-area-inset-right, 0px))",
-          color: theme.palette.secondary.contrastText,
-          backgroundColor: theme.palette.secondary.main,
-          "&:hover": {
-            backgroundColor: theme.palette.secondary.dark,
-          },
         }}
         onClick={openScanner}
       >

@@ -10,6 +10,7 @@ import {
   Skeleton,
   useMediaQuery,
   useTheme,
+  alpha,
 } from "@mui/material";
 import { BrowserQRCodeReader, IScannerControls } from "@zxing/browser";
 import { Result } from "@zxing/library";
@@ -238,7 +239,7 @@ export default function QrScannerPopup(props: QrScannerPopupProps) {
                 position: "relative",
                 borderRadius: 3,
                 overflow: "hidden",
-                background: "#000",
+                backgroundColor: "background.default",
                 aspectRatio: isLandscape ? "4/3" : "1/1",
                 width: "100%",
               }}
@@ -268,7 +269,7 @@ export default function QrScannerPopup(props: QrScannerPopupProps) {
                     <Box
                       key={i}
                       sx={{
-                        color: "rgba(255,255,255,0.5)",
+                        color: alpha(theme.palette.common.white, 0.5),
                         position: "absolute",
                         width: 40,
                         height: 40,

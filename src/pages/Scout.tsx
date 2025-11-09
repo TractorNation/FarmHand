@@ -120,7 +120,7 @@ export default function Scout() {
           </Button>
           <Button
             variant="contained"
-            color="secondary"
+            color="primary"
             sx={{ mt: 3 }}
             onClick={handleSubmit}
           >

@@ -115,20 +115,19 @@ export default function QrShareDialog(props: QrExportDialogProps) {
             </Typography>
 
             <Stack direction="row" spacing={2}>
-              <Button variant="contained" color="secondary" onClick={copy}>
+              <Button variant="contained" color="primary" onClick={copy}>
                 <CopyIcon sx={{ mr: 1 }} /> Copy
               </Button>
-              <Button variant="contained" color="secondary">
+              <Button variant="contained" color="primary">
                 <DownloadIcon sx={{ mr: 1 }} /> Download
               </Button>
             </Stack>
 
             {allowSaveToHistory && (
               <Button
-                color="inherit"
+                color="primary"
                 variant="contained"
                 sx={{
-                  backgroundColor: theme.palette.primary.dark,
                   width: "100%",
                 }}
                 onClick={handleSaveQR}

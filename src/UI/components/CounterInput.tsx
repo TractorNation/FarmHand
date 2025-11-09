@@ -1,4 +1,4 @@
-import { Button, Stack, Typography } from "@mui/material";
+import { Button, Stack, Typography} from "@mui/material";
 import AddIcon from "@mui/icons-material/AddRounded";
 import RemoveIcon from "@mui/icons-material/RemoveRounded";
 
@@ -31,32 +31,50 @@ export default function CounterInput(props: CounterInputProps) {
     if (onChange) onChange(newCount);
   };
 
+  const isMin = min !== undefined && value <= min;
+  const isMax = max !== undefined && value >= max;
+
   return (
     <Stack
       direction={"row"}
       alignItems={"center"}
       justifyContent={"center"}
+      spacing={2}
+      sx={{ width: "100%", maxWidth: 300 }}
     >
       <Button
         onClick={decrement}
-        variant="contained"
-        color="inherit"
+        variant="outlined"
+        color="secondary"
+        disabled={isMin}
         sx={{
+          minWidth: 56,
+          minHeight: 56,
           aspectRatio: "1/1",
+          borderRadius: 2,
         }}
-        disableElevation
       >
-        <RemoveIcon />
+        <RemoveIcon fontSize="large" />
       </Button>
-      <Typography variant="h5" sx={{ mx: 2 }}>{value}</Typography>
+      <Typography
+        variant="h5"
+        sx={{ minWidth: 60, textAlign: "center", color: "text.primary" }}
+      >
+        {value}
+      </Typography>
       <Button
         onClick={increment}
         variant="contained"
-        color="inherit"
-        sx={{ aspectRatio: "1/1" }}
-        disableElevation
+        color="secondary"
+        disabled={isMax}
+        sx={{
+          minWidth: 56,
+          minHeight: 56,
+          aspectRatio: "1/1",
+          borderRadius: 2,
+        }}
       >
-        <AddIcon />
+        <AddIcon fontSize="large" />
       </Button>
     </Stack>
   );

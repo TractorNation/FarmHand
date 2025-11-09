@@ -25,18 +25,20 @@ export default function CheckboxInput(props: CheckboxInputProps) {
         const newValue = !value;
         if (onChange) onChange(newValue);
       }}
-      variant="contained"
-      color={value ? "secondary" : "inherit"}
+      variant={value ? "contained" : "outlined"}
+      color="secondary"
       sx={{
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        width: "100%",
+        maxWidth: 200,
         minWidth: 120,
         aspectRatio: "2 / 1",
+        fontSize: "1.5rem",
       }}
-      disableElevation
     >
-      {value ? <CheckIcon /> : <CloseIcon />}
+      {value ? <CheckIcon fontSize="large" /> : <CloseIcon fontSize="large" />}
     </Button>
   );
 }

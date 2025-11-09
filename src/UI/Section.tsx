@@ -35,7 +35,6 @@ export default function Section(props: SectionProps) {
     [section.fields, errors]
   );
 
-  // Highlight the section if it has an error, is collapsed, and the form has been submitted.
   const showErrorHighlight = hasErrorInSection && !active && submitted;
 
   return (
@@ -45,7 +44,7 @@ export default function Section(props: SectionProps) {
         square
         disableGutters
         onChange={toggleActive}
-        elevation={active ? 2 : 1}  // Proper elevation for Material Design
+        elevation={active ? 2 : 1}
         sx={{
           p: 3,
           minWidth: "fit-content",
@@ -53,11 +52,11 @@ export default function Section(props: SectionProps) {
           display: "flex",
           alignContent: "center",
           flexDirection: "column",
-          backgroundColor: theme.palette.background.default,  // Use darker default background
+          backgroundColor: theme.palette.background.paper,  
           borderRadius: 2,
           borderColor: showErrorHighlight
             ? theme.palette.error.main
-            : "transparent",  // Only show border on error
+            : "transparent",
           borderWidth: showErrorHighlight ? 2 : 0,
           borderStyle: "solid",
           transition: "all 0.2s ease",
