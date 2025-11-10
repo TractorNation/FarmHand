@@ -160,6 +160,18 @@ export async function saveQrCode(code: QrCode) {
   });
 }
 
+export async function deleteQrCode(code: QrCode) {
+  const filePath = await resolve(
+    await appLocalDataDir(),
+    "saved-matches",
+    code.name
+  );
+
+  await invoke("delete_qr_code", {
+    path: filePath,
+  });
+}
+
 export async function createQrCodeFromImportedData(
   data: string,
   schema: Schema
@@ -171,7 +183,7 @@ export async function createQrCodeFromImportedData(
   const decoded = await decodeQR(data);
   console.log(decoded);
   const matchDataJSON = reconstructMatchDataFromArray(schema, decoded.data);
-  const matchData = matchDataJsonToMap(matchDataJSON)
+  const matchData = matchDataJsonToMap(matchDataJSON);
   const teamNumber = getFieldValueByName("Team Number", schema, matchData);
   const matchNumber = getFieldValueByName("Match Number", schema, matchData);
   const fileName = generateQrFileName([teamNumber!, matchNumber!]);

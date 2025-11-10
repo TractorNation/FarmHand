@@ -10,13 +10,17 @@ import {
   useTheme,
   useMediaQuery,
   Box,
+  DialogActions,
+  DialogTitle,
 } from "@mui/material";
 import { useState } from "react";
 import CopyIcon from "@mui/icons-material/ContentCopyRounded";
 import DownloadIcon from "@mui/icons-material/DownloadRounded";
 import CloseIcon from "@mui/icons-material/CloseRounded";
-import { decodeQR } from "../../utils/QrUtils";
+import HelpIcon from "@mui/icons-material/HelpOutlineRounded";
+import { decodeQR, deleteQrCode } from "../../utils/QrUtils";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
+import useDialog from "../../hooks/useDialog";
 
 /**
  * Props for the QR export dialog
@@ -27,20 +31,26 @@ interface QrExportDialogProps {
   onClose: () => void;
   qrCodeData: QrCode;
   handleSaveQR?: () => void;
-  allowSaveToHistory?: boolean;
+  forQrPage?: boolean;
 }
 
 export default function QrShareDialog(props: QrExportDialogProps) {
-  const { open, onClose, qrCodeData, handleSaveQR, allowSaveToHistory } = props;
+  const { open, onClose, qrCodeData, handleSaveQR, forQrPage } = props;
   const theme = useTheme();
+  const [deletePopupOpen, openDeletePopup, closeDeletePopup] = useDialog();
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const isLandscape = useMediaQuery("(orientation: landscape)");
 
-  const copy = async () => {
+  const handleCopy = async () => {
     setSnackbarOpen(true);
     const decoded = await decodeQR(qrCodeData.data);
     console.log(decoded);
     await writeText(JSON.stringify(decoded, null, 2));
+  };
+
+  const handleDelete = async () => {
+    await deleteQrCode(qrCodeData);
+    onClose();
   };
 
   return (
@@ -108,14 +118,13 @@ export default function QrShareDialog(props: QrExportDialogProps) {
             </Typography>
           )}
 
-          {/* Text + Buttons */}
-          <Stack spacing={2} alignItems="center">
+          <Stack spacing={2} sx={{ width: "100%" }}>
             <Typography variant="subtitle1" textAlign="center">
               Scan to import this match to another device
             </Typography>
 
-            <Stack direction="row" spacing={2}>
-              <Button variant="contained" color="primary" onClick={copy}>
+            <Stack direction="row" spacing={2} justifyContent="center">
+              <Button variant="contained" color="primary" onClick={handleCopy}>
                 <CopyIcon sx={{ mr: 1 }} /> Copy
               </Button>
               <Button variant="contained" color="primary">
@@ -123,7 +132,7 @@ export default function QrShareDialog(props: QrExportDialogProps) {
               </Button>
             </Stack>
 
-            {allowSaveToHistory && (
+            {!forQrPage && (
               <Button
                 color="primary"
                 variant="contained"
@@ -135,8 +144,43 @@ export default function QrShareDialog(props: QrExportDialogProps) {
                 Save to Match History
               </Button>
             )}
+            {forQrPage && (
+              <Button
+                color="error"
+                variant="contained"
+                onClick={openDeletePopup}
+                sx={{ width: "100%" }}
+              >
+                Delete QR
+              </Button>
+            )}
           </Stack>
         </DialogContent>
+      </Dialog>
+
+      {/*Delete Qr confirmation popup*/}
+      <Dialog
+        open={deletePopupOpen}
+        onClose={closeDeletePopup}
+        sx={{ elevation: 24 }}
+      >
+        <DialogTitle
+          sx={{
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <HelpIcon sx={{ mr: 1 }} />
+          Are you sure you want to delete this code?
+        </DialogTitle>
+        <DialogActions>
+          <Button onClick={handleDelete} color="error" variant="contained">
+            Delete
+          </Button>
+          <Button onClick={closeDeletePopup} color="primary" variant="text">
+            Cancel
+          </Button>
+        </DialogActions>
       </Dialog>
 
       <Snackbar

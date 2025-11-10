@@ -25,3 +25,8 @@ pub fn compress_fields(fields: String) -> Result<String, String> {
 pub fn decompress_data(data: String) -> Result<String, String> {
     util::inflate_data(&data)
 }
+
+#[tauri::command]
+pub fn delete_qr_code(path: String) -> Result<(), Error> {
+    qr::delete_code(&path)
+}

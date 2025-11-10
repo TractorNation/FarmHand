@@ -197,7 +197,6 @@ export default function Scout() {
         onClose={closeQrPopup}
         qrCodeData={qrCodeData.current!}
         handleSaveQR={handleSaveQR}
-        allowSaveToHistory
       />
     </>
   );

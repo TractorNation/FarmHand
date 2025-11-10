@@ -13,3 +13,9 @@ pub fn save_as_svg(svg: &String, file_path: &String) -> Result<(), Error> {
 
     Ok(())
 }
+
+pub fn delete_code(path: &String) -> Result<(), Error> {
+    fs::remove_file(&path).expect("Failed to delete file");
+
+    Ok(())
+}

@@ -104,7 +104,7 @@ export default function QRPage() {
                     elevation={2}
                     sx={{
                       borderColor: theme.palette.divider,
-                      borderWidth: 1, 
+                      borderWidth: 1,
                       borderStyle: "solid",
                       borderRadius: 2,
                       p: 2,
@@ -179,8 +179,12 @@ export default function QRPage() {
 
       <QrShareDialog
         open={showQrPopup}
-        onClose={closeQrPopup}
+        onClose={() => {
+          closeQrPopup();
+          refetchQrCodes();
+        }}
         qrCodeData={activeCode!}
+        forQrPage
       />
     </>
   );
