@@ -8,8 +8,5 @@ export default function useToggle(defaultTrue?: boolean) {
     setActive(newValue);
   };
 
-  return {
-    active,
-    toggleActive,
-  };
+  return [active, toggleActive] as const;
 }

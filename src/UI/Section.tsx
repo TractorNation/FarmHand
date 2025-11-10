@@ -23,7 +23,7 @@ interface SectionProps {
 export default function Section(props: SectionProps) {
   const { section } = props;
   const theme = useTheme();
-  const { active, toggleActive } = useToggle(true);
+  const [active, toggleActive] = useToggle(true);
   const { errors, submitted } = useScoutData();
 
   const getSectionFields = section.fields.map((field) => field.name);
