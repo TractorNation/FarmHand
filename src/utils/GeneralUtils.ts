@@ -1,4 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
+import { decodeQR, reconstructMatchDataFromArray } from "./QrUtils";
+import { save } from "@tauri-apps/plugin-dialog";
+import { writeTextFile } from "@tauri-apps/plugin-fs";
 
 export function isFieldInvalid(
   required: boolean,
@@ -108,6 +111,18 @@ export function getFieldValueByName(
     : null;
 }
 
+export async function getSchemaFromHash(hash: string, availableSchemas: SchemaMetaData[]): Promise<Schema | null> {
+  const allSchemasWithHash = await Promise.all(
+    availableSchemas.map(async (s) => ({
+      schema: s.schema,
+      hash: await createSchemaHash(s.schema),
+    }))
+  );
+  
+  const found = allSchemasWithHash.find((s) => s.hash === hash);
+  return found ? found.schema : null;
+}
+
 export function matchDataJsonToMap(object: any) {
   const map = new Map<number, any>();
   for (const key in object) {
@@ -117,4 +132,73 @@ export function matchDataJsonToMap(object: any) {
   }
 
   return map;
+}
+
+export async function saveFileWithDialog(
+  fileData: string,
+  defaultName: string
+) {
+  const path = await save({
+    defaultPath: defaultName,
+    filters: [{ name: "CSV / JSON Files", extensions: ["csv", "json"] }],
+  });
+
+  if (path) {
+    await writeTextFile(path, fileData);
+    return path;
+  } else {
+    throw new Error("Save cancelled");
+  }
+}
+
+export async function exportQrCodesToCsv(qrCodes: QrCode[], availableSchemas: SchemaMetaData[]) {
+  if (qrCodes.length === 0) {
+    throw new Error("No QR codes selected for export");
+  }
+  // Get schema from first QR code
+  const firstDecoded = await decodeQR(qrCodes[0].data);
+  console.log(firstDecoded);
+  const schema = await getSchemaFromHash(firstDecoded.schemaHash, availableSchemas);
+  if (!schema) {
+    throw new Error(
+      "Schema not found for QR codes, how did you manage this one"
+    );
+  }
+
+  // Decode all QR strings and reconstruct data
+  const decodedRecords = [];
+  for (const code of qrCodes) {
+    const decoded = await decodeQR(code.data);
+    const record = reconstructMatchDataFromArray(schema, decoded.data);
+    decodedRecords.push(record);
+  }
+
+  // Flatten schema into field order
+  const fields: { id: number; name: string }[] = [];
+  schema.sections.forEach((section) => {
+    section.fields.forEach((f) => fields.push({ id: f.id, name: f.name }));
+  });
+
+  // Build CSV
+  const header = fields.map((f) => f.name).join(",");
+  const rows = decodedRecords.map((record) =>
+    fields
+      .map((f) => {
+        const val = record[f.id];
+        if (val === undefined || val === null) return "";
+        if (typeof val === "string") {
+          return `"${val.replace(/"/g, '""')}"`;
+        }
+        return val;
+      })
+      .join(",")
+  );
+
+  const csvData = [header, ...rows].join("\n");
+
+  // Save file using your existing Tauri invoke
+  const filename = `Farmhand-export-${Date.now()}.csv`;
+  await saveFileWithDialog(csvData, filename);
+
+  return filename;
 }

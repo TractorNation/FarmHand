@@ -33,11 +33,12 @@ export function reconstructMatchDataFromArray(
   values: FieldValue[]
 ): Record<string, any> {
   const reconstructed: Record<string, any> = {};
-  schema.sections.forEach((section) => {
-    section.fields.forEach((field, index) => {
-      const rawValue = values[index] !== "" ? values[index] : "*";
-      reconstructed[field.id] = rawValue === "*" ? "" : rawValue;
-    });
+
+  const allFields = schema.sections.flatMap((section) => section.fields);
+
+  allFields.forEach((field, index) => {
+    const rawValue = values[index] !== "" ? values[index] : "*";
+    reconstructed[field.id] = rawValue === "*" ? "" : rawValue;
   });
 
   return reconstructed;

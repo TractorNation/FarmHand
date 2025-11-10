@@ -22,9 +22,10 @@ import QrScannerPopup from "../ui/dialog/QrScannerPopup";
 import QrShareDialog from "../ui/dialog/QrShareDialogue";
 import useDialog from "../hooks/useDialog";
 import { useAsyncFetch } from "../hooks/useAsyncFetch";
-import { GetDescFromSvg } from "../utils/GeneralUtils";
+import { exportQrCodesToCsv, GetDescFromSvg } from "../utils/GeneralUtils";
 import useToggle from "../hooks/useToggle";
 import ExportIcon from "@mui/icons-material/IosShareRounded";
+import { useSchema } from "../context/SchemaContext";
 
 const fetchQrCodes = async () => {
   const folderExists = await exists("saved-matches", {
@@ -67,6 +68,8 @@ const fabStyle = {
 };
 
 export default function QRPage() {
+  const { availableSchemas } = useSchema();
+
   const theme = useTheme();
   const [qrCodes, loadingQr, errorFetchingQr, refetchQrCodes] =
     useAsyncFetch(fetchQrCodes);
@@ -138,11 +141,11 @@ export default function QRPage() {
   };
 
   const handleExport = () => {
-    // TODO: Implement export functionality
     console.log(
       "Exporting selected codes:",
       selectedCodes.map((c) => c.data)
     );
+    exportQrCodesToCsv(selectedCodes, availableSchemas);
   };
 
   const selectImage = (image: QrCode) => {

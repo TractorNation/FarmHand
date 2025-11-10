@@ -60,7 +60,10 @@ export default function Scout() {
   const handleGenerateQr = async () => {
     const matchData = getMatchDataMap();
     const schemaHash = hash ?? "000000";
-    const minifiedJSON = Array.from(matchData.values());
+
+    const allFields = schema!.sections.flatMap((section) => section.fields);
+    const minifiedJSON = allFields.map((field) => matchData.get(field.id));
+
     const teamNumber = getFieldValueByName("Team Number", schema!, matchData);
     const matchNumber = getFieldValueByName("Match Number", schema!, matchData);
     const qr = await QrCodeBuilder.build.MATCH(schemaHash, minifiedJSON, [

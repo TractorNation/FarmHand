@@ -1,7 +1,7 @@
 import { Typography } from "@mui/material";
 import { useValidation } from "../../context/ValidationContext";
 import { useScoutData } from "../../context/ScoutDataContext";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import CounterInput from "./CounterInput";
 import DropdownInput from "./DropdownInput";
 import CheckboxInput from "./CheckboxInput";
@@ -28,10 +28,12 @@ export default function DynamicComponent(props: DynamicComponentProps) {
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
   const [value, setValue] = useState<any>(null);
   const showError = !valid && (touched || submitted);
-
+  
+  const fetchData = useCallback(() => getMatchData(component.id), [getMatchData, component.id]);
+  
   const [storedValue, loading, error] = useAsyncFetch(
-    () => getMatchData(component.id),
-    [component.id, getMatchData]
+    fetchData,
+    []
   );
 
   useEffect(() => {
@@ -74,7 +76,6 @@ export default function DynamicComponent(props: DynamicComponentProps) {
 
     if (isMounted) {
       setValue(initial);
-      addMatchData(component.id, initial);
       if (component.required) {
         setValid(!isInvalid);
         if (isInvalid) {
@@ -100,8 +101,6 @@ export default function DynamicComponent(props: DynamicComponentProps) {
     setValid,
     addError,
     removeError,
-    addMatchData,
-    submitted,
   ]);
 
   const handleChange = (newValue: any) => {

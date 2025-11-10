@@ -44,36 +44,47 @@ export default function SchemaProvider({
     null
   );
   const { clearMatchData } = useScoutData();
+  const [availableSchemas, setAvailableSchemas] = useState<SchemaMetaData[]>(
+    []
+  );
   const isInitialMount = useRef(true);
-  const availableSchemas = useRef<SchemaMetaData[]>([]);
 
   const isControlled = schema !== undefined;
   const schemaName = isControlled ? schema : internalSchemaName;
 
   const loadSchemas = useCallback(async () => {
-    availableSchemas.current = defaultSchemas;
+    setAvailableSchemas(defaultSchemas);
     return defaultSchemas;
   }, []);
 
+  // Effect to load schemas on mount
+  useEffect(() => {
+    loadSchemas();
+  }, [loadSchemas]);
+
+  // Effect to clear match data when the schema changes
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    clearMatchData();
+  }, [schemaName, clearMatchData]);
+
+  // Effect to update the active schema when the name changes or schemas are loaded
   useEffect(() => {
     const setSchemaData = async (name: string | null) => {
-      if (isInitialMount.current) {
-        isInitialMount.current = false;
-      } else {
-        await clearMatchData();
-      }
-
       if (!name) {
         setActiveSchema(null);
         setSchemaHash(null);
         return;
       }
-      if (availableSchemas.current.length === 0) {
-        await loadSchemas();
+      if (availableSchemas.length === 0) {
+        // Schemas are not loaded yet. The init effect will handle loading.
+        return;
       }
 
-      const found =
-        availableSchemas.current.find((s) => s.name === name) ?? null;
+      const found = availableSchemas.find((s) => s.name === name) ?? null;
 
       if (found === null || found === undefined) {
         console.warn(`Schema: "${name}" not found`);
@@ -81,14 +92,13 @@ export default function SchemaProvider({
       }
 
       setActiveSchema(found.schema);
-
       const hash = await createSchemaHash(found.schema);
       setSchemaHash(hash);
       await StoreManager.setLastSchema(found.name);
     };
 
     setSchemaData(schemaName);
-  }, [schemaName, loadSchemas, clearMatchData]);
+  }, [schemaName, availableSchemas]);
 
   const selectSchema = useCallback(
     async (name: string) => {
@@ -132,7 +142,7 @@ export default function SchemaProvider({
         schema: activeSchema,
         hash: schemaHash,
         schemaName: schemaName,
-        availableSchemas: availableSchemas.current,
+        availableSchemas: availableSchemas,
         loadSchemas,
         selectSchema,
         refreshSchemas,
