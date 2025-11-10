@@ -5,8 +5,6 @@ import {
   SelectChangeEvent,
   FormControl,
 } from "@mui/material";
-import { useValidation } from "../../context/ValidationContext";
-import { useScoutData } from "../../context/ScoutDataContext";
 
 /**
  * Props for the dropdown input
@@ -16,6 +14,7 @@ interface DropdownInputProps {
   options: string[];
   value?: string;
   onChange?: (value: string) => void;
+  error?: boolean;
 }
 
 /**
@@ -23,10 +22,7 @@ interface DropdownInputProps {
  * @returns Dropdown input for the page
  */
 export default function DropdownInput(props: DropdownInputProps) {
-  const { label, options, onChange, value } = props;
-  const { valid, touched } = useValidation();
-  const { submitted } = useScoutData();
-  const showError = !valid && (touched || submitted);
+  const { label, options, onChange, value, error } = props;
 
   const handleChange = (e: SelectChangeEvent) => {
     if (onChange) onChange(e.target.value);
@@ -34,13 +30,13 @@ export default function DropdownInput(props: DropdownInputProps) {
 
   return (
     <FormControl fullWidth>
-      <InputLabel color={showError ? "error" : "secondary"}>{label}</InputLabel>
+      <InputLabel color={error ? "error" : "secondary"}>{label}</InputLabel>
       <Select
         value={value}
         label={label}
         onChange={handleChange}
         color="secondary"
-        error={showError}
+        error={error}
         sx={{
           "& legend": {
             transition: "unset",

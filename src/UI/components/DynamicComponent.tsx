@@ -22,12 +22,14 @@ interface DynamicComponentProps {
  *
  */
 export default function DynamicComponent(props: DynamicComponentProps) {
-  const { setValid, setTouched } = useValidation();
-  const { addMatchData, addError, removeError, getMatchData } = useScoutData();
+  const { valid, touched, setValid, setTouched } = useValidation();
+  const { addMatchData, addError, removeError, getMatchData, submitted } =
+    useScoutData();
   const { component } = props;
 
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
   const [value, setValue] = useState<any>(null);
+  const showError = !valid && (touched || submitted);
 
   const [storedValue, loading, error] = useAsyncFetch(
     () => getMatchData(component.id),
@@ -155,6 +157,7 @@ export default function DynamicComponent(props: DynamicComponentProps) {
             options={component.props?.options!}
             onChange={handleChange}
             label={component.props?.label}
+            error={showError}
           />
         );
 
