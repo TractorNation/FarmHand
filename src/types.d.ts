@@ -1,4 +1,4 @@
-declare module '*.ttf';
+declare module "*.ttf";
 
 /**
  * Holds data about a specific schema and all of its components
@@ -39,4 +39,13 @@ interface QrCode {
   name: string;
   data: string;
   image: string;
+}
+
+/**
+ * Interface to store data about a single Schema
+ */
+interface SchemaMetaData {
+  name: string;
+  path: string;
+  schema: Schema;
 }

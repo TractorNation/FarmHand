@@ -8,19 +8,9 @@ import {
   useState,
 } from "react";
 import StoreManager from "../utils/StoreManager";
-
-import testSchema from "../config/schema/test.json";
-import Reefscape from "../config/schema/2025Reefscape.json";
+import { defaultSchemas } from "../utils/DefaultSchemas";
 import { createSchemaHash } from "../utils/GeneralUtils";
-
-/**
- * Interface to store data about a single Schema
- */
-interface SchemaMetaData {
-  name: string;
-  path: string;
-  schema: Schema;
-}
+import { useScoutData } from "./ScoutDataContext";
 
 /**
  * Data that will be passed through the context
@@ -37,51 +27,78 @@ interface SchemaContextType {
 
 const SchemaContext = createContext<SchemaContextType | null>(null);
 
-export default function SchemaProvider({ children }: { children: ReactNode }) {
-  const [schema, setSchema] = useState<Schema | null>(null);
-  const [schemaName, setSchemaName] = useState<string | null>(null);
-  const [schemaHash, setSchemaHash] = useState<string | null>(null);
-  const availableSchemas = useRef<SchemaMetaData[] | null>(null);
+interface SchemaProviderProps {
+  children: ReactNode;
+  schema?: string;
+  onSchemaChange?: (name: string) => void;
+}
 
-  const initializedRef = useRef(false);
+export default function SchemaProvider({
+  children,
+  schema,
+  onSchemaChange,
+}: SchemaProviderProps) {
+  const [activeSchema, setActiveSchema] = useState<Schema | null>(null);
+  const [schemaHash, setSchemaHash] = useState<string | null>(null);
+  const [internalSchemaName, setInternalSchemaName] = useState<string | null>(
+    null
+  );
+  const { clearMatchData } = useScoutData();
+  const isInitialMount = useRef(true);
+  const availableSchemas = useRef<SchemaMetaData[]>([]);
+
+  const isControlled = schema !== undefined;
+  const schemaName = isControlled ? schema : internalSchemaName;
 
   const loadSchemas = useCallback(async () => {
-    const defaults: SchemaMetaData[] = [
-      {
-        name: "Test Schema",
-        path: "../config/schema/test.json",
-        schema: testSchema as Schema,
-      },
-      {
-        name: "2025 Reefscape",
-        path: "../config/schema/2025Reefscape.json",
-        schema: Reefscape as Schema,
-      },
-    ];
-
-    availableSchemas.current = defaults;
-    return defaults;
+    availableSchemas.current = defaultSchemas;
+    return defaultSchemas;
   }, []);
 
-  const selectSchema = useCallback(
-    async (name: string) => {
+  useEffect(() => {
+    const setSchemaData = async (name: string | null) => {
+      if (isInitialMount.current) {
+        isInitialMount.current = false;
+      } else {
+        await clearMatchData();
+      }
+
+      if (!name) {
+        setActiveSchema(null);
+        setSchemaHash(null);
+        return;
+      }
+      if (availableSchemas.current.length === 0) {
+        await loadSchemas();
+      }
+
       const found =
-        availableSchemas.current!.find((s) => s.name === name) ?? null;
+        availableSchemas.current.find((s) => s.name === name) ?? null;
 
       if (found === null || found === undefined) {
         console.warn(`Schema: "${name}" not found`);
         return;
       }
 
-      setSchema(found.schema);
-      setSchemaName(found.name);
+      setActiveSchema(found.schema);
 
       const hash = await createSchemaHash(found.schema);
       setSchemaHash(hash);
-      console.log("Setting schema hash", hash);
       await StoreManager.setLastSchema(found.name);
+    };
+
+    setSchemaData(schemaName);
+  }, [schemaName, loadSchemas, clearMatchData]);
+
+  const selectSchema = useCallback(
+    async (name: string) => {
+      if (isControlled) {
+        onSchemaChange?.(name);
+      } else {
+        setInternalSchemaName(name);
+      }
     },
-    [availableSchemas]
+    [isControlled, onSchemaChange]
   );
 
   const refreshSchemas = async () => {
@@ -89,46 +106,33 @@ export default function SchemaProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    // Only run initialization once
-    if (initializedRef.current) return;
-    initializedRef.current = true;
+    if (isControlled) return;
 
     const init = async () => {
       try {
-        // Load schemas first
         const schemas = await loadSchemas();
-
-        // Then try to get the last saved schema
         const lastSchema = await StoreManager.getLastSchema();
 
-        // If there's a last schema
         if (lastSchema && schemas.find((s) => s.name === lastSchema)) {
-          selectSchema(lastSchema);
+          setInternalSchemaName(lastSchema);
         } else if (schemas.length > 0) {
-          // Otherwise, default to first schema
-          selectSchema(schemas[1].name);
+          setInternalSchemaName(schemas[1].name);
         }
       } catch (error) {
         console.error("Error initializing schema:", error);
-        // Still set a default if something fails
-        const schemas = await loadSchemas();
-        if (schemas.length > 0) {
-          setSchema(schemas[1].schema);
-          setSchemaName(schemas[1].name);
-        }
       }
     };
 
     init();
-  }, [loadSchemas]);
+  }, [isControlled, loadSchemas]);
 
   return (
     <SchemaContext.Provider
       value={{
-        schema: schema,
+        schema: activeSchema,
         hash: schemaHash,
         schemaName: schemaName,
-        availableSchemas: availableSchemas.current!,
+        availableSchemas: availableSchemas.current,
         loadSchemas,
         selectSchema,
         refreshSchemas,

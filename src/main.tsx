@@ -12,11 +12,11 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <ThemeProvider theme={TractorDarkTheme}>
       <CssBaseline />
-      <SchemaProvider>
-        <ScoutDataProvider>
+      <ScoutDataProvider>
+        <SchemaProvider>
           <App />
-        </ScoutDataProvider>
-      </SchemaProvider>
+        </SchemaProvider>
+      </ScoutDataProvider>
     </ThemeProvider>
   </React.StrictMode>
 );

@@ -71,7 +71,9 @@ export default function ScoutDataProvider(props: ScoutDataProviderProps) {
     setSubmitted(false);
 
     await Promise.all(
-      storeToDelete.map((key) => StoreManager.remove(key.toString()))
+      storeToDelete.map((key) =>
+        StoreManager.remove(StoreKeys.match.field(key.toString()))
+      )
     );
   };
 

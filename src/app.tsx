@@ -11,6 +11,7 @@ import {
   ListItemText,
   Box,
   Divider,
+  CircularProgress,
   useMediaQuery,
 } from "@mui/material";
 import useDrawer from "./hooks/useDrawer";
@@ -19,7 +20,7 @@ import HomeIcon from "@mui/icons-material/HomeRounded";
 import AddChartIcon from "@mui/icons-material/AddchartRounded";
 import SettingsIcon from "@mui/icons-material/SettingsRounded";
 import QrCodeIcon from "@mui/icons-material/QrCodeRounded";
-import React, { Suspense, useEffect } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import {
   HashRouter,
   Route,
@@ -28,6 +29,9 @@ import {
   useNavigate,
 } from "react-router";
 import { useTheme } from "@mui/material/styles";
+import SchemaProvider from "./context/SchemaContext";
+import { defaultSchemas } from "./utils/DefaultSchemas";
+import StoreManager from "./utils/StoreManager";
 
 const Home = React.lazy(() => import("./pages/Home"));
 const Settings = React.lazy(() => import("./pages/Settings"));
@@ -201,6 +205,22 @@ function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
+  const [selectedSchemaName, setSelectedSchemaName] = useState<string | null>(
+    null
+  );
+
+  useEffect(() => {
+    const initSchema = async () => {
+      const lastSchema = await StoreManager.getLastSchema();
+      if (lastSchema && defaultSchemas.find((s) => s.name === lastSchema)) {
+        setSelectedSchemaName(lastSchema);
+      } else if (defaultSchemas.length > 0) {
+        setSelectedSchemaName(defaultSchemas[1].name); // "2025 Reefscape"
+      }
+    };
+    initSchema();
+  }, []);
+
   useEffect(() => {
     const handleKeydown = (event: KeyboardEvent) => {
       if (event.key === "Backspace") {
@@ -223,27 +243,47 @@ export default function App() {
     };
   }, []);
 
+  if (!selectedSchemaName) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
+
   return (
-    <HashRouter>
-      <Routes>
-        {pages.map(({ path, component }) => (
-          <Route
-            key={path}
-            path={path}
-            element={
-              <Layout>
-                <Suspense
-                  fallback={
-                    <Typography sx={{ p: 3 }}>Loading page...</Typography>
-                  }
-                >
-                  {component}
-                </Suspense>
-              </Layout>
-            }
-          />
-        ))}
-      </Routes>
-    </HashRouter>
+    <SchemaProvider
+      schema={selectedSchemaName}
+      onSchemaChange={setSelectedSchemaName}
+    >
+      <HashRouter>
+        <Routes>
+          {pages.map(({ path, component }) => (
+            <Route
+              key={path}
+              path={path}
+              element={
+                <Layout>
+                  <Suspense
+                    fallback={
+                      <Typography sx={{ p: 3 }}>Loading page...</Typography>
+                    }
+                  >
+                    {component}
+                  </Suspense>
+                </Layout>
+              }
+            />
+          ))}
+        </Routes>
+      </HashRouter>
+    </SchemaProvider>
   );
 }

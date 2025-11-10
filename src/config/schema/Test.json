@@ -5,6 +5,7 @@
       "fields": [
         {
           "name": "Score counter",
+          "id": 1,
           "type": "counter",
           "required": true,
           "props": {
@@ -13,6 +14,7 @@
         },
         {
           "name": "Favorite robot",
+          "id": 2,
           "type": "dropdown",
           "props": {
             "label": "select your favorite robot",
@@ -21,6 +23,7 @@
         },
         {
           "name": "Checkbox",
+          "id": 3,
           "type": "checkbox",
           "props": {
             "default": false
@@ -28,6 +31,7 @@
         },
         {
           "name": "Write something",
+          "id": 4,
           "type": "text",
           "required": true,
           "props": {
@@ -42,6 +46,7 @@
       "fields": [
         {
           "name": "Score counter2",
+          "id": 5,
           "type": "counter",
           "props": {
             "default": 3
