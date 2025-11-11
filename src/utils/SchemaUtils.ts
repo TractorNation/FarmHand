@@ -46,7 +46,7 @@ export async function fetchSchemas(): Promise<SchemaMetaData[]> {
     baseDir: BaseDirectory.AppLocalData,
   });
   if (!folderExists) {
-    console.log("Failed to fetch schemas, folder does not exist")
+    console.log("Failed to fetch schemas, folder does not exist");
     return [];
   }
 
@@ -93,4 +93,10 @@ export async function saveSchema(schema: Schema) {
     schema: schemaToSave,
     filePath,
   });
+}
+
+export async function deleteSchema(schemaMeta: SchemaMetaData) {
+  const filePath = await resolve(await appLocalDataDir(), schemaMeta.path);
+
+  await invoke("delete_schema", { path: filePath });
 }

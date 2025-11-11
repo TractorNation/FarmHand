@@ -35,3 +35,8 @@ pub fn delete_qr_code(path: String) -> Result<(), Error> {
 pub fn save_schema(schema: String, file_path: String) -> Result<(), Error> {
     schema::save(&schema, &file_path)
 }
+
+#[tauri::command]
+pub fn delete_schema(path: String) -> Result<(), Error> {
+    schema::delete(&path)
+}

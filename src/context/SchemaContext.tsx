@@ -23,7 +23,7 @@ interface SchemaContextType {
   availableSchemas: SchemaMetaData[];
   loadSchemas: () => Promise<SchemaMetaData[]>;
   selectSchema: (name: string) => Promise<void>;
-  refreshSchemas: () => Promise<void>;
+  refreshSchemas: () => Promise<SchemaMetaData[]>;
 }
 
 const SchemaContext = createContext<SchemaContextType | null>(null);
@@ -55,9 +55,9 @@ export default function SchemaProvider({
 
   const loadSchemas = useCallback(async () => {
     const generatedSchemas = await fetchSchemas();
-    console.log(generatedSchemas);
-    setAvailableSchemas([...defaultSchemas, ...generatedSchemas]);
-    return defaultSchemas;
+    const allSchemas = [...defaultSchemas, ...generatedSchemas];
+    setAvailableSchemas(allSchemas);
+    return allSchemas;
   }, [fetchSchemas]);
 
   // Effect to load schemas on mount
@@ -114,8 +114,8 @@ export default function SchemaProvider({
     [isControlled, onSchemaChange]
   );
 
-  const refreshSchemas = async () => {
-    await loadSchemas();
+  const refreshSchemas = async (): Promise<SchemaMetaData[]> => {
+    return await loadSchemas();
   };
 
   useEffect(() => {

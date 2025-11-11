@@ -6,3 +6,9 @@ pub fn save(schema: &String, file_path: &String) -> Result<(), Error> {
 
     Ok(())
 }
+
+pub fn delete(path: &String) -> Result<(), Error> {
+    fs::remove_file(&path).expect("Failed to delete schema");
+
+    Ok(())
+}
