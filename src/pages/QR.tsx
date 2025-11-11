@@ -4,6 +4,9 @@ import {
   Card,
   Fab,
   Grid,
+  IconButton,
+  Slide,
+  Snackbar,
   Stack,
   Typography,
   useTheme,
@@ -22,10 +25,16 @@ import QrScannerPopup from "../ui/dialog/QrScannerPopup";
 import QrShareDialog from "../ui/dialog/QrShareDialogue";
 import useDialog from "../hooks/useDialog";
 import { useAsyncFetch } from "../hooks/useAsyncFetch";
-import { exportQrCodesToCsv, GetDescFromSvg } from "../utils/GeneralUtils";
+import {
+  exportQrCodesToCsv,
+  exportQrCodesToJson,
+  GetDescFromSvg,
+} from "../utils/GeneralUtils";
 import useToggle from "../hooks/useToggle";
 import ExportIcon from "@mui/icons-material/IosShareRounded";
+import CloseIcon from "@mui/icons-material/CloseRounded";
 import { useSchema } from "../context/SchemaContext";
+import ExportDialog from "../ui/dialog/ExportDialog";
 
 const fetchQrCodes = async () => {
   const folderExists = await exists("saved-matches", {
@@ -80,7 +89,10 @@ export default function QRPage() {
   const [invalidQrCodes, setInvalidQrCodes] = useState<QrCode[]>([]);
   const [showQrPopup, openQrPopup, closeQrPopup] = useDialog();
   const [scannerOpen, openScanner, closeScanner] = useDialog();
+  const [exportDialogOpen, openExportDialog, closeExportDialog] = useDialog();
   const [selectedCodes, setSelectedCodes] = useState<QrCode[]>([]);
+  const [successDialogueOpen, setSuccessDialogueOpen] = useState(false);
+  const [savedFileName, setSavedFileName] = useState("");
 
   const codeIsSelected = (code: QrCode) => {
     return selectedCodes.includes(code);
@@ -129,23 +141,31 @@ export default function QRPage() {
 
     setSelectedCodes(newSelectedCodes);
 
-    // If we just selected the first code, set the hash
     if (newSelectedCodes.length === 1) {
       const [, , schemaHash] = newSelectedCodes[0].data.split(":");
       setSelectedHash(schemaHash);
-    }
-    // If we just deselected the last code, clear the hash
-    else if (newSelectedCodes.length === 0) {
+    } else if (newSelectedCodes.length === 0) {
       setSelectedHash(null);
     }
   };
 
   const handleExport = () => {
-    console.log(
-      "Exporting selected codes:",
-      selectedCodes.map((c) => c.data)
-    );
-    exportQrCodesToCsv(selectedCodes, availableSchemas);
+    openExportDialog();
+  };
+
+  const executeExport = async (fileType: "csv" | "json") => {
+    if (selectedCodes.length === 0) return;
+
+    let filename = "";
+    if (fileType === "csv") {
+      filename = await exportQrCodesToCsv(selectedCodes, availableSchemas);
+    } else {
+      filename = await exportQrCodesToJson(selectedCodes, availableSchemas);
+    }
+    setSavedFileName(filename);
+    setSuccessDialogueOpen(true);
+    // Reset selection after export
+    toggleSelectMode();
   };
 
   const selectImage = (image: QrCode) => {
@@ -376,6 +396,38 @@ export default function QRPage() {
         }}
         qrCodeData={activeCode!}
         forQrPage
+      />
+      <ExportDialog
+        open={exportDialogOpen}
+        onClose={closeExportDialog}
+        onExport={executeExport}
+      />
+
+      <Snackbar
+        open={successDialogueOpen}
+        onClose={() => setSuccessDialogueOpen(false)}
+        slots={{ transition: Slide }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
+        slotProps={{
+          content: {
+            sx: {
+              backgroundColor: theme.palette.success.main,
+              color: theme.palette.success.contrastText,
+              fontFamily: theme.typography.subtitle1,
+            },
+          },
+        }}
+        message={`Exported successfully to ${savedFileName}`}
+        autoHideDuration={1200}
+        action={
+          <IconButton
+            onClick={() => {
+              setSuccessDialogueOpen(false);
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        }
       />
     </>
   );

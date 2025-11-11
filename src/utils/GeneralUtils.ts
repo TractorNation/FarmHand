@@ -111,14 +111,17 @@ export function getFieldValueByName(
     : null;
 }
 
-export async function getSchemaFromHash(hash: string, availableSchemas: SchemaMetaData[]): Promise<Schema | null> {
+export async function getSchemaFromHash(
+  hash: string,
+  availableSchemas: SchemaMetaData[]
+): Promise<Schema | null> {
   const allSchemasWithHash = await Promise.all(
     availableSchemas.map(async (s) => ({
       schema: s.schema,
       hash: await createSchemaHash(s.schema),
     }))
   );
-  
+
   const found = allSchemasWithHash.find((s) => s.hash === hash);
   return found ? found.schema : null;
 }
@@ -151,14 +154,20 @@ export async function saveFileWithDialog(
   }
 }
 
-export async function exportQrCodesToCsv(qrCodes: QrCode[], availableSchemas: SchemaMetaData[]) {
+export async function exportQrCodesToCsv(
+  qrCodes: QrCode[],
+  availableSchemas: SchemaMetaData[]
+) {
   if (qrCodes.length === 0) {
     throw new Error("No QR codes selected for export");
   }
   // Get schema from first QR code
   const firstDecoded = await decodeQR(qrCodes[0].data);
   console.log(firstDecoded);
-  const schema = await getSchemaFromHash(firstDecoded.schemaHash, availableSchemas);
+  const schema = await getSchemaFromHash(
+    firstDecoded.schemaHash,
+    availableSchemas
+  );
   if (!schema) {
     throw new Error(
       "Schema not found for QR codes, how did you manage this one"
@@ -196,9 +205,72 @@ export async function exportQrCodesToCsv(qrCodes: QrCode[], availableSchemas: Sc
 
   const csvData = [header, ...rows].join("\n");
 
-  // Save file using your existing Tauri invoke
   const filename = `Farmhand-export-${Date.now()}.csv`;
   await saveFileWithDialog(csvData, filename);
+
+  return filename;
+}
+
+/**
+ * Saves a set of qr codes into a JSON file based on their schema
+ *
+ * @param qrCodes An array of Qr codes
+ * @param availableSchemas An array of all available schemas
+ * @returns The filename of the saved file
+ */
+export async function exportQrCodesToJson(
+  qrCodes: QrCode[],
+  availableSchemas: SchemaMetaData[]
+): Promise<string> {
+  // Get schema from the first QR code to use as a reference.
+  const firstDecoded = await decodeQR(qrCodes[0].data);
+  if (!firstDecoded) {
+    throw new Error("Could not decode the first QR code. Aborting export.");
+  }
+
+  const schema = await getSchemaFromHash(
+    firstDecoded.schemaHash,
+    availableSchemas
+  );
+
+  if (!schema) {
+    throw new Error(
+      `Schema with hash ${firstDecoded.schemaHash} not found. Cannot export.`
+    );
+  }
+
+  const allFields = schema.sections.flatMap((section) => section.fields);
+
+  const dataToExport = (
+    await Promise.all(
+      qrCodes.map(async (code) => {
+        const decoded = await decodeQR(code.data);
+        // Ensure the QR code is valid and matches the schema of the first code.
+        if (!decoded || decoded.schemaHash !== firstDecoded.schemaHash) {
+          return null;
+        }
+
+        const entry: { [key: string]: any } = {};
+        allFields.forEach((field, index) => {
+          if (decoded.data.length > index) {
+            entry[field.name] = decoded.data[index];
+          }
+        });
+
+        return Object.keys(entry).length > 0 ? entry : null;
+      })
+    )
+  ).filter((item): item is { [key: string]: any } => item !== null);
+
+  if (dataToExport.length === 0) {
+    console.warn("No valid data to export for the selected schema.");
+    return "";
+  }
+
+  const fileContent = JSON.stringify(dataToExport, null, 2);
+  const filename = `Farmhand-Export-${Date.now()}.json`;
+
+  await saveFileWithDialog(fileContent, filename);
 
   return filename;
 }
