@@ -3,11 +3,12 @@ import {
   compressData,
   decompressData,
   EmbedDataInSvg,
+  GetDescFromSvg,
   getFieldValueByName,
   matchDataJsonToMap,
 } from "./GeneralUtils";
 import { appLocalDataDir, resolve } from "@tauri-apps/api/path";
-import { BaseDirectory, mkdir } from "@tauri-apps/plugin-fs";
+import { BaseDirectory, exists, mkdir, readDir, readTextFile } from "@tauri-apps/plugin-fs";
 
 export type QrType = "match" | "schema" | "theme" | "settings";
 export type EncodedQr = string;
@@ -189,4 +190,31 @@ export async function createQrCodeFromImportedData(
   const matchNumber = getFieldValueByName("Match Number", schema, matchData);
   const fileName = generateQrFileName([teamNumber!, matchNumber!]);
   return { name: fileName, data: qrString, image: qrSvg };
+}
+
+export async function fetchQrCodes(): Promise<QrCode[] | undefined> {
+  const folderExists = await exists("saved-matches", {
+    baseDir: BaseDirectory.AppLocalData,
+  });
+  if (!folderExists) return;
+
+  const files = await readDir("saved-matches", {
+    baseDir: BaseDirectory.AppLocalData,
+  });
+  const svgs = files.filter((f) => f.name.endsWith(".svg"));
+
+  const results = await Promise.all(
+    svgs.map(async (file) => {
+      const contents = await readTextFile(`saved-matches/${file.name}`, {
+        baseDir: BaseDirectory.AppLocalData,
+      });
+      return {
+        name: file.name,
+        data: GetDescFromSvg(contents),
+        image: contents,
+      };
+    })
+  );
+
+  return results;
 }
