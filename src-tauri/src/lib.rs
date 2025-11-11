@@ -1,5 +1,6 @@
 use crate::commands::{
     compress_fields, decompress_data, delete_qr_code, generate_qr_code, hash_schema, save_qr_svg,
+    save_schema,
 };
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
@@ -20,7 +21,8 @@ pub fn run() {
             hash_schema,
             compress_fields,
             decompress_data,
-            delete_qr_code
+            delete_qr_code,
+            save_schema
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -2,6 +2,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { decodeQR, reconstructMatchDataFromArray } from "./QrUtils";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
+import { getSchemaFromHash } from "./SchemaUtils";
 
 export function isFieldInvalid(
   required: boolean,
@@ -109,21 +110,6 @@ export function getFieldValueByName(
   return value !== undefined
     ? String(value).replace(/[^a-zA-Z0-9_-]/g, "")
     : null;
-}
-
-export async function getSchemaFromHash(
-  hash: string,
-  availableSchemas: SchemaMetaData[]
-): Promise<Schema | null> {
-  const allSchemasWithHash = await Promise.all(
-    availableSchemas.map(async (s) => ({
-      schema: s.schema,
-      hash: await createSchemaHash(s.schema),
-    }))
-  );
-
-  const found = allSchemasWithHash.find((s) => s.hash === hash);
-  return found ? found.schema : null;
 }
 
 export function matchDataJsonToMap(object: any) {

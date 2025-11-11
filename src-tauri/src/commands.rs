@@ -1,4 +1,4 @@
-use crate::core::{qr, util};
+use crate::core::{qr, schema, util};
 use tauri::Error;
 
 #[tauri::command]
@@ -29,4 +29,9 @@ pub fn decompress_data(data: String) -> Result<String, String> {
 #[tauri::command]
 pub fn delete_qr_code(path: String) -> Result<(), Error> {
     qr::delete_code(&path)
+}
+
+#[tauri::command]
+pub fn save_schema(schema: String, file_path: String) -> Result<(), Error> {
+    schema::save(&schema, &file_path)
 }

@@ -8,9 +8,10 @@ import {
   useState,
 } from "react";
 import StoreManager from "../utils/StoreManager";
-import { defaultSchemas } from "../utils/DefaultSchemas";
+import { defaultSchemas } from "../utils/SchemaUtils";
 import { createSchemaHash } from "../utils/GeneralUtils";
 import { useScoutData } from "./ScoutDataContext";
+import { fetchSchemas } from "../utils/SchemaUtils";
 
 /**
  * Data that will be passed through the context
@@ -53,9 +54,11 @@ export default function SchemaProvider({
   const schemaName = isControlled ? schema : internalSchemaName;
 
   const loadSchemas = useCallback(async () => {
-    setAvailableSchemas(defaultSchemas);
+    const generatedSchemas = await fetchSchemas();
+    console.log(generatedSchemas);
+    setAvailableSchemas([...defaultSchemas, ...generatedSchemas]);
     return defaultSchemas;
-  }, []);
+  }, [fetchSchemas]);
 
   // Effect to load schemas on mount
   useEffect(() => {

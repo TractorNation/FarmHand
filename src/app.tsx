@@ -20,6 +20,7 @@ import HomeIcon from "@mui/icons-material/HomeRounded";
 import AddChartIcon from "@mui/icons-material/AddchartRounded";
 import SettingsIcon from "@mui/icons-material/SettingsRounded";
 import QrCodeIcon from "@mui/icons-material/QrCodeRounded";
+import NewspaperIcon from "@mui/icons-material/NewspaperRounded";
 import React, { Suspense, useEffect, useState } from "react";
 import {
   HashRouter,
@@ -30,8 +31,9 @@ import {
 } from "react-router";
 import { useTheme } from "@mui/material/styles";
 import SchemaProvider from "./context/SchemaContext";
-import { defaultSchemas } from "./utils/DefaultSchemas";
+import { defaultSchemas } from "./utils/SchemaUtils";
 import StoreManager from "./utils/StoreManager";
+import SchemaEditor from "./pages/Schemas";
 
 const Home = React.lazy(() => import("./pages/Home"));
 const Settings = React.lazy(() => import("./pages/Settings"));
@@ -51,6 +53,12 @@ const pages = [
     icon: <QrCodeIcon />,
     component: <QRPage />,
     path: "/qr",
+  },
+  {
+    title: "Schemas",
+    icon: <NewspaperIcon/>,
+    component: <SchemaEditor />,
+    path: "/schemas"
   },
   {
     title: "Settings",

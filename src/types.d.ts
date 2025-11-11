@@ -48,4 +48,5 @@ interface SchemaMetaData {
   name: string;
   path: string;
   schema: Schema;
+  type: "default" | "generated"
 }
