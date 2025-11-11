@@ -32,10 +32,11 @@ interface QrExportDialogProps {
   qrCodeData: QrCode;
   handleSaveQR?: () => void;
   forQrPage?: boolean;
+  onDelete?: () => void;
 }
 
 export default function QrShareDialog(props: QrExportDialogProps) {
-  const { open, onClose, qrCodeData, handleSaveQR, forQrPage } = props;
+  const { open, onClose, qrCodeData, handleSaveQR, forQrPage, onDelete } = props;
   const theme = useTheme();
   const [deletePopupOpen, openDeletePopup, closeDeletePopup] = useDialog();
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -50,8 +51,12 @@ export default function QrShareDialog(props: QrExportDialogProps) {
 
   const handleDelete = async () => {
     await deleteQrCode(qrCodeData);
+    closeDeletePopup();
     onClose();
+    onDelete?.();
   };
+
+  if (!qrCodeData) return null;
 
   return (
     <>

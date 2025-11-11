@@ -105,6 +105,7 @@ export default function QRPage() {
         open={qrDialogOpen}
         onClose={closeQrDialog}
         forQrPage
+        onDelete={refetch}
       />
       <ExportDialog
         open={exportDialogOpen}
