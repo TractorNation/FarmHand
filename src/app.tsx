@@ -20,6 +20,7 @@ import HomeIcon from "@mui/icons-material/HomeRounded";
 import AddChartIcon from "@mui/icons-material/AddchartRounded";
 import SettingsIcon from "@mui/icons-material/SettingsRounded";
 import QrCodeIcon from "@mui/icons-material/QrCodeRounded";
+import DashboardIcon from "@mui/icons-material/DashboardRounded";
 import NewspaperIcon from "@mui/icons-material/NewspaperRounded";
 import React, { Suspense, useEffect, useState } from "react";
 import {
@@ -34,6 +35,7 @@ import SchemaProvider from "./context/SchemaContext";
 import { defaultSchemas } from "./utils/SchemaUtils";
 import StoreManager from "./utils/StoreManager";
 import SchemaEditor from "./pages/Schemas";
+import LeadScoutDashboard from "./pages/Dashboard";
 
 const Home = React.lazy(() => import("./pages/Home"));
 const Settings = React.lazy(() => import("./pages/Settings"));
@@ -59,6 +61,12 @@ const pages = [
     icon: <NewspaperIcon/>,
     component: <SchemaEditor />,
     path: "/schemas"
+  },
+  {
+    title: "Lead Scouter Dashboard",
+    icon: <DashboardIcon />,
+    component: <LeadScoutDashboard />,
+    path: "/dashboard",
   },
   {
     title: "Settings",
