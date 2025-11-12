@@ -237,24 +237,41 @@ export default function SchemaEditor() {
       {!editingSchema ? (
         <>
           {/* Header */}
-          <Box sx={{ mb: 4 }}>
-            <Stack
-              direction="row"
-              alignItems="center"
-              spacing={1}
-              sx={{ mb: 1 }}
+          <Paper
+          elevation={0}
+          sx={{
+            p: 3,
+            mb: 3,
+            borderRadius: 3,
+            background: `linear-gradient(135deg, ${theme.palette.primary.main}15 0%, ${theme.palette.primary.main}05 100%)`,
+            border: `1px solid ${theme.palette.primary.main}40`,
+          }}
+        >
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <Box
+              sx={{
+                width: 48,
+                height: 48,
+                borderRadius: 2,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: `${theme.palette.primary.main}20`,
+                color: theme.palette.primary.main,
+              }}
             >
-              <SchemaIcon
-                sx={{ fontSize: 32, color: theme.palette.primary.main }}
-              />
+              <SchemaIcon sx={{ fontSize: 28 }} />
+            </Box>
+            <Box>
               <Typography variant="h4" sx={{ fontWeight: 600 }}>
                 Schemas
               </Typography>
-            </Stack>
-            <Typography variant="body1" color="text.secondary">
-              Manage your scouting form templates
-            </Typography>
-          </Box>
+              <Typography variant="body2" color="text.secondary">
+                Manage your scouting form templates
+              </Typography>
+            </Box>
+          </Stack>
+        </Paper>
 
           {/* Schema List */}
           {availableSchemas.length === 0 ? (
