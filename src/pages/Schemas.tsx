@@ -4,13 +4,8 @@ import {
   Typography,
   Button,
   Stack,
-  Divider,
   TextField,
   IconButton,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemText,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -20,6 +15,8 @@ import {
   Card,
   CardContent,
   Snackbar,
+  Paper,
+  Chip,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/AddRounded";
 import EditIcon from "@mui/icons-material/EditRounded";
@@ -27,6 +24,7 @@ import DeleteIcon from "@mui/icons-material/DeleteRounded";
 import ArrowBackIcon from "@mui/icons-material/ArrowBackRounded";
 import CloseIcon from "@mui/icons-material/CloseRounded";
 import SaveIcon from "@mui/icons-material/SaveRounded";
+import SchemaIcon from "@mui/icons-material/DescriptionRounded";
 import Slide from "@mui/material/Slide";
 import useDialog from "../hooks/useDialog";
 import { useSchema } from "../context/SchemaContext";
@@ -238,103 +236,276 @@ export default function SchemaEditor() {
     >
       {!editingSchema ? (
         <>
-          <Typography variant="h4" gutterBottom>
-            Schemas
-          </Typography>
-          <List sx={{ flexGrow: 1 }}>
-            {availableSchemas.map((s, i) => (
-              <ListItem
-                key={i}
-                secondaryAction={
-                  s.type === "generated" ? (
-                    <Stack direction="row" spacing={1}>
-                      <IconButton
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSchemaToRename(s);
-                          setNewSchemaName(s.name);
-                          openSchemaRenameDialog();
-                        }}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        color="error"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSchemaToDelete(s);
-                          openDeleteSchemaDialog();
-                        }}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </Stack>
-                  ) : (
-                    <Stack direction="row" spacing={1}>
-                      <Button
-                        onClick={() => setEditingSchema({ ...s.schema })}
-                        variant="outlined"
-                        color="secondary"
-                      >
-                        View
-                      </Button>
-                    </Stack>
-                  )
-                }
-              >
-                <ListItemButton
-                  onClick={() => setEditingSchema({ ...s.schema })}
+          {/* Header */}
+          <Box sx={{ mb: 4 }}>
+            <Stack
+              direction="row"
+              alignItems="center"
+              spacing={1}
+              sx={{ mb: 1 }}
+            >
+              <SchemaIcon
+                sx={{ fontSize: 32, color: theme.palette.primary.main }}
+              />
+              <Typography variant="h4" sx={{ fontWeight: 600 }}>
+                Schemas
+              </Typography>
+            </Stack>
+            <Typography variant="body1" color="text.secondary">
+              Manage your scouting form templates
+            </Typography>
+          </Box>
+
+          {/* Schema List */}
+          {availableSchemas.length === 0 ? (
+            <Paper
+              elevation={0}
+              sx={{
+                p: 6,
+                textAlign: "center",
+                borderRadius: 3,
+                border: `2px dashed ${theme.palette.divider}`,
+                mb: 3,
+              }}
+            >
+              <SchemaIcon
+                sx={{
+                  fontSize: 64,
+                  color: theme.palette.text.disabled,
+                  mb: 2,
+                }}
+              />
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                No schemas yet
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Create your first schema to get started
+              </Typography>
+            </Paper>
+          ) : (
+            <Stack spacing={2} sx={{ mb: 3 }}>
+              {availableSchemas.map((s, i) => (
+                <Card
+                  key={i}
+                  elevation={0}
+                  sx={{
+                    border: `2px solid ${theme.palette.divider}`,
+                    borderRadius: 3,
+                    transition: "all 0.3s ease",
+                    "&:hover": {
+                      borderColor: theme.palette.primary.main,
+                      boxShadow: `0 4px 12px ${theme.palette.primary.main}20`,
+                    },
+                  }}
+                  onClick={() => {
+                    setEditingSchema({ ...s.schema });
+                  }}
                 >
-                  <ListItemText primary={s.name} />
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
+                  <CardContent>
+                    <Stack
+                      direction="row"
+                      alignItems="center"
+                      justifyContent="space-between"
+                    >
+                      <Stack
+                        direction="row"
+                        alignItems="center"
+                        spacing={2}
+                        sx={{ flexGrow: 1 }}
+                      >
+                        <Box
+                          sx={{
+                            width: 48,
+                            height: 48,
+                            borderRadius: 2,
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            backgroundColor: `${theme.palette.primary.main}20`,
+                            color: theme.palette.primary.main,
+                          }}
+                        >
+                          <SchemaIcon />
+                        </Box>
+                        <Box sx={{ flexGrow: 1 }}>
+                          <Stack
+                            direction="row"
+                            alignItems="center"
+                            spacing={1}
+                          >
+                            <Typography variant="h6">{s.name}</Typography>
+                            {s.type === "default" && (
+                              <Chip
+                                label="Built-in"
+                                size="small"
+                                sx={{
+                                  backgroundColor: theme.palette.info.main,
+                                  color: theme.palette.info.contrastText,
+                                }}
+                              />
+                            )}
+                          </Stack>
+                          <Typography variant="body2" color="text.secondary">
+                            {s.schema.sections?.length || 0} sections
+                          </Typography>
+                        </Box>
+                      </Stack>
+                      <Stack direction="row" spacing={1}>
+                        {s.type === "generated" ? (
+                          <>
+                            <Button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSchemaToRename(s);
+                                setNewSchemaName(s.name);
+                                openSchemaRenameDialog();
+                              }}
+                              variant="contained"
+                              color="primary"
+                              startIcon={<EditIcon />}
+                            >
+                              Rename
+                            </Button>
+                            <IconButton
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSchemaToDelete(s);
+                                openDeleteSchemaDialog();
+                              }}
+                              sx={{
+                                color: theme.palette.text.secondary,
+                                "&:hover": {
+                                  backgroundColor: `${theme.palette.error.main}20`,
+                                  color: theme.palette.error.main,
+                                },
+                              }}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </>
+                        ) : (
+                          <Button
+                            onClick={() => setEditingSchema({ ...s.schema })}
+                            variant="outlined"
+                            color="secondary"
+                          >
+                            View
+                          </Button>
+                        )}
+                      </Stack>
+                    </Stack>
+                  </CardContent>
+                </Card>
+              ))}
+            </Stack>
+          )}
+
           <Button
             variant="contained"
+            size="large"
             startIcon={<AddIcon />}
             onClick={openNewSchemaDialog}
             color="primary"
+            sx={{
+              borderRadius: 2,
+              py: 1.5,
+            }}
           >
             Create New Schema
           </Button>
         </>
       ) : (
         <>
-          <Stack direction="row" alignItems="center" spacing={1}>
-            <IconButton onClick={() => setEditingSchema(null)}>
-              <ArrowBackIcon />
-            </IconButton>
-            <Typography variant="h5">
-              {availableSchemas.find((s) => s.name === editingSchema.name)
-                ?.type === "generated"
-                ? "Editing"
-                : "Viewing"}
-              : {editingSchema.name}
-            </Typography>
-          </Stack>
-          <Divider sx={{ my: 2 }} />
+          {/* Editing Header */}
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2,
+              mb: 3,
+              borderRadius: 3,
+              background: `linear-gradient(135deg, ${theme.palette.primary.main}15 0%, ${theme.palette.primary.main}05 100%)`,
+              border: `1px solid ${theme.palette.primary.main}40`,
+            }}
+          >
+            <Stack direction="row" alignItems="center" spacing={2}>
+              <IconButton
+                onClick={() => setEditingSchema(null)}
+                sx={{
+                  color: theme.palette.primary.main,
+                }}
+              >
+                <ArrowBackIcon />
+              </IconButton>
+              <Box sx={{ flexGrow: 1 }}>
+                <Typography variant="h5" sx={{ fontWeight: 600 }}>
+                  {availableSchemas.find((s) => s.name === editingSchema.name)
+                    ?.type === "generated"
+                    ? "Editing"
+                    : "Viewing"}
+                  : {editingSchema.name}
+                </Typography>
+                {!isEditable && (
+                  <Typography variant="body2" color="text.secondary">
+                    Built-in schemas are read-only
+                  </Typography>
+                )}
+              </Box>
+              {isEditable && (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  onClick={handleSaveSchema}
+                  startIcon={<SaveIcon />}
+                  size="large"
+                  sx={{ borderRadius: 2 }}
+                >
+                  Save Schema
+                </Button>
+              )}
+            </Stack>
+          </Paper>
 
           <Stack spacing={3}>
             {editingSchema.sections?.length ? (
               editingSchema.sections.map((section: SectionData, i: number) => (
-                <Card key={i} variant="outlined" sx={{ borderRadius: 3 }}>
-                  <CardContent>
+                <Card
+                  key={i}
+                  elevation={0}
+                  sx={{
+                    border: `2px solid ${theme.palette.divider}`,
+                    borderRadius: 3,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      background: `linear-gradient(135deg, ${theme.palette.secondary.main}15 0%, ${theme.palette.secondary.main}05 100%)`,
+                      borderBottom: `2px solid ${theme.palette.divider}`,
+                      p: 2,
+                    }}
+                  >
                     {isEditable ? (
                       <Stack
                         direction="row"
                         spacing={2}
                         alignItems="center"
-                        sx={{ flexGrow: 1 }}
                         justifyContent="space-between"
                       >
-                        <Typography variant="h6">{section.title}</Typography>
+                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                          {section.title}
+                        </Typography>
                         <Stack direction="row">
                           <IconButton
-                            onClick={() => {
+                            onClick={(e) => {
+                              e.stopPropagation();
                               setSectionToRenameIndex(i);
                               setNewSectionTitle(section.title);
                               openRenameDialog();
+                            }}
+                            sx={{
+                              "&:hover": {
+                                backgroundColor: `${theme.palette.secondary.main}20`,
+                                color: theme.palette.secondary.main,
+                              },
                             }}
                           >
                             <EditIcon />
@@ -344,17 +515,24 @@ export default function SchemaEditor() {
                               setSectionToDeleteIndex(i);
                               openDeleteSectionDialog();
                             }}
-                            color="error"
+                            sx={{
+                              "&:hover": {
+                                backgroundColor: `${theme.palette.error.main}20`,
+                                color: theme.palette.error.main,
+                              },
+                            }}
                           >
                             <DeleteIcon />
                           </IconButton>
                         </Stack>
                       </Stack>
                     ) : (
-                      <Typography variant="h6" gutterBottom>
+                      <Typography variant="h6" sx={{ fontWeight: 600 }}>
                         {section.title}
                       </Typography>
                     )}
+                  </Box>
+                  <CardContent>
                     {section.fields.length ? (
                       section.fields.map((field: Component, id) => (
                         <EditableComponentCard
@@ -377,7 +555,8 @@ export default function SchemaEditor() {
                         variant="outlined"
                         onClick={() => handleAddField(i)}
                         color="secondary"
-                        sx={{ mt: 2 }}
+                        sx={{ mt: 2, borderRadius: 2 }}
+                        startIcon={<AddIcon />}
                       >
                         Add Field
                       </Button>
@@ -386,36 +565,35 @@ export default function SchemaEditor() {
                 </Card>
               ))
             ) : (
-              <Typography color="text.secondary">
-                No sections yet. Add one below.
-              </Typography>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 4,
+                  textAlign: "center",
+                  borderRadius: 3,
+                  border: `2px dashed ${theme.palette.divider}`,
+                }}
+              >
+                <Typography variant="body1" color="text.secondary">
+                  No sections yet. Add one below.
+                </Typography>
+              </Paper>
             )}
 
             {isEditable && (
-              <Stack
-                direction="row"
-                spacing={2}
-                justifyContent="space-between"
-                width="100%"
-                sx={{ mt: 3 }}
+              <Button
+                variant="contained"
+                size="large"
+                startIcon={<AddIcon />}
+                onClick={openSectionDialog}
+                color="secondary"
+                sx={{
+                  borderRadius: 2,
+                  py: 1.5,
+                }}
               >
-                <Button
-                  variant="contained"
-                  startIcon={<AddIcon />}
-                  onClick={openSectionDialog}
-                  color="secondary"
-                >
-                  Add Section
-                </Button>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleSaveSchema}
-                  startIcon={<SaveIcon />}
-                >
-                  Save Schema
-                </Button>
-              </Stack>
+                Add Section
+              </Button>
             )}
           </Stack>
         </>
@@ -453,10 +631,10 @@ export default function SchemaEditor() {
             sx={{ mt: 1 }}
           />
         </DialogContent>
-        <Button onClick={closeNewSchemaDialog}>Cancel</Button>
         <DialogActions>
+          <Button onClick={closeNewSchemaDialog}>Cancel</Button>
           <Button onClick={handleCreateSchema} variant="contained">
-            Add
+            Create
           </Button>
         </DialogActions>
       </Dialog>
@@ -476,7 +654,8 @@ export default function SchemaEditor() {
         <DialogActions>
           <Button onClick={closeRenameDialog}>Cancel</Button>
           <Button
-            onClick={() => {
+            onClick={(e) => {
+              e.stopPropagation();
               if (sectionToRenameIndex !== null) {
                 handleSectionTitleChange(sectionToRenameIndex, newSectionTitle);
               }
@@ -519,6 +698,7 @@ export default function SchemaEditor() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
+          <Button onClick={closeDeleteSchemaDialog}>Cancel</Button>
           <Button
             onClick={handleDeleteSchema}
             variant="contained"
@@ -526,7 +706,6 @@ export default function SchemaEditor() {
           >
             Delete
           </Button>
-          <Button onClick={closeDeleteSchemaDialog}>Cancel</Button>
         </DialogActions>
       </Dialog>
 
@@ -545,6 +724,7 @@ export default function SchemaEditor() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
+          <Button onClick={closeDeleteSectionDialog}>Cancel</Button>
           <Button
             onClick={handleDeleteSection}
             variant="contained"
@@ -552,7 +732,6 @@ export default function SchemaEditor() {
           >
             Delete
           </Button>
-          <Button onClick={closeDeleteSectionDialog}>Cancel</Button>
         </DialogActions>
       </Dialog>
 
