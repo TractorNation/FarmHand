@@ -10,6 +10,7 @@ import {
   Stack,
   Typography,
   useTheme,
+  Paper,
 } from "@mui/material";
 import Section from "../ui/Section";
 import { useSchema } from "../context/SchemaContext";
@@ -19,6 +20,7 @@ import ErrorOutlineIcon from "@mui/icons-material/ErrorOutlineRounded";
 import ResetIcon from "@mui/icons-material/ReplayRounded";
 import HelpIcon from "@mui/icons-material/HelpOutlineRounded";
 import QrCodeIcon from "@mui/icons-material/QrCodeRounded";
+import AssignmentIcon from "@mui/icons-material/AssignmentRounded";
 
 import QrShareDialog from "../ui/dialog/QrShareDialogue";
 import useDialog from "../hooks/useDialog";
@@ -101,15 +103,50 @@ export default function Scout() {
   }
   return (
     <>
-      <Box sx={{ p: 3, justifyContent: "center" }}>
-        <Typography variant="h3" sx={{ mb: 3 }}>
-          {schemaName}
-        </Typography>
+      <Box sx={{ p: 3 }}>
+        {/* Header */}
+        <Paper
+          elevation={0}
+          sx={{
+            p: 3,
+            mb: 3,
+            borderRadius: 3,
+            background: `linear-gradient(135deg, ${theme.palette.primary.main}15 0%, ${theme.palette.primary.main}05 100%)`,
+            border: `1px solid ${theme.palette.primary.main}40`,
+          }}
+        >
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <Box
+              sx={{
+                width: 48,
+                height: 48,
+                borderRadius: 2,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: `${theme.palette.primary.main}20`,
+                color: theme.palette.primary.main,
+              }}
+            >
+              <AssignmentIcon sx={{ fontSize: 28 }} />
+            </Box>
+            <Box>
+              <Typography variant="h4" sx={{ fontWeight: 600 }}>
+                {schemaName}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Fill out the form to scout a match
+              </Typography>
+            </Box>
+          </Stack>
+        </Paper>
+
         <Stack spacing={3} key={resetKey}>
           {schemaData!.sections.map((section, index) => (
             <Section key={index} section={section} submitted={submitted} />
           ))}
         </Stack>
+        
         <Stack
           direction={"row"}
           spacing={2}
@@ -118,21 +155,32 @@ export default function Scout() {
           sx={{ mt: 3 }}
         >
           <Button
-            variant="contained"
+            variant="outlined"
             color="warning"
-            sx={{ mt: 3 }}
+            size="large"
+            sx={{ 
+              borderRadius: 2,
+              borderWidth: 2,
+              "&:hover": {
+                borderWidth: 2,
+              },
+            }}
             onClick={openResetPopup}
+            startIcon={<ResetIcon />}
           >
-            <ResetIcon sx={{ mr: 1 }} />
             Reset form
           </Button>
           <Button
             variant="contained"
             color="primary"
-            sx={{ mt: 3 }}
+            size="large"
+            sx={{ 
+              borderRadius: 2,
+              px: 4,
+            }}
             onClick={handleSubmit}
+            startIcon={<QrCodeIcon />}
           >
-            <QrCodeIcon sx={{ mr: 1 }} />
             Complete scout
           </Button>
         </Stack>
@@ -154,11 +202,11 @@ export default function Scout() {
           Are you sure you want to reset the form?
         </DialogTitle>
         <DialogActions>
-          <Button onClick={handleReset} color="error" variant="contained">
-            Reset
-          </Button>
           <Button onClick={closeResetPopup} color="primary" variant="text">
             Cancel
+          </Button>
+          <Button onClick={handleReset} color="error" variant="contained">
+            Reset
           </Button>
         </DialogActions>
       </Dialog>
