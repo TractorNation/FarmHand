@@ -22,7 +22,7 @@ import HelpIcon from "@mui/icons-material/HelpOutlineRounded";
 import QrCodeIcon from "@mui/icons-material/QrCodeRounded";
 import AssignmentIcon from "@mui/icons-material/AssignmentRounded";
 
-import QrShareDialog from "../ui/dialog/QrShareDialogue";
+import QrShareDialog from "../ui/dialog/QrShareDialog";
 import useDialog from "../hooks/useDialog";
 import { QrCodeBuilder, saveQrCode } from "../utils/QrUtils";
 import { getFieldValueByName } from "../utils/GeneralUtils";

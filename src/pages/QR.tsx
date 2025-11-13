@@ -14,8 +14,8 @@ import { useSchema } from "../context/SchemaContext";
 import { useAsyncFetch } from "../hooks/useAsyncFetch";
 import { useQrSelection } from "../hooks/useQrSelection";
 import useDialog from "../hooks/useDialog";
-import QrScannerPopup from "../ui/dialog/QrScannerPopup";
-import QrShareDialog from "../ui/dialog/QrShareDialogue";
+import QrScannerDialog from "../ui/dialog/QrScannerDialog";
+import QrShareDialog from "../ui/dialog/QrShareDialog";
 import ExportDialog from "../ui/dialog/ExportDialog";
 import { exportQrCodesToCsv, exportQrCodesToJson } from "../utils/GeneralUtils";
 import QrCodeIcon from "@mui/icons-material/QrCodeRounded";
@@ -224,7 +224,7 @@ export default function QRPage() {
         </>
       )}
 
-      <QrScannerPopup
+      <QrScannerDialog
         open={scannerOpen}
         onClose={closeScanner}
         onImport={refetch}

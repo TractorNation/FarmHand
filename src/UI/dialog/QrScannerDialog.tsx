@@ -10,7 +10,7 @@ import {
   Skeleton,
   useMediaQuery,
   useTheme,
-  alpha,
+  Paper,
 } from "@mui/material";
 import { BrowserQRCodeReader, IScannerControls } from "@zxing/browser";
 import { Result } from "@zxing/library";
@@ -26,7 +26,7 @@ import { useSchema } from "../../context/SchemaContext";
 /**
  * Props for the qr scanner
  */
-interface QrScannerPopupProps {
+interface QrScannerDialogueProps {
   open: boolean;
   onClose: () => void;
   onImport: () => void;
@@ -79,7 +79,7 @@ async function getCameraDevices(): Promise<MediaDeviceInfo[]> {
   }
 }
 
-export default function QrScannerPopup(props: QrScannerPopupProps) {
+export default function QrScannerDialogue(props: QrScannerDialogueProps) {
   const { open, onClose, onImport } = props;
   const { schema } = useSchema();
   const [activeCamera, setActiveCamera] = useState<CameraDevice>();
@@ -248,6 +248,7 @@ export default function QrScannerPopup(props: QrScannerPopupProps) {
                 aspectRatio: "1/1",
                 width: "100%",
                 maxHeight: isLandscape ? "none" : "50vh",
+                border: `2px solid ${theme.palette.divider}`,
               }}
             >
               <video
@@ -276,7 +277,7 @@ export default function QrScannerPopup(props: QrScannerPopupProps) {
                     <Box
                       key={i}
                       sx={{
-                        color: alpha(theme.palette.common.white, 0.5),
+                        color: theme.palette.primary.main,
                         position: "absolute",
                         width: 40,
                         height: 40,
@@ -294,7 +295,7 @@ export default function QrScannerPopup(props: QrScannerPopupProps) {
                 variant="contained"
                 color="info"
                 fullWidth
-                sx={{ mt: 1 }}
+                sx={{ mt: 2, borderRadius: 2 }}
               >
                 Switch Camera
               </Button>
@@ -314,7 +315,7 @@ export default function QrScannerPopup(props: QrScannerPopupProps) {
           overflow: "hidden",
         }}
       >
-        <Typography variant="h6" sx={{ mb: 1, flexShrink: 0 }}>
+        <Typography variant="h6" sx={{ mb: 2, flexShrink: 0, fontWeight: 600 }}>
           Scanned Codes ({results.length})
         </Typography>
 
@@ -328,39 +329,43 @@ export default function QrScannerPopup(props: QrScannerPopupProps) {
           }}
         >
           {results.map((code, i) => (
-            <ListItem
+            <Paper
               key={i}
+              elevation={0}
               sx={{
-                bgcolor: "action.hover",
-                borderRadius: 2,
                 mb: 1,
+                borderRadius: 2,
+                border: `1px solid ${theme.palette.divider}`,
               }}
             >
-              <ListItemIcon sx={{ minWidth: 40 }}>
-                <QrCodeIcon />
-              </ListItemIcon>
-              <ListItemText
-                primary={code}
-                slotProps={{
-                  primary: {
-                    textOverflow: "ellipsis",
-                    overflow: "hidden",
-                    whiteSpace: "nowrap",
-                  },
-                }}
-              />
-            </ListItem>
+              <ListItem>
+                <ListItemIcon sx={{ minWidth: 40 }}>
+                  <QrCodeIcon color="primary" />
+                </ListItemIcon>
+                <ListItemText
+                  primary={code}
+                  slotProps={{
+                    primary: {
+                      textOverflow: "ellipsis",
+                      overflow: "hidden",
+                      whiteSpace: "nowrap",
+                    },
+                  }}
+                />
+              </ListItem>
+            </Paper>
           ))}
         </List>
 
         <Button
           variant="contained"
           fullWidth
-          sx={{ flexShrink: 0 }}
+          size="large"
+          sx={{ flexShrink: 0, borderRadius: 2 }}
           onClick={importQRList}
           disabled={results.length === 0}
         >
-          Import All
+          Import All ({results.length})
         </Button>
       </Box>
     </Dialog>
