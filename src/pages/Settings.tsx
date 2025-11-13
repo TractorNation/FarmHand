@@ -22,19 +22,20 @@ import SecurityIcon from "@mui/icons-material/SecurityRounded";
 import InfoIcon from "@mui/icons-material/InfoRounded";
 import { useState } from "react";
 import PageHeader from "../ui/PageHeader";
+import { useSettings } from "../context/SettingsContext";
 
 export default function Settings() {
-  const { schemaName, availableSchemas, selectSchema } = useSchema();
+  const { schemaName, availableSchemas } = useSchema();
+  const { setSetting, settings } = useSettings();
   const theme = useTheme();
 
   // TODO: Make these actually function
-  const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState(true);
   const [autoSave, setAutoSave] = useState(true);
   const [deviceName, setDeviceName] = useState("Device 1");
 
-  const handleSchemaChange = (value: string) => {
-    selectSchema(value);
+  const handleChange = async (key: keyof Settings, value: any) => {
+    await setSetting(key, value);
   };
 
   // Settings sections organized by category
@@ -49,9 +50,9 @@ export default function Settings() {
           type: "dropdown",
           label: "Active Schema",
           description: "Select which scouting form to use",
-          value: schemaName || "",
+          value: settings.LAST_SCHEMA_NAME || schemaName || "",
           options: availableSchemas.map((s) => s.name),
-          onChange: handleSchemaChange,
+          onChange: (value: string) => handleChange("LAST_SCHEMA_NAME", value),
         },
         {
           type: "switch",
@@ -72,8 +73,10 @@ export default function Settings() {
           type: "switch",
           label: "Dark Mode",
           description: "Use dark theme throughout the app",
-          checked: darkMode,
-          onChange: (checked: boolean) => setDarkMode(checked),
+          checked: settings.THEME === "dark",
+          onChange: (checked: boolean) => {
+            handleChange("THEME", checked ? "dark" : "light");
+          },
         },
       ],
     },
@@ -84,8 +87,8 @@ export default function Settings() {
       color: theme.palette.info.main,
       settings: [
         {
-          type: "text",
-          label: "Device Name",
+          type: "number",
+          label: "Device ID",
           description: "Identify this device in match data",
           value: deviceName,
           onChange: (value: string) => setDeviceName(value),
@@ -159,7 +162,16 @@ export default function Settings() {
             sx={{ minWidth: 200 }}
           />
         );
-
+      case "number":
+        return (
+          <TextField
+            type="number"
+            value={setting.value}
+            onChange={(e) => setting.onChange(e.target.value)}
+            size="small"
+            sx={{ minWidth: 100 }}
+          />
+        );
       case "button":
         return (
           <Button
@@ -179,7 +191,6 @@ export default function Settings() {
 
   return (
     <Box sx={{ p: 3 }}>
-
       {/* Header */}
       <PageHeader
         icon={<SettingsIcon sx={{ fontSize: 28 }} />}

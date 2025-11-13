@@ -25,6 +25,23 @@ const StoreManager = {
     }
   },
 
+  async getAll(keys: string[]): Promise<Map<string, string | undefined>> {
+    try {
+      await this.ensureInit();
+      if (!store) return new Map();
+
+      const result: Map<string, string | undefined> = new Map();
+      for (const key of keys) {
+        const value = await store.get(key);
+        result.set(key, value as string | undefined);
+      }
+      return result;
+    } catch (e) {
+      console.error("Failed to get all items", e);
+      throw e;
+    }
+  },
+
   async get(key: string): Promise<string | undefined> {
     try {
       await this.ensureInit();
@@ -86,7 +103,9 @@ export default StoreManager;
 
 export const StoreKeys = {
   settings: {
-    LAST_SCHEMA_NAME: "LAST_SCHEMA_NAME",
+    LAST_SCHEMA_NAME: "setings::LAST_SCHEMA_NAME",
+    DEVICE_ID: "settings::DEVICE_ID",
+    THEME: "settings::THEME",
   },
 
   match: {
