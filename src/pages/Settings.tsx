@@ -32,7 +32,6 @@ export default function Settings() {
   // TODO: Make these actually function
   const [notifications, setNotifications] = useState(true);
   const [autoSave, setAutoSave] = useState(true);
-  const [deviceName, setDeviceName] = useState("Device 1");
 
   const handleChange = async (key: keyof Settings, value: any) => {
     await setSetting(key, value);
@@ -90,8 +89,8 @@ export default function Settings() {
           type: "number",
           label: "Device ID",
           description: "Identify this device in match data",
-          value: deviceName,
-          onChange: (value: string) => setDeviceName(value),
+          value: settings.DEVICE_ID || 1,
+          onChange: (value: string) => handleChange("DEVICE_ID", Number(value)),
         },
       ],
     },

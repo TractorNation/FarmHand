@@ -22,8 +22,8 @@ import PageHeader from "../ui/PageHeader";
 export default function LeadScoutDashboard() {
   const theme = useTheme();
 
-  // Define the expected number of devices
-  const EXPECTED_DEVICES_COUNT = 6;
+    // Define the expected number of devices
+    const EXPECTED_DEVICES_COUNT = 6;
 
   // Calculate the maximum match number to iterate through
   const maxMatchNumber = useMemo(() => {
