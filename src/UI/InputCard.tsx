@@ -33,16 +33,24 @@ function InputCard(props: InputCardProps) {
         borderColor: showError
           ? theme.palette.error.main
           : theme.palette.divider,
-        borderWidth: showError ? 2 : 1,
+        borderWidth: 2,
         borderStyle: "solid",
-        borderRadius: 2,
+        borderRadius: 3,
         p: 2,
         height: "100%",
         backgroundColor: theme.palette.background.paper,
-        transition: "border-color 0.2s ease, background-color 0.2s ease",
+        transition: "all 0.3s ease",
         alignContent: "center",
         display: "flex",
         flexDirection: "column",
+        "&:hover": {
+          borderColor: showError
+            ? theme.palette.error.light
+            : theme.palette.primary.light,
+          boxShadow: showError
+            ? `0 4px 12px ${theme.palette.error.main}20`
+            : `0 4px 12px ${theme.palette.primary.main}15`,
+        },
       }}
     >
       <CardContent
@@ -56,10 +64,10 @@ function InputCard(props: InputCardProps) {
       >
         {showError && (
           <Typography variant="subtitle1" sx={{ mb: 1 }} color="error">
-            "This field is required"
+            This field is required
           </Typography>
         )}
-        <Typography variant="h6" sx={{ mb: 1 }}>
+        <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
           {label + " "}
           {required && "*"}
         </Typography>
