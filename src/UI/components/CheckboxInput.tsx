@@ -35,6 +35,13 @@ export default function CheckboxInput(props: CheckboxInputProps) {
         maxWidth: 200,
         aspectRatio: "2 / 1",
         fontSize: "1.5rem",
+        borderRadius: 3,
+        borderWidth: 2,
+        transition: "all 0.2s ease",
+        "&:hover": {
+          borderWidth: 2,
+          transform: "scale(1.05)",
+        },
       }}
     >
       {value ? <CheckIcon fontSize="large" /> : <CloseIcon fontSize="large" />}

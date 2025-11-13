@@ -49,14 +49,26 @@ export default function CounterInput(props: CounterInputProps) {
         disabled={isMin}
         sx={{
           aspectRatio: "1/1",
-          borderRadius: 2,
+          borderRadius: 3,
+          borderWidth: 2,
+          minWidth: 56,
+          transition: "all 0.2s ease",
+          "&:hover": {
+            borderWidth: 2,
+            transform: "scale(1.05)",
+          },
         }}
       >
         <RemoveIcon fontSize="large" />
       </Button>
       <Typography
-        variant="h5"
-        sx={{ textAlign: "center", color: "text.primary" }}
+        variant="h4"
+        sx={{
+          textAlign: "center",
+          color: "text.primary",
+          fontWeight: 600,
+          minWidth: 60,
+        }}
       >
         {value}
       </Typography>
@@ -67,7 +79,12 @@ export default function CounterInput(props: CounterInputProps) {
         disabled={isMax}
         sx={{
           aspectRatio: "1/1",
-          borderRadius: 2,
+          borderRadius: 3,
+          minWidth: 56,
+          transition: "all 0.2s ease",
+          "&:hover": {
+            transform: "scale(1.05)",
+          },
         }}
       >
         <AddIcon fontSize="large" />
