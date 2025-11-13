@@ -26,6 +26,7 @@ import QrPageFab from "../ui/qr/QrFab";
 import QrGrid from "../ui/qr/QrGrid";
 import { fetchQrCodes } from "../utils/QrUtils";
 import { useTheme } from "@mui/material/styles";
+import PageHeader from "../ui/PageHeader";
 
 export default function QRPage() {
   const theme = useTheme();
@@ -93,10 +94,15 @@ export default function QRPage() {
                 opacity: 0.5,
               }}
             />
-            <Typography variant="h6" color="text.primary" gutterBottom sx={{ fontWeight: 600 }}>
+            <Typography
+              variant="h6"
+              color="text.primary"
+              gutterBottom
+              sx={{ fontWeight: 600 }}
+            >
               No QR codes found
             </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
               Scan a QR code or scout a match to get started
             </Typography>
             <Button
@@ -114,59 +120,32 @@ export default function QRPage() {
         <>
           <Box px={3} pt={2}>
             {/* Header */}
-            <Paper
-              elevation={0}
-              sx={{
-                p: 3,
-                mb: 3,
-                borderRadius: 3,
-                background: `linear-gradient(135deg, ${theme.palette.primary.main}15 0%, ${theme.palette.primary.main}05 100%)`,
-                border: `1px solid ${theme.palette.primary.main}40`,
-              }}
-            >
-              <Stack direction="row" alignItems="center" justifyContent="space-between">
-                <Stack direction="row" alignItems="center" spacing={2}>
-                  <Box
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: 2,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      backgroundColor: `${theme.palette.primary.main}20`,
-                      color: theme.palette.primary.main,
-                    }}
-                  >
-                    <QrCodeIcon sx={{ fontSize: 28 }} />
-                  </Box>
-                  <Box>
-                    <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                      QR Codes
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {qrCodes.length} code{qrCodes.length !== 1 ? 's' : ''} collected
-                    </Typography>
-                  </Box>
-                </Stack>
-                {selection.selecting && selection.selectedCodes.length > 0 && (
+            <PageHeader
+              icon={<QrCodeIcon sx={{ fontSize: 28 }} />}
+              title="QR Codes"
+              subtitle={`${qrCodes.length} code${
+                qrCodes.length !== 1 ? "s" : ""
+              } collected`}
+              trailingComponent={
+                selection.selecting &&
+                selection.selectedCodes.length > 0 && (
                   <Chip
                     label={`${selection.selectedCodes.length} selected`}
                     color="primary"
                     sx={{ fontWeight: 600 }}
                   />
-                )}
-              </Stack>
-            </Paper>
+                )
+              }
+            />
 
             {/* Action Bar */}
             <Stack direction="row" justifyContent="space-between" mb={3}>
               <Stack direction="row" spacing={2}>
-                <Button 
-                  variant="outlined" 
+                <Button
+                  variant="outlined"
                   color="secondary"
                   startIcon={<FilterIcon />}
-                  sx={{ 
+                  sx={{
                     borderRadius: 2,
                     borderWidth: 2,
                     "&:hover": {
@@ -176,11 +155,11 @@ export default function QRPage() {
                 >
                   Filter
                 </Button>
-                <Button 
-                  variant="outlined" 
+                <Button
+                  variant="outlined"
                   color="secondary"
                   startIcon={<SortIcon />}
-                  sx={{ 
+                  sx={{
                     borderRadius: 2,
                     borderWidth: 2,
                     "&:hover": {
@@ -195,7 +174,7 @@ export default function QRPage() {
                 variant={selection.selecting ? "outlined" : "contained"}
                 color="secondary"
                 onClick={selection.toggleSelecting}
-                sx={{ 
+                sx={{
                   borderRadius: 2,
                   ...(selection.selecting && {
                     borderWidth: 2,
