@@ -18,7 +18,7 @@ interface ExportDialogProps {
   onExport: (fileType: "csv" | "json") => void;
 }
 
-export default function exportDialog(props: ExportDialogProps) {
+export default function ExportDialog(props: ExportDialogProps) {
   const [fileType, setFileType] = useState<"csv" | "json">("csv");
   const { open, onClose, onExport } = props;
 
@@ -28,11 +28,22 @@ export default function exportDialog(props: ExportDialogProps) {
   };
 
   return (
-    <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Select Export Format</DialogTitle>
+    <Dialog
+      open={open}
+      onClose={onClose}
+      slotProps={{
+        paper: {
+          sx: {
+            borderRadius: 3,
+            minWidth: 400,
+          },
+        },
+      }}
+    >
+      <DialogTitle sx={{ fontWeight: 600 }}>Select Export Format</DialogTitle>
       <DialogContent>
-        <FormControl>
-          <FormLabel>File Type</FormLabel>
+        <FormControl sx={{ mt: 1 }}>
+          <FormLabel sx={{ fontWeight: 600, mb: 1 }}>File Type</FormLabel>
           <RadioGroup
             value={fileType}
             onChange={(e) => setFileType(e.target.value as "csv" | "json")}
@@ -42,9 +53,15 @@ export default function exportDialog(props: ExportDialogProps) {
           </RadioGroup>
         </FormControl>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={handleExportClick} variant="contained">
+      <DialogActions sx={{ p: 2 }}>
+        <Button onClick={onClose} sx={{ borderRadius: 2 }}>
+          Cancel
+        </Button>
+        <Button
+          onClick={handleExportClick}
+          variant="contained"
+          sx={{ borderRadius: 2 }}
+        >
           Export
         </Button>
       </DialogActions>

@@ -110,15 +110,24 @@ export default function QrShareDialog(props: QrExportDialogProps) {
                 alignItems: "center",
               }}
             >
-              <img
-                src={`data:image/svg+xml;base64,${btoa(qrCodeData.image)}`}
-                alt="QR Code"
-                style={{
-                  width: isLandscape ? "40vh" : "70vw",
-                  maxWidth: "300px",
-                  borderRadius: 20,
+              <Box
+                sx={{
+                  borderRadius: 3,
+                  overflow: "hidden",
+                  border: `2px solid ${theme.palette.divider}`,
+                  boxShadow: `0 4px 12px ${theme.palette.primary.main}15`,
                 }}
-              />
+              >
+                <img
+                  src={`data:image/svg+xml;base64,${btoa(qrCodeData.image)}`}
+                  alt="QR Code"
+                  style={{
+                    width: isLandscape ? "40vh" : "70vw",
+                    maxWidth: "300px",
+                    display: "block",
+                  }}
+                />
+              </Box>
             </Box>
           ) : (
             <Typography
@@ -130,20 +139,51 @@ export default function QrShareDialog(props: QrExportDialogProps) {
           )}
 
           <Stack spacing={2} sx={{ width: "100%" }}>
-            <Typography variant="subtitle1" textAlign="center">
+            <Typography
+              variant="h6"
+              textAlign="center"
+              sx={{ fontWeight: 600 }}
+            >
+              {qrCodeData.name}
+            </Typography>
+            <Typography
+              variant="body1"
+              textAlign="center"
+              color="text.secondary"
+            >
               Scan to import this match to another device
             </Typography>
 
             <Stack direction="row" spacing={2} justifyContent="center">
-              <Button variant="contained" color="primary" onClick={handleCopy}>
-                <CopyIcon sx={{ mr: 1 }} /> Copy
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={handleCopy}
+                startIcon={<CopyIcon />}
+                sx={{
+                  borderRadius: 2,
+                  borderWidth: 2,
+                  "&:hover": {
+                    borderWidth: 2,
+                  },
+                }}
+              >
+                Copy
               </Button>
               <Button
-                variant="contained"
+                variant="outlined"
                 color="primary"
                 onClick={handleDownload}
+                startIcon={<DownloadIcon />}
+                sx={{
+                  borderRadius: 2,
+                  borderWidth: 2,
+                  "&:hover": {
+                    borderWidth: 2,
+                  },
+                }}
               >
-                <DownloadIcon sx={{ mr: 1 }} /> Download
+                Download
               </Button>
             </Stack>
 
@@ -153,6 +193,7 @@ export default function QrShareDialog(props: QrExportDialogProps) {
                 variant="contained"
                 sx={{
                   width: "100%",
+                  borderRadius: 2,
                 }}
                 onClick={handleSaveQR}
               >
@@ -164,7 +205,7 @@ export default function QrShareDialog(props: QrExportDialogProps) {
                 color="error"
                 variant="contained"
                 onClick={openDeletePopup}
-                sx={{ width: "100%" }}
+                sx={{ width: "100%", borderRadius: 2 }}
               >
                 Delete QR
               </Button>
@@ -177,22 +218,35 @@ export default function QrShareDialog(props: QrExportDialogProps) {
       <Dialog
         open={deletePopupOpen}
         onClose={closeDeletePopup}
-        sx={{ elevation: 24 }}
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: 3,
+              minWidth: 400,
+            },
+          },
+        }}
       >
         <DialogTitle
           sx={{
             display: "flex",
             alignItems: "center",
+            fontWeight: 600,
           }}
         >
           <HelpIcon sx={{ mr: 1 }} />
           Are you sure you want to delete this code?
         </DialogTitle>
-        <DialogActions>
-          <Button onClick={handleDelete} color="error" variant="contained">
+        <DialogActions sx={{ p: 2 }}>
+          <Button
+            onClick={handleDelete}
+            color="error"
+            variant="contained"
+            sx={{ borderRadius: 2 }}
+          >
             Delete
           </Button>
-          <Button onClick={closeDeletePopup} color="primary" variant="text">
+          <Button onClick={closeDeletePopup} sx={{ borderRadius: 2 }}>
             Cancel
           </Button>
         </DialogActions>
@@ -209,6 +263,7 @@ export default function QrShareDialog(props: QrExportDialogProps) {
               backgroundColor: theme.palette.success.main,
               color: theme.palette.success.contrastText,
               fontFamily: theme.typography.subtitle1,
+              borderRadius: 2,
             },
           },
         }}

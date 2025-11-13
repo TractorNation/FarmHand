@@ -30,6 +30,7 @@ import useDialog from "../hooks/useDialog";
 import { useSchema } from "../context/SchemaContext";
 import { deleteSchema, saveSchema } from "../utils/SchemaUtils";
 import EditableComponentCard from "../ui/EditableComponentCard";
+import PageHeader from "../ui/PageHeader";
 
 export default function SchemaEditor() {
   const theme = useTheme();
@@ -79,14 +80,17 @@ export default function SchemaEditor() {
       "generated";
 
   const handleCreateSchema = async () => {
-    await saveSchema({ name: newSchemaName, sections: [] } as Schema);
+    const trimmedName = newSchemaName.trim();
+    if (!trimmedName) return;
+    await saveSchema({ name: trimmedName, sections: [] } as Schema);
     closeNewSchemaDialog();
     await refreshSchemas();
     setNewSchemaName("");
   };
 
   const handleRenameSchema = async () => {
-    if (!schemaToRename || !newSchemaName) {
+    const trimmedName = newSchemaName.trim();
+    if (!schemaToRename || !trimmedName) {
       closeSchemaRenameDialog();
       return;
     }
@@ -123,12 +127,11 @@ export default function SchemaEditor() {
 
   const handleAddSection = () => {
     if (!editingSchema) return;
+    const trimmedName = newSectionName.trim();
+    if (!trimmedName) return; // Prevent adding empty named sections
     setEditingSchema({
       ...editingSchema,
-      sections: [
-        ...editingSchema.sections,
-        { title: newSectionName, fields: [] },
-      ],
+      sections: [...editingSchema.sections, { title: trimmedName, fields: [] }],
     });
     setNewSectionName("");
     closeSectionDialog();
@@ -237,41 +240,11 @@ export default function SchemaEditor() {
       {!editingSchema ? (
         <>
           {/* Header */}
-          <Paper
-          elevation={0}
-          sx={{
-            p: 3,
-            mb: 3,
-            borderRadius: 3,
-            background: `linear-gradient(135deg, ${theme.palette.primary.main}15 0%, ${theme.palette.primary.main}05 100%)`,
-            border: `1px solid ${theme.palette.primary.main}40`,
-          }}
-        >
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <Box
-              sx={{
-                width: 48,
-                height: 48,
-                borderRadius: 2,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: `${theme.palette.primary.main}20`,
-                color: theme.palette.primary.main,
-              }}
-            >
-              <SchemaIcon sx={{ fontSize: 28 }} />
-            </Box>
-            <Box>
-              <Typography variant="h4" sx={{ fontWeight: 600 }}>
-                Schemas
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Manage your scouting form templates
-              </Typography>
-            </Box>
-          </Stack>
-        </Paper>
+          <PageHeader
+            icon={<SchemaIcon sx={{ fontSize: 28 }} />}
+            title="Schemas"
+            subtitle="Manage scouting form layouts"
+          />
 
           {/* Schema List */}
           {availableSchemas.length === 0 ? (
@@ -295,7 +268,7 @@ export default function SchemaEditor() {
               <Typography variant="h6" color="text.secondary" gutterBottom>
                 No schemas yet
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body1" color="text.secondary">
                 Create your first schema to get started
               </Typography>
             </Paper>
@@ -314,9 +287,7 @@ export default function SchemaEditor() {
                       boxShadow: `0 4px 12px ${theme.palette.primary.main}20`,
                     },
                   }}
-                  onClick={() => {
-                    setEditingSchema({ ...s.schema });
-                  }}
+                  onClick={() => setEditingSchema({ ...s.schema })}
                 >
                   <CardContent>
                     <Stack
@@ -362,7 +333,7 @@ export default function SchemaEditor() {
                               />
                             )}
                           </Stack>
-                          <Typography variant="body2" color="text.secondary">
+                          <Typography variant="body1" color="text.secondary">
                             {s.schema.sections?.length || 0} sections
                           </Typography>
                         </Box>
@@ -433,18 +404,21 @@ export default function SchemaEditor() {
         </>
       ) : (
         <>
-          {/* Editing Header */}
-          <Paper
-            elevation={0}
-            sx={{
-              p: 2,
-              mb: 3,
-              borderRadius: 3,
-              background: `linear-gradient(135deg, ${theme.palette.primary.main}15 0%, ${theme.palette.primary.main}05 100%)`,
-              border: `1px solid ${theme.palette.primary.main}40`,
-            }}
-          >
-            <Stack direction="row" alignItems="center" spacing={2}>
+          {/* Header */}
+          <PageHeader
+            icon={<SchemaIcon sx={{ fontSize: 28 }} />}
+            title={`${
+              availableSchemas.find((s) => s.name === editingSchema.name)
+                ?.type === "generated"
+                ? "Editing"
+                : "Viewing"
+            }: ${editingSchema.name}`}
+            subtitle={
+              isEditable
+                ? "Change or create form fields"
+                : "Built-in schemas are view only"
+            }
+            leadingComponent={
               <IconButton
                 onClick={() => setEditingSchema(null)}
                 sx={{
@@ -453,21 +427,9 @@ export default function SchemaEditor() {
               >
                 <ArrowBackIcon />
               </IconButton>
-              <Box sx={{ flexGrow: 1 }}>
-                <Typography variant="h5" sx={{ fontWeight: 600 }}>
-                  {availableSchemas.find((s) => s.name === editingSchema.name)
-                    ?.type === "generated"
-                    ? "Editing"
-                    : "Viewing"}
-                  : {editingSchema.name}
-                </Typography>
-                {!isEditable && (
-                  <Typography variant="body2" color="text.secondary">
-                    Built-in schemas are read-only
-                  </Typography>
-                )}
-              </Box>
-              {isEditable && (
+            }
+            trailingComponent={
+              isEditable && (
                 <Button
                   variant="contained"
                   color="primary"
@@ -478,9 +440,9 @@ export default function SchemaEditor() {
                 >
                   Save Schema
                 </Button>
-              )}
-            </Stack>
-          </Paper>
+              )
+            }
+          />
 
           <Stack spacing={3}>
             {editingSchema.sections?.length ? (
@@ -512,8 +474,7 @@ export default function SchemaEditor() {
                         </Typography>
                         <Stack direction="row">
                           <IconButton
-                            onClick={(e) => {
-                              e.stopPropagation();
+                            onClick={() => {
                               setSectionToRenameIndex(i);
                               setNewSectionTitle(section.title);
                               openRenameDialog();
@@ -617,8 +578,12 @@ export default function SchemaEditor() {
       )}
 
       {/* Add Section Dialog */}
-      <Dialog open={sectionDialogOpen} onClose={closeSectionDialog}>
-        <DialogTitle>Add Section</DialogTitle>
+      <Dialog
+        open={sectionDialogOpen}
+        onClose={closeSectionDialog}
+        slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 400 } } }}
+      >
+        <DialogTitle sx={{ fontWeight: 600 }}>Add Section</DialogTitle>
         <DialogContent>
           <TextField
             label="Section Name"
@@ -628,17 +593,28 @@ export default function SchemaEditor() {
             sx={{ mt: 1 }}
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={closeSectionDialog}>Cancel</Button>
-          <Button onClick={handleAddSection} variant="contained">
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={closeSectionDialog} sx={{ borderRadius: 2 }}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleAddSection}
+            disabled={!newSectionName.trim()}
+            variant="contained"
+            sx={{ borderRadius: 2 }}
+          >
             Add
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* New Schema Dialog */}
-      <Dialog open={newSchemaDialogOpen} onClose={closeNewSchemaDialog}>
-        <DialogTitle>Create Schema</DialogTitle>
+      <Dialog
+        open={newSchemaDialogOpen}
+        onClose={closeNewSchemaDialog}
+        slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 400 } } }}
+      >
+        <DialogTitle sx={{ fontWeight: 600 }}>Create Schema</DialogTitle>
         <DialogContent>
           <TextField
             label="Schema Name"
@@ -648,17 +624,28 @@ export default function SchemaEditor() {
             sx={{ mt: 1 }}
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={closeNewSchemaDialog}>Cancel</Button>
-          <Button onClick={handleCreateSchema} variant="contained">
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={closeNewSchemaDialog} sx={{ borderRadius: 2 }}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleCreateSchema}
+            variant="contained"
+            disabled={!newSchemaName.trim()}
+            sx={{ borderRadius: 2 }}
+          >
             Create
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Rename Section Dialog */}
-      <Dialog open={renameDialogOpen} onClose={closeRenameDialog}>
-        <DialogTitle>Rename Section</DialogTitle>
+      <Dialog
+        open={renameDialogOpen}
+        onClose={closeRenameDialog}
+        slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 400 } } }}
+      >
+        <DialogTitle sx={{ fontWeight: 600 }}>Rename Section</DialogTitle>
         <DialogContent>
           <TextField
             label="Section Name"
@@ -668,17 +655,21 @@ export default function SchemaEditor() {
             sx={{ mt: 1 }}
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={closeRenameDialog}>Cancel</Button>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={closeRenameDialog} sx={{ borderRadius: 2 }}>
+            Cancel
+          </Button>
           <Button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (sectionToRenameIndex !== null) {
-                handleSectionTitleChange(sectionToRenameIndex, newSectionTitle);
+            onClick={() => {
+              const trimmedTitle = newSectionTitle.trim();
+              if (sectionToRenameIndex !== null && trimmedTitle) {
+                handleSectionTitleChange(sectionToRenameIndex, trimmedTitle);
               }
               closeRenameDialog();
             }}
             variant="contained"
+            disabled={!newSectionTitle.trim()}
+            sx={{ borderRadius: 2 }}
           >
             Rename
           </Button>
@@ -686,8 +677,12 @@ export default function SchemaEditor() {
       </Dialog>
 
       {/* Rename Schema Dialog */}
-      <Dialog open={schemaRenameDialogOpen} onClose={closeSchemaRenameDialog}>
-        <DialogTitle>Rename Schema</DialogTitle>
+      <Dialog
+        open={schemaRenameDialogOpen}
+        onClose={closeSchemaRenameDialog}
+        slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 400 } } }}
+      >
+        <DialogTitle sx={{ fontWeight: 600 }}>Rename Schema</DialogTitle>
         <DialogContent>
           <TextField
             label="Schema Name"
@@ -697,38 +692,58 @@ export default function SchemaEditor() {
             sx={{ mt: 1 }}
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={closeSchemaRenameDialog}>Cancel</Button>
-          <Button onClick={handleRenameSchema} variant="contained">
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={closeSchemaRenameDialog} sx={{ borderRadius: 2 }}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleRenameSchema}
+            disabled={!newSchemaName.trim()}
+            variant="contained"
+            sx={{ borderRadius: 2 }}
+          >
             Rename
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Delete Schema Confirmation Dialog */}
-      <Dialog open={deleteSchemaDialogOpen} onClose={closeDeleteSchemaDialog}>
-        <DialogTitle>Delete Schema "{schemaToDelete?.name}"?</DialogTitle>
+      <Dialog
+        open={deleteSchemaDialogOpen}
+        onClose={closeDeleteSchemaDialog}
+        slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 400 } } }}
+      >
+        <DialogTitle sx={{ fontWeight: 600 }}>
+          Delete Schema "{schemaToDelete?.name}"?
+        </DialogTitle>
         <DialogContent>
           <DialogContentText>
             Are you sure you want to delete this schema? This action cannot be
             undone.
           </DialogContentText>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={closeDeleteSchemaDialog}>Cancel</Button>
+        <DialogActions sx={{ p: 2 }}>
           <Button
             onClick={handleDeleteSchema}
             variant="contained"
             color="error"
+            sx={{ borderRadius: 2 }}
           >
             Delete
+          </Button>
+          <Button onClick={closeDeleteSchemaDialog} sx={{ borderRadius: 2 }}>
+            Cancel
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Delete Section Dialog */}
-      <Dialog open={deleteSectionDialogOpen} onClose={closeDeleteSectionDialog}>
-        <DialogTitle>
+      <Dialog
+        open={deleteSectionDialogOpen}
+        onClose={closeDeleteSectionDialog}
+        slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 400 } } }}
+      >
+        <DialogTitle sx={{ fontWeight: 600 }}>
           Delete Section "
           {sectionToDeleteIndex !== null &&
             editingSchema?.sections[sectionToDeleteIndex]?.title}
@@ -740,14 +755,17 @@ export default function SchemaEditor() {
             This action cannot be undone.
           </DialogContentText>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={closeDeleteSectionDialog}>Cancel</Button>
+        <DialogActions sx={{ p: 2 }}>
           <Button
             onClick={handleDeleteSection}
             variant="contained"
             color="error"
+            sx={{ borderRadius: 2 }}
           >
             Delete
+          </Button>
+          <Button onClick={closeDeleteSectionDialog} sx={{ borderRadius: 2 }}>
+            Cancel
           </Button>
         </DialogActions>
       </Dialog>

@@ -148,13 +148,13 @@ export default function EditableComponentCard(props: ComponentCardProps) {
           elevation={0}
           sx={{
             borderColor: theme.palette.divider,
-            borderWidth: 1,
+            borderWidth: 2,
             borderStyle: "solid",
-            borderRadius: 2,
+            borderRadius: 3,
             p: 2,
             height: "100%",
-            backgroundColor: theme.palette.background.default,
-            transition: "border-color 0.2s ease, background-color 0.2s ease",
+            backgroundColor: theme.palette.background.paper,
+            transition: "all 0.2s ease",
             alignContent: "center",
             justifyContent: "flex-start",
             display: "flex",
@@ -162,8 +162,10 @@ export default function EditableComponentCard(props: ComponentCardProps) {
             mb: 2,
           }}
         >
-          <Typography variant="h6">{component.name}</Typography>
-          <Typography variant="subtitle1" sx={{ ml: 2 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            {component.name}
+          </Typography>
+          <Typography variant="subtitle1" sx={{ ml: 2 }} color="text.secondary">
             Type: {component.type.toUpperCase()}
           </Typography>
         </Card>
@@ -176,7 +178,7 @@ export default function EditableComponentCard(props: ComponentCardProps) {
       <Accordion
         expanded={active}
         disableGutters
-        elevation={active ? 2 : 1}
+        elevation={0}
         sx={{
           mb: 2,
           height: "100%",
@@ -184,22 +186,33 @@ export default function EditableComponentCard(props: ComponentCardProps) {
           display: "flex",
           alignContent: "center",
           flexDirection: "column",
-          backgroundColor: theme.palette.background.default,
-          borderRadius: 2,
-          borderWidth: 1,
+          backgroundColor: theme.palette.background.paper,
+          borderRadius: 3,
+          borderWidth: 2,
           borderStyle: "solid",
           borderColor: active
-            ? theme.palette.primary.main
+            ? theme.palette.secondary.main
             : theme.palette.divider,
-          transition: "all 0.2s ease",
+          transition: "all 0.3s ease",
           "&:before": {
             display: "none",
           },
+          "&:hover": !active
+            ? {
+                borderColor: theme.palette.secondary.main,
+                boxShadow: `0 4px 12px ${theme.palette.secondary.main}15`,
+              }
+            : {},
         }}
       >
         <AccordionSummary
           expandIcon={
-            <ExpandIcon sx={{ color: theme.palette.secondary.main }} />
+            <ExpandIcon
+              sx={{
+                color: theme.palette.secondary.main,
+                fontSize: 28,
+              }}
+            />
           }
           onClick={toggleActive}
         >
@@ -210,12 +223,20 @@ export default function EditableComponentCard(props: ComponentCardProps) {
             sx={{ flexGrow: 1 }}
             justifyContent="space-between"
           >
-            <Typography variant="h6">{editedComponent.name}</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              {editedComponent.name}
+            </Typography>
             <IconButton
               onClick={(e) => {
                 e.stopPropagation();
                 setNewFieldName(editedComponent.name);
                 openRenameDialog();
+              }}
+              sx={{
+                "&:hover": {
+                  backgroundColor: `${theme.palette.secondary.main}20`,
+                  color: theme.palette.secondary.main,
+                },
               }}
             >
               <EditIcon />
@@ -223,7 +244,7 @@ export default function EditableComponentCard(props: ComponentCardProps) {
           </Stack>
         </AccordionSummary>
         <AccordionDetails>
-          <Stack spacing={1.5}>
+          <Stack spacing={2}>
             <DropdownInput
               label="Type"
               value={
@@ -255,6 +276,10 @@ export default function EditableComponentCard(props: ComponentCardProps) {
               color="error"
               variant="contained"
               startIcon={<DeleteIcon />}
+              sx={{
+                borderRadius: 2,
+                mt: 1,
+              }}
             >
               Delete Field
             </Button>
@@ -263,16 +288,28 @@ export default function EditableComponentCard(props: ComponentCardProps) {
       </Accordion>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={deleteDialogOpen} onClose={closeDeleteDialog}>
-        <DialogTitle>Delete Field "{itemToDelete?.name}"?</DialogTitle>
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={closeDeleteDialog}
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: 3,
+              minWidth: 400,
+            },
+          },
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 600 }}>
+          Delete Field "{itemToDelete?.name}"?
+        </DialogTitle>
         <DialogContent>
           <Typography>
             Are you sure you want to delete this field? This action cannot be
             undone.
           </Typography>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={closeDeleteDialog}>Cancel</Button>
+        <DialogActions sx={{ p: 2 }}>
           <Button
             onClick={() => {
               if (itemToDelete) {
@@ -282,15 +319,30 @@ export default function EditableComponentCard(props: ComponentCardProps) {
             }}
             color="error"
             variant="contained"
+            sx={{ borderRadius: 2 }}
           >
             Delete
+          </Button>
+          <Button onClick={closeDeleteDialog} sx={{ borderRadius: 2 }}>
+            Cancel
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Rename Field Dialog */}
-      <Dialog open={renameDialogOpen} onClose={closeRenameDialog}>
-        <DialogTitle>Rename Field</DialogTitle>
+      <Dialog
+        open={renameDialogOpen}
+        onClose={closeRenameDialog}
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: 3,
+              minWidth: 400,
+            },
+          },
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 600 }}>Rename Field</DialogTitle>
         <DialogContent>
           <TextField
             label="Field Name"
@@ -300,14 +352,21 @@ export default function EditableComponentCard(props: ComponentCardProps) {
             sx={{ mt: 1 }}
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={closeRenameDialog}>Cancel</Button>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={closeRenameDialog} sx={{ borderRadius: 2 }}>
+            Cancel
+          </Button>
           <Button
             onClick={() => {
-              handleFieldChange("name", newFieldName);
+              const trimmedName = newFieldName.trim();
+              if (trimmedName) {
+                handleFieldChange("name", trimmedName);
+              }
               closeRenameDialog();
             }}
             variant="contained"
+            disabled={!newFieldName.trim()}
+            sx={{ borderRadius: 2 }}
           >
             Rename
           </Button>

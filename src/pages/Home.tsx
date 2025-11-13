@@ -17,8 +17,10 @@ import AddChartIcon from "@mui/icons-material/AddchartRounded";
 import QrCodeIcon from "@mui/icons-material/QrCodeRounded";
 import DashboardIcon from "@mui/icons-material/DashboardRounded";
 import HelpIcon from "@mui/icons-material/HelpOutlineRounded";
+import HomeIcon from "@mui/icons-material/HomeRounded";
 import NewReleasesIcon from "@mui/icons-material/NewReleasesRounded";
 import InfoIcon from "@mui/icons-material/InfoRounded";
+import PageHeader from "../ui/PageHeader";
 
 export default function Home() {
   const theme = useTheme();
@@ -69,24 +71,21 @@ export default function Home() {
     },
     {
       title: "Dashboard",
-      description: "Coming soon",
+      description: "Quickly analyze your scouting data",
       icon: <DashboardIcon sx={{ fontSize: 40 }} />,
       color: theme.palette.info.main,
-      path: "#",
+      path: "/dashboard",
     },
   ];
 
   return (
     <Box sx={{ p: 3 }}>
       {/* Welcome Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h3" gutterBottom sx={{ fontWeight: 600 }}>
-          Welcome to FarmHand! 👋
-        </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-          Your scouting companion for FIRST Robotics Competition
-        </Typography>
-      </Box>
+      <PageHeader
+        icon={<HomeIcon sx={{ fontSize: 28 }} />}
+        title="Welcome to FarmHand!"
+        subtitle="Your scouting companion for FIRST Robotics Competitions"
+      />
 
       {/* New User Help Section */}
       <Paper
@@ -105,7 +104,7 @@ export default function Home() {
             <Typography variant="h6" gutterBottom>
               New here? Let's get you started!
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body1" color="text.secondary">
               Learn how to use FarmHand effectively for your scouting needs
             </Typography>
           </Box>
@@ -143,7 +142,7 @@ export default function Home() {
             <Typography variant="h6" gutterBottom>
               Want to learn more about FarmHand?
             </Typography>
-            <Typography variant="body2" color="text.secondary">
+            <Typography variant="body1" color="text.secondary">
               Learn about our team and our mission
             </Typography>
           </Box>
@@ -218,7 +217,7 @@ export default function Home() {
                   >
                     {action.title}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">
+                  <Typography variant="body1" color="text.secondary">
                     {action.description}
                   </Typography>
                 </CardContent>

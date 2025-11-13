@@ -30,7 +30,9 @@ export default function QrGrid({
         borderRadius: 2,
         cursor: disabled ? "default" : "pointer",
         border: `1px solid ${
-          codeIsSelected(qr) ? theme.palette.info.main : theme.palette.divider
+          codeIsSelected(qr) && selecting
+            ? theme.palette.info.main
+            : theme.palette.divider
         }`,
         opacity: disabled ? 0.5 : 1,
         transition: "all 0.2s ease",

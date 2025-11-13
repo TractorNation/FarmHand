@@ -20,7 +20,7 @@ const TractorLightTheme = createTheme({
       main: "#ed1c24",
       light: "#ff5252",
       dark: "#c41e3a",
-      contrastText: "ffffff",
+      contrastText: "#ffffff",
     },
     info: {
       main: "#0066b3",
@@ -29,9 +29,7 @@ const TractorLightTheme = createTheme({
       contrastText: "#ffffff",
     },
     success: {
-      main: "#00897b",
-      dark: "#00695c",
-      light: "#26a69a",
+      main: "#00C853",
       contrastText: "#ffffff",
     },
     warning: {

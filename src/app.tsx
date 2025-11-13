@@ -13,6 +13,10 @@ import {
   Divider,
   CircularProgress,
   useMediaQuery,
+  Chip,
+  Stack,
+  Tooltip,
+  Button,
 } from "@mui/material";
 import useDrawer from "./hooks/useDrawer";
 import MenuIcon from "@mui/icons-material/MenuRounded";
@@ -22,6 +26,7 @@ import SettingsIcon from "@mui/icons-material/SettingsRounded";
 import QrCodeIcon from "@mui/icons-material/QrCodeRounded";
 import DashboardIcon from "@mui/icons-material/DashboardRounded";
 import NewspaperIcon from "@mui/icons-material/NewspaperRounded";
+import UpdateIcon from "@mui/icons-material/SystemUpdateRounded";
 import React, { Suspense, useEffect, useState } from "react";
 import {
   HashRouter,
@@ -42,6 +47,24 @@ const Settings = React.lazy(() => import("./pages/Settings"));
 const Scout = React.lazy(() => import("./pages/Scout"));
 const QRPage = React.lazy(() => import("./pages/QR"));
 
+const CURRENT_VERSION: string = "0.1.0-beta.0";
+
+// TODO: make this actually get data somewhere
+const checkForUpdates = async (): Promise<{
+  available: boolean;
+  version: string;
+}> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const latestVersion: string = "0.1.0-beta.0"; // This would come from github releases or something
+      resolve({
+        available: latestVersion !== CURRENT_VERSION,
+        version: latestVersion,
+      });
+    }, 1000);
+  });
+};
+
 const pages = [
   { title: "Home", icon: <HomeIcon />, component: <Home />, path: "/" },
   {
@@ -58,9 +81,9 @@ const pages = [
   },
   {
     title: "Schemas",
-    icon: <NewspaperIcon/>,
+    icon: <NewspaperIcon />,
     component: <SchemaEditor />,
-    path: "/schemas"
+    path: "/schemas",
   },
   {
     title: "Lead Scouter Dashboard",
@@ -84,11 +107,23 @@ function Layout({ children }: { children: React.ReactNode }) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const location = useLocation();
+  const [updateAvailable, setUpdateAvailable] = useState(false);
+  const [latestVersion, setLatestVersion] = useState("");
+
+  useEffect(() => {
+    // Check for updates on mount
+    checkForUpdates().then((result) => {
+      console.log("Update available", result.available);
+      setUpdateAvailable(result.available);
+      setLatestVersion(result.version);
+    });
+  }, []);
 
   const selectedItemSx = {
     "&.Mui-selected": {
       backgroundColor: "transparent",
       borderLeft: `4px solid ${theme.palette.secondary.main}`,
+
       paddingLeft: "12px",
       "&:hover": {
         backgroundColor: theme.palette.action.hover,
@@ -128,9 +163,41 @@ function Layout({ children }: { children: React.ReactNode }) {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h3" sx={{ flexGrow: 1 }}>
+          <Typography
+            variant="h4"
+            sx={{ flexGrow: 1, fontWeight: 600 }}
+            onClick={() => navigate("/")}
+          >
             FarmHand
           </Typography>
+          <Stack direction="row" spacing={1} alignItems="center">
+            {updateAvailable && (
+              <Tooltip title={`Update available: v${latestVersion}`}>
+                <Chip
+                  icon={<UpdateIcon />}
+                  label="Update"
+                  color="warning"
+                  size="small"
+                  sx={{
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    "&:hover": {
+                      backgroundColor: theme.palette.warning.dark,
+                    },
+                  }}
+                />
+              </Tooltip>
+            )}
+            <Chip
+              label={`v${CURRENT_VERSION}`}
+              size="small"
+              sx={{
+                backgroundColor: `${theme.palette.common.white}20`,
+                color: theme.palette.common.white,
+                fontWeight: 600,
+              }}
+            />
+          </Stack>
         </Toolbar>
       </AppBar>
 
@@ -163,21 +230,67 @@ function Layout({ children }: { children: React.ReactNode }) {
           }}
           onClick={toggleDrawer(false)}
         >
-          <List>
+          {/* Drawer Header */}
+          <Box
+            sx={{
+              p: 3,
+              background: `linear-gradient(135deg, ${theme.palette.primary.main}15 0%, ${theme.palette.primary.main}05 100%)`,
+              borderBottom: `2px solid ${theme.palette.divider}`,
+            }}
+          >
+            <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
+              FarmHand
+            </Typography>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <Typography variant="subtitle2" color="text.secondary">
+                Version {CURRENT_VERSION}
+              </Typography>
+              {updateAvailable && (
+                <Chip
+                  icon={<UpdateIcon sx={{ fontSize: 14 }} />}
+                  label="Update"
+                  color="warning"
+                  size="small"
+                  sx={{
+                    height: 20,
+                    fontSize: "0.7rem",
+                    fontWeight: 600,
+                  }}
+                />
+              )}
+            </Stack>
+          </Box>
+
+          {/* Navigation Items */}
+          <List sx={{ flexGrow: 1, pt: 2 }}>
             {pages
               .filter((item) => item.title !== "Settings")
               .map((item) => (
-                <ListItem key={item.title} disablePadding>
+                <ListItem key={item.title} disablePadding sx={{ mb: 0.5 }}>
                   <ListItemButton
                     onClick={() => navigate(item.path)}
                     selected={location.pathname === item.path}
-                    sx={selectedItemSx}
+                    sx={{
+                      ...selectedItemSx,
+                      borderRadius: 2,
+                      borderTopLeftRadius: 0,
+                      borderBottomLeftRadius: 0,
+                      mx: 1,
+                    }}
                   >
-                    <ListItemIcon>{item.icon}</ListItemIcon>
+                    <ListItemIcon sx={{ minWidth: 40 }}>
+                      {item.icon}
+                    </ListItemIcon>
                     <ListItemText
                       disableTypography
                       primary={
-                        <Typography variant="h6">{item.title}</Typography>
+                        <Typography variant="subtitle1">
+                          {item.title}
+                        </Typography>
                       }
                     />
                   </ListItemButton>
@@ -186,19 +299,37 @@ function Layout({ children }: { children: React.ReactNode }) {
           </List>
 
           {/* Bottom section */}
-          <Box sx={{ mt: "auto" }}>
-            <Divider />
+          <Box>
+            <Divider sx={{ mb: 1 }} />
             <List>
               <ListItem disablePadding>
                 <ListItemButton
                   onClick={() => navigate("/settings")}
                   selected={location.pathname === "/settings"}
-                  sx={selectedItemSx}
+                  sx={{
+                    ...selectedItemSx,
+                    borderRadius: 2,
+                    mx: 1,
+                    mb: 1,
+                  }}
                 >
-                  <ListItemIcon>
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 40,
+                      borderRadius: 2,
+                      borderTopLeftRadius: 0,
+                      borderBottomLeftRadius: 0,
+                      mx: 1,
+                    }}
+                  >
                     <SettingsIcon />
                   </ListItemIcon>
-                  <Typography variant="h6">Settings</Typography>
+                  <ListItemText
+                    disableTypography
+                    primary={
+                      <Typography variant="subtitle1">Settings</Typography>
+                    }
+                  />
                 </ListItemButton>
               </ListItem>
             </List>
@@ -231,7 +362,7 @@ export default function App() {
       if (lastSchema && defaultSchemas.find((s) => s.name === lastSchema)) {
         setSelectedSchemaName(lastSchema);
       } else if (defaultSchemas.length > 0) {
-        setSelectedSchemaName(defaultSchemas[1].name); // "2025 Reefscape"
+        setSelectedSchemaName(defaultSchemas[1].name);
       }
     };
     initSchema();

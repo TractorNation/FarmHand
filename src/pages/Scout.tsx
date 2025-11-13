@@ -10,7 +10,6 @@ import {
   Stack,
   Typography,
   useTheme,
-  Paper,
 } from "@mui/material";
 import Section from "../ui/Section";
 import { useSchema } from "../context/SchemaContext";
@@ -20,12 +19,13 @@ import ErrorOutlineIcon from "@mui/icons-material/ErrorOutlineRounded";
 import ResetIcon from "@mui/icons-material/ReplayRounded";
 import HelpIcon from "@mui/icons-material/HelpOutlineRounded";
 import QrCodeIcon from "@mui/icons-material/QrCodeRounded";
-import AssignmentIcon from "@mui/icons-material/AssignmentRounded";
+import AddChartIcon from "@mui/icons-material/AddchartRounded";
 
-import QrShareDialog from "../ui/dialog/QrShareDialogue";
+import QrShareDialog from "../ui/dialog/QrShareDialog";
 import useDialog from "../hooks/useDialog";
 import { QrCodeBuilder, saveQrCode } from "../utils/QrUtils";
 import { getFieldValueByName } from "../utils/GeneralUtils";
+import PageHeader from "../ui/PageHeader";
 
 export default function Scout() {
   const { schema, hash, schemaName } = useSchema();
@@ -44,6 +44,20 @@ export default function Scout() {
   const [showResetPopup, openResetPopup, closeResetPopup] = useDialog();
   const [showQrPopup, openQrPopup, closeQrPopup] = useDialog();
   const qrCodeData = useRef<QrCode | null>(null);
+  const [expandedSectionIndex, setExpandedSectionIndex] = useState<
+    number | false
+  >(0); // Start with the first section open
+
+  const handleSectionToggle = (panelIndex: number) => (isExpanded: boolean) => {
+    if (isExpanded) {
+      setExpandedSectionIndex(panelIndex);
+    } else {
+      // If the current panel is being closed, open the next one
+      const totalSections = schema!.sections.length;
+      const nextIndex = (panelIndex + 1) % totalSections;
+      setExpandedSectionIndex(nextIndex);
+    }
+  };
 
   const schemaData = schema;
 
@@ -105,48 +119,24 @@ export default function Scout() {
     <>
       <Box sx={{ p: 3 }}>
         {/* Header */}
-        <Paper
-          elevation={0}
-          sx={{
-            p: 3,
-            mb: 3,
-            borderRadius: 3,
-            background: `linear-gradient(135deg, ${theme.palette.primary.main}15 0%, ${theme.palette.primary.main}05 100%)`,
-            border: `1px solid ${theme.palette.primary.main}40`,
-          }}
-        >
-          <Stack direction="row" alignItems="center" spacing={2}>
-            <Box
-              sx={{
-                width: 48,
-                height: 48,
-                borderRadius: 2,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: `${theme.palette.primary.main}20`,
-                color: theme.palette.primary.main,
-              }}
-            >
-              <AssignmentIcon sx={{ fontSize: 28 }} />
-            </Box>
-            <Box>
-              <Typography variant="h4" sx={{ fontWeight: 600 }}>
-                {schemaName}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Fill out the form to scout a match
-              </Typography>
-            </Box>
-          </Stack>
-        </Paper>
+        <PageHeader
+          icon={<AddChartIcon sx={{ fontSize: 28 }} />}
+          title={schemaName ?? "Scout Match"}
+          subtitle="Fill out the form to record match data"
+        />
 
         <Stack spacing={3} key={resetKey}>
           {schemaData!.sections.map((section, index) => (
-            <Section key={index} section={section} submitted={submitted} />
+            <Section
+              key={index}
+              section={section}
+              submitted={submitted}
+              expanded={expandedSectionIndex === index}
+              onToggle={handleSectionToggle(index)}
+            />
           ))}
         </Stack>
-        
+
         <Stack
           direction={"row"}
           spacing={2}
@@ -158,7 +148,7 @@ export default function Scout() {
             variant="outlined"
             color="warning"
             size="large"
-            sx={{ 
+            sx={{
               borderRadius: 2,
               borderWidth: 2,
               "&:hover": {
@@ -174,7 +164,7 @@ export default function Scout() {
             variant="contained"
             color="primary"
             size="large"
-            sx={{ 
+            sx={{
               borderRadius: 2,
               px: 4,
             }}
@@ -190,22 +180,28 @@ export default function Scout() {
       <Dialog
         open={showResetPopup}
         onClose={closeResetPopup}
-        sx={{ elevation: 24 }}
+        slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 400 } } }}
       >
         <DialogTitle
           sx={{
             display: "flex",
             alignItems: "center",
+            fontWeight: 600,
           }}
         >
           <HelpIcon sx={{ mr: 1 }} />
           Are you sure you want to reset the form?
         </DialogTitle>
-        <DialogActions>
-          <Button onClick={closeResetPopup} color="primary" variant="text">
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={closeResetPopup} sx={{ borderRadius: 2 }}>
             Cancel
           </Button>
-          <Button onClick={handleReset} color="error" variant="contained">
+          <Button
+            onClick={handleReset}
+            color="error"
+            variant="contained"
+            sx={{ borderRadius: 2 }}
+          >
             Reset
           </Button>
         </DialogActions>
@@ -215,11 +211,12 @@ export default function Scout() {
       <Dialog
         open={showErrorPopup}
         onClose={closeErrorPopup}
-        sx={{
-          elevation: 24,
-          "& .MuiDialog-paper": {
-            backgroundColor: theme.palette.background.paper,
-            backgroundImage: "none",
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: 3,
+              minWidth: 400,
+            },
           },
         }}
       >
@@ -228,18 +225,13 @@ export default function Scout() {
             display: "flex",
             alignItems: "center",
             color: theme.palette.error.main,
-            backgroundColor: theme.palette.background.paper,
+            fontWeight: 600,
           }}
         >
           <ErrorOutlineIcon sx={{ mr: 1 }} />
-          Errors
+          Form Errors
         </DialogTitle>
-        <DialogContent
-          sx={{
-            backgroundColor: theme.palette.background.paper,
-            borderColor: theme.palette.divider,
-          }}
-        >
+        <DialogContent>
           <DialogContentText
             variant="body1"
             sx={{
@@ -256,9 +248,9 @@ export default function Scout() {
                 key={index}
                 sx={{
                   p: 2,
-                  border: `1px solid ${theme.palette.error.main}`,
-                  borderRadius: 1,
-                  backgroundColor: theme.palette.background.paper,
+                  border: `2px solid ${theme.palette.error.main}`,
+                  borderRadius: 2,
+                  backgroundColor: `${theme.palette.error.main}10`,
                 }}
               >
                 <Typography
@@ -274,12 +266,12 @@ export default function Scout() {
             ))}
           </Stack>
         </DialogContent>
-        <DialogActions
-          sx={{
-            backgroundColor: theme.palette.background.paper,
-          }}
-        >
-          <Button onClick={closeErrorPopup} color="inherit">
+        <DialogActions sx={{ p: 2 }}>
+          <Button
+            onClick={closeErrorPopup}
+            variant="contained"
+            sx={{ borderRadius: 2 }}
+          >
             OK
           </Button>
         </DialogActions>

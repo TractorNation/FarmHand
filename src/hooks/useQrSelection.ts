@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import useToggle from "../hooks/useToggle";
 
 export function useQrSelection(qrCodes?: QrCode[]) {
-  const [selecting, toggleSelecting] = useToggle(false);
+  const [selecting, switchSelecting] = useToggle(false);
   const [selectedCodes, setSelectedCodes] = useState<QrCode[]>([]);
   const [selectedHash, setSelectedHash] = useState<string | null>(null);
   const [validQrCodes, setValidQrCodes] = useState<QrCode[]>([]);
@@ -10,6 +10,10 @@ export function useQrSelection(qrCodes?: QrCode[]) {
 
   const codeIsSelected = (code: QrCode) => selectedCodes.includes(code);
 
+  const toggleSelecting = () => {
+    switchSelecting();
+    setSelectedCodes([]);
+  };
   useEffect(() => {
     if (!qrCodes) return;
 
@@ -50,7 +54,10 @@ export function useQrSelection(qrCodes?: QrCode[]) {
     toggleSelecting;
   };
 
-  const noCodesSelected = useMemo(() => selectedCodes.length === 0, [selectedCodes]);
+  const noCodesSelected = useMemo(
+    () => selectedCodes.length === 0,
+    [selectedCodes]
+  );
 
   return {
     selecting,

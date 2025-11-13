@@ -1,9 +1,5 @@
 import { createTheme } from "@mui/material/styles";
-import {
-  anton,
-  impact,
-  baskervville,
-} from "../../utils/Fonts";
+import { anton, impact, baskervville } from "../../utils/Fonts";
 
 const TractorDarkTheme = createTheme({
   palette: {
@@ -33,9 +29,7 @@ const TractorDarkTheme = createTheme({
       contrastText: "#ffffff",
     },
     success: {
-      main: "#00897b",
-      dark: "#00695c",
-      light: "#26a69a",
+      main: "#00C853",
       contrastText: "#ffffff",
     },
     warning: {
@@ -116,22 +110,23 @@ const TractorDarkTheme = createTheme({
       styleOverrides: {
         root: ({ theme, ownerState }) => {
           const elevationOverlays: { [key: number]: string } = {
-            0: 'rgba(255, 255, 255, 0)',
-            1: 'rgba(255, 255, 255, 0.03)',
-            2: 'rgba(255, 255, 255, 0.04)',
-            3: 'rgba(255, 255, 255, 0.05)',
-            4: 'rgba(255, 255, 255, 0.06)',
-            6: 'rgba(255, 255, 255, 0.08)',
-            8: 'rgba(255, 255, 255, 0.09)',
-            12: 'rgba(255, 255, 255, 0.11)',
-            16: 'rgba(255, 255, 255, 0.12)',
-            24: 'rgba(255, 255, 255, 0.14)',
+            0: "rgba(255, 255, 255, 0)",
+            1: "rgba(255, 255, 255, 0.03)",
+            2: "rgba(255, 255, 255, 0.04)",
+            3: "rgba(255, 255, 255, 0.05)",
+            4: "rgba(255, 255, 255, 0.06)",
+            6: "rgba(255, 255, 255, 0.08)",
+            8: "rgba(255, 255, 255, 0.09)",
+            12: "rgba(255, 255, 255, 0.11)",
+            16: "rgba(255, 255, 255, 0.12)",
+            24: "rgba(255, 255, 255, 0.14)",
           };
 
           const elevation = ownerState.elevation || 0;
-          const overlay = elevationOverlays[elevation] || 'rgba(255, 255, 255, 0)';
+          const overlay =
+            elevationOverlays[elevation] || "rgba(255, 255, 255, 0)";
 
-          return theme.palette.mode === 'dark'
+          return theme.palette.mode === "dark"
             ? {
                 backgroundImage: `linear-gradient(${overlay}, ${overlay})`,
               }
