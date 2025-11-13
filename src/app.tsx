@@ -16,7 +16,7 @@ import {
   Chip,
   Stack,
   Tooltip,
-  Button,
+  CssBaseline,
 } from "@mui/material";
 import useDrawer from "./hooks/useDrawer";
 import MenuIcon from "@mui/icons-material/MenuRounded";
@@ -35,12 +35,14 @@ import {
   useLocation,
   useNavigate,
 } from "react-router";
-import { useTheme } from "@mui/material/styles";
+import { ThemeProvider, useTheme } from "@mui/material/styles";
 import SchemaProvider from "./context/SchemaContext";
-import { defaultSchemas } from "./utils/SchemaUtils";
-import StoreManager from "./utils/StoreManager";
 import SchemaEditor from "./pages/Schemas";
 import LeadScoutDashboard from "./pages/Dashboard";
+import ScoutDataProvider from "./context/ScoutDataContext";
+import TractorDarkTheme from "./config/themes/TractorDarkTheme";
+import { useSettings } from "./context/SettingsContext";
+import TractorLightTheme from "./config/themes/TractorLightTheme";
 
 const Home = React.lazy(() => import("./pages/Home"));
 const Settings = React.lazy(() => import("./pages/Settings"));
@@ -352,21 +354,11 @@ function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  const [selectedSchemaName, setSelectedSchemaName] = useState<string | null>(
-    null
-  );
+  const { settings, settingsLoading } = useSettings();
+  const theme =
+    settings.THEME === "dark" ? TractorDarkTheme : TractorLightTheme;
 
-  useEffect(() => {
-    const initSchema = async () => {
-      const lastSchema = await StoreManager.getLastSchema();
-      if (lastSchema && defaultSchemas.find((s) => s.name === lastSchema)) {
-        setSelectedSchemaName(lastSchema);
-      } else if (defaultSchemas.length > 0) {
-        setSelectedSchemaName(defaultSchemas[1].name);
-      }
-    };
-    initSchema();
-  }, []);
+  const schema = settings.LAST_SCHEMA_NAME;
 
   useEffect(() => {
     const handleKeydown = (event: KeyboardEvent) => {
@@ -390,7 +382,7 @@ export default function App() {
     };
   }, []);
 
-  if (!selectedSchemaName) {
+  if (settingsLoading) {
     return (
       <Box
         sx={{
@@ -406,31 +398,35 @@ export default function App() {
   }
 
   return (
-    <SchemaProvider
-      schema={selectedSchemaName}
-      onSchemaChange={setSelectedSchemaName}
-    >
-      <HashRouter>
-        <Routes>
-          {pages.map(({ path, component }) => (
-            <Route
-              key={path}
-              path={path}
-              element={
-                <Layout>
-                  <Suspense
-                    fallback={
-                      <Typography sx={{ p: 3 }}>Loading page...</Typography>
-                    }
-                  >
-                    {component}
-                  </Suspense>
-                </Layout>
-              }
-            />
-          ))}
-        </Routes>
-      </HashRouter>
-    </SchemaProvider>
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      <ScoutDataProvider>
+        <SchemaProvider
+          schema={schema}
+        >
+          <HashRouter>
+            <Routes>
+              {pages.map(({ path, component }) => (
+                <Route
+                  key={path}
+                  path={path}
+                  element={
+                    <Layout>
+                      <Suspense
+                        fallback={
+                          <Typography sx={{ p: 3 }}>Loading page...</Typography>
+                        }
+                      >
+                        {component}
+                      </Suspense>
+                    </Layout>
+                  }
+                />
+              ))}
+            </Routes>
+          </HashRouter>
+        </SchemaProvider>
+      </ScoutDataProvider>
+    </ThemeProvider>
   );
 }

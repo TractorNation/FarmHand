@@ -52,3 +52,10 @@ interface SchemaMetaData {
   schema: Schema;
   type: "default" | "generated";
 }
+
+/**Stores all the settings and data about them */
+interface Settings {
+  LAST_SCHEMA_NAME?: string;
+  THEME: string;
+  DEVICE_ID: number;
+}

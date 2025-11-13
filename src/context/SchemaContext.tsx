@@ -7,11 +7,9 @@ import {
   useRef,
   useState,
 } from "react";
-import StoreManager from "../utils/StoreManager";
-import { defaultSchemas } from "../utils/SchemaUtils";
-import { createSchemaHash } from "../utils/GeneralUtils";
+import { defaultSchemas, fetchSchemas } from "../utils/SchemaUtils";
 import { useScoutData } from "./ScoutDataContext";
-import { fetchSchemas } from "../utils/SchemaUtils";
+import { createSchemaHash } from "../utils/GeneralUtils";
 
 /**
  * Data that will be passed through the context
@@ -22,7 +20,6 @@ interface SchemaContextType {
   schemaName: string | null;
   availableSchemas: SchemaMetaData[];
   loadSchemas: () => Promise<SchemaMetaData[]>;
-  selectSchema: (name: string) => Promise<void>;
   refreshSchemas: () => Promise<SchemaMetaData[]>;
 }
 
@@ -31,27 +28,17 @@ const SchemaContext = createContext<SchemaContextType | null>(null);
 interface SchemaProviderProps {
   children: ReactNode;
   schema?: string;
-  onSchemaChange?: (name: string) => void;
 }
 
-export default function SchemaProvider({
-  children,
-  schema,
-  onSchemaChange,
-}: SchemaProviderProps) {
+export default function SchemaProvider(props: SchemaProviderProps) {
+  const { children, schema } = props;
   const [activeSchema, setActiveSchema] = useState<Schema | null>(null);
   const [schemaHash, setSchemaHash] = useState<string | null>(null);
-  const [internalSchemaName, setInternalSchemaName] = useState<string | null>(
-    null
-  );
   const { clearMatchData } = useScoutData();
   const [availableSchemas, setAvailableSchemas] = useState<SchemaMetaData[]>(
     []
   );
   const isInitialMount = useRef(true);
-
-  const isControlled = schema !== undefined;
-  const schemaName = isControlled ? schema : internalSchemaName;
 
   const loadSchemas = useCallback(async () => {
     const generatedSchemas = await fetchSchemas();
@@ -72,7 +59,7 @@ export default function SchemaProvider({
       return;
     }
     clearMatchData();
-  }, [schemaName, clearMatchData]);
+  }, [schema, clearMatchData]);
 
   // Effect to update the active schema when the name changes or schemas are loaded
   useEffect(() => {
@@ -83,7 +70,6 @@ export default function SchemaProvider({
         return;
       }
       if (availableSchemas.length === 0) {
-        // Schemas are not loaded yet. The init effect will handle loading.
         return;
       }
 
@@ -91,63 +77,35 @@ export default function SchemaProvider({
 
       if (found === null || found === undefined) {
         console.warn(`Schema: "${name}" not found`);
+        // Just log the warning, don't try to change it
         return;
       }
 
       setActiveSchema(found.schema);
       const hash = await createSchemaHash(found.schema);
       setSchemaHash(hash);
-      await StoreManager.setLastSchema(found.name);
     };
 
-    setSchemaData(schemaName);
-  }, [schemaName, availableSchemas]);
-
-  const selectSchema = useCallback(
-    async (name: string) => {
-      if (isControlled) {
-        onSchemaChange?.(name);
-      } else {
-        setInternalSchemaName(name);
-      }
-    },
-    [isControlled, onSchemaChange]
-  );
+    setSchemaData(schema!);
+  }, [schema, availableSchemas])
 
   const refreshSchemas = async (): Promise<SchemaMetaData[]> => {
-    return await loadSchemas();
+    const schemas = await loadSchemas();
+    return schemas;
   };
 
   useEffect(() => {
-    if (isControlled) return;
-
-    const init = async () => {
-      try {
-        const schemas = await loadSchemas();
-        const lastSchema = await StoreManager.getLastSchema();
-
-        if (lastSchema && schemas.find((s) => s.name === lastSchema)) {
-          setInternalSchemaName(lastSchema);
-        } else if (schemas.length > 0) {
-          setInternalSchemaName(schemas[1].name);
-        }
-      } catch (error) {
-        console.error("Error initializing schema:", error);
-      }
-    };
-
-    init();
-  }, [isControlled, loadSchemas]);
+    loadSchemas();
+  }, [loadSchemas]);
 
   return (
     <SchemaContext.Provider
       value={{
         schema: activeSchema,
         hash: schemaHash,
-        schemaName: schemaName,
+        schemaName: schema ?? null,
         availableSchemas: availableSchemas,
         loadSchemas,
-        selectSchema,
         refreshSchemas,
       }}
     >
