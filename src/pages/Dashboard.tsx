@@ -27,8 +27,7 @@ export default function LeadScoutDashboard() {
   const theme = useTheme();
   const { settings } = useSettings();
   const { availableSchemas } = useSchema();
-  const [qrCodes] =
-    useAsyncFetch(fetchQrCodes);
+  const [qrCodes] = useAsyncFetch(fetchQrCodes);
   const [receivedMatches, setReceivedMatches] = useState<
     Map<number, Array<{ deviceID: number }>>
   >(new Map());
@@ -51,6 +50,8 @@ export default function LeadScoutDashboard() {
           if (!validateQR(qr.data)) continue;
           const decoded = await decodeQR(qr.data);
           if (decoded && decoded.schemaHash) {
+            // Exclude data from the host device (ID 0)
+            if (decoded.deviceId === 0) continue;
             const schema = schemaHashMap.get(decoded.schemaHash);
             if (!schema) continue;
 
@@ -64,7 +65,8 @@ export default function LeadScoutDashboard() {
 
             if (matchNumberIndex === -1) continue;
             const matchNumberValue = decoded.data[matchNumberIndex];
-            if (matchNumberValue === null || matchNumberValue === undefined) continue;
+            if (matchNumberValue === null || matchNumberValue === undefined)
+              continue;
             const matchNumber = Number(matchNumberValue);
             if (isNaN(matchNumber) || matchNumber === 0) continue;
 
@@ -120,7 +122,6 @@ export default function LeadScoutDashboard() {
 
   return (
     <Box sx={{ p: 3 }}>
-
       {/* Main header */}
       <PageHeader
         icon={<DashboardIcon sx={{ fontSize: 28 }} />}
@@ -134,7 +135,6 @@ export default function LeadScoutDashboard() {
           Overview
         </Typography>
         <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-
           {/* Complete Matches */}
           <Paper
             elevation={0}

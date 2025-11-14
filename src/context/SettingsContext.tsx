@@ -13,6 +13,7 @@ export const defaultSettings: Settings = {
   THEME: "system",
   DEVICE_ID: 1,
   EXPECTED_DEVICES_COUNT: 6,
+  LEAD_SCOUT_ONLY: false,
 };
 
 interface SettingsContextType {

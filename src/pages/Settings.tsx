@@ -31,10 +31,18 @@ export default function Settings() {
 
   // TODO: Make these actually function
   const [notifications, setNotifications] = useState(true);
-  const [autoSave, setAutoSave] = useState(true);
 
   const handleChange = async (key: keyof Settings, value: any) => {
     await setSetting(key, value);
+  };
+
+  const handleLeadScoutToggle = (checked: boolean) => {
+    handleChange("LEAD_SCOUT_ONLY", checked);
+    if (checked) {
+      handleChange("DEVICE_ID", 0);
+    } else {
+      handleChange("DEVICE_ID", 1);
+    }
   };
 
   // Settings sections organized by category
@@ -52,13 +60,6 @@ export default function Settings() {
           value: settings.LAST_SCHEMA_NAME || schemaName || "",
           options: availableSchemas.map((s) => s.name),
           onChange: (value: string) => handleChange("LAST_SCHEMA_NAME", value),
-        },
-        {
-          type: "switch",
-          label: "Auto-save Forms",
-          description: "Automatically save form progress",
-          checked: autoSave,
-          onChange: (checked: boolean) => setAutoSave(checked),
         },
       ],
     },
@@ -86,21 +87,45 @@ export default function Settings() {
       color: theme.palette.info.main,
       settings: [
         {
+          type: "switch",
+          label: "Lead Scout only",
+          description:
+            "Device is only used to view and collect match data. Matches scouted with this device will not be counted towards collected scout metrics.",
+          checked: settings.LEAD_SCOUT_ONLY || false,
+          onChange: (checked: boolean) => handleLeadScoutToggle(checked),
+        },
+        !settings.LEAD_SCOUT_ONLY && {
           type: "number",
           label: "Device ID",
           description: "Identify this device in match data",
-          value: settings.DEVICE_ID || 1,
-          onChange: (value: string) => handleChange("DEVICE_ID", Number(value)),
+          value: settings.DEVICE_ID,
+          onChange: (value: string) => handleChange("DEVICE_ID", value),
+          onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
+            let num = Math.round(Number(e.target.value));
+            if (isNaN(num) || num < 1) {
+              num = 1;
+            }
+            handleChange("DEVICE_ID", num);
+          },
+          inputProps: { min: 1 },
         },
         {
           type: "number",
           label: "Number of Scout Devices",
           description: "Set the total number of scouting devices",
-          value: settings.EXPECTED_DEVICES_COUNT || 6,
+          value: settings.EXPECTED_DEVICES_COUNT,
           onChange: (value: string) =>
-            handleChange("EXPECTED_DEVICES_COUNT", Number(value)),
+            handleChange("EXPECTED_DEVICES_COUNT", value),
+          onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
+            let num = Math.round(Number(e.target.value));
+            if (isNaN(num) || num < 1) {
+              num = 1;
+            }
+            handleChange("EXPECTED_DEVICES_COUNT", num);
+          },
+          inputProps: { min: 1 },
         },
-      ],
+      ].filter(Boolean),
     },
     {
       id: "notifications",
@@ -175,6 +200,8 @@ export default function Settings() {
             type="number"
             value={setting.value}
             onChange={(e) => setting.onChange(e.target.value)}
+            onBlur={setting.onBlur}
+            inputProps={setting.inputProps}
             size="small"
             sx={{ minWidth: 100 }}
           />
@@ -253,34 +280,37 @@ export default function Settings() {
             {/* Section Content */}
             <CardContent sx={{ p: 3 }}>
               <Stack spacing={3}>
-                {section.settings.map((setting, index) => (
-                  <Box key={index}>
-                    <Stack
-                      direction="row"
-                      alignItems="center"
-                      justifyContent="space-between"
-                      spacing={2}
-                    >
-                      <Box sx={{ flexGrow: 1 }}>
-                        <Typography
-                          variant="subtitle1"
-                          sx={{ fontWeight: 600 }}
+                {section.settings.map(
+                  (setting, index) =>
+                    setting && (
+                      <Box key={index}>
+                        <Stack
+                          direction="row"
+                          alignItems="center"
+                          justifyContent="space-between"
+                          spacing={2}
                         >
-                          {setting.label}
-                        </Typography>
-                        <Typography variant="body1" color="text.secondary">
-                          {setting.description}
-                        </Typography>
+                          <Box sx={{ flexGrow: 1 }}>
+                            <Typography
+                              variant="subtitle1"
+                              sx={{ fontWeight: 600 }}
+                            >
+                              {setting.label}
+                            </Typography>
+                            <Typography variant="body1" color="text.secondary">
+                              {setting.description}
+                            </Typography>
+                          </Box>
+                          <Box sx={{ flexShrink: 0 }}>
+                            {renderSettingControl(setting)}
+                          </Box>
+                        </Stack>
+                        {index < section.settings.length - 1 && (
+                          <Divider sx={{ mt: 3 }} />
+                        )}
                       </Box>
-                      <Box sx={{ flexShrink: 0 }}>
-                        {renderSettingControl(setting)}
-                      </Box>
-                    </Stack>
-                    {index < section.settings.length - 1 && (
-                      <Divider sx={{ mt: 3 }} />
-                    )}
-                  </Box>
-                ))}
+                    )
+                )}
               </Stack>
             </CardContent>
           </Card>
