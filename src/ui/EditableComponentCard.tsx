@@ -179,6 +179,7 @@ export default function EditableComponentCard(props: ComponentCardProps) {
     <>
       <Accordion
         expanded={active}
+        onChange={toggleActive}
         disableGutters
         elevation={0}
         sx={{
@@ -226,7 +227,6 @@ export default function EditableComponentCard(props: ComponentCardProps) {
               }}
             />
           }
-          onClick={toggleActive}
         >
           <Stack
             direction="row"

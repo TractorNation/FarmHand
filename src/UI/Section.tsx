@@ -46,6 +46,7 @@ export default function Section(props: SectionProps) {
   return (
     <Accordion
       expanded={expanded}
+      onChange={(_, isExpanded) => onToggle(isExpanded)}
       disableGutters
       elevation={0}
       sx={{
@@ -75,7 +76,6 @@ export default function Section(props: SectionProps) {
       }}
     >
       <AccordionSummary
-      onClick={(_) => onToggle(!expanded)}
         expandIcon={
           <ExpandIcon
             sx={{
@@ -135,7 +135,6 @@ export default function Section(props: SectionProps) {
 
       {/* Bottom AccordionSummary for collapsing */}
       <AccordionSummary
-      onClick={(_) => onToggle(!expanded)}
         expandIcon={
           <ExpandIcon
             sx={{
