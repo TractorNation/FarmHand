@@ -92,6 +92,14 @@ export default function Settings() {
           value: settings.DEVICE_ID || 1,
           onChange: (value: string) => handleChange("DEVICE_ID", Number(value)),
         },
+        {
+          type: "number",
+          label: "Number of Scout Devices",
+          description: "Set the total number of scouting devices",
+          value: settings.EXPECTED_DEVICES_COUNT || 6,
+          onChange: (value: string) =>
+            handleChange("EXPECTED_DEVICES_COUNT", Number(value)),
+        },
       ],
     },
     {

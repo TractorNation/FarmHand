@@ -15,19 +15,86 @@ import ExpandIcon from "@mui/icons-material/ExpandMoreRounded";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutlineRounded";
 import CheckCircleIcon from "@mui/icons-material/CheckCircleRounded";
 import DevicesIcon from "@mui/icons-material/DevicesRounded";
-import { useMemo } from "react";
-import { receivedMatches } from "../utils/SavedMatches_TEMP";
+import { useEffect, useMemo, useState } from "react";
 import PageHeader from "../ui/PageHeader";
+import { useSettings, defaultSettings } from "../context/SettingsContext";
+import { useAsyncFetch } from "../hooks/useAsyncFetch";
+import { useSchema } from "../context/SchemaContext";
+import { createSchemaHash } from "../utils/GeneralUtils";
+import { fetchQrCodes, validateQR, decodeQR } from "../utils/QrUtils";
 
 export default function LeadScoutDashboard() {
   const theme = useTheme();
+  const { settings } = useSettings();
+  const { availableSchemas } = useSchema();
+  const [qrCodes] =
+    useAsyncFetch(fetchQrCodes);
+  const [receivedMatches, setReceivedMatches] = useState<
+    Map<number, Array<{ deviceID: number }>>
+  >(new Map());
 
-    // Define the expected number of devices
-    const EXPECTED_DEVICES_COUNT = 6;
+  useEffect(() => {
+    const processQrCodes = async () => {
+      if (!qrCodes || availableSchemas.length === 0) return;
+
+      const matchesMap = new Map<number, Array<{ deviceID: number }>>();
+      const schemaHashMap = new Map<string, Schema>();
+
+      // Pre-calculate schema hashes for faster lookups
+      for (const s of availableSchemas) {
+        const hash = await createSchemaHash(s.schema);
+        schemaHashMap.set(hash, s.schema);
+      }
+
+      for (const qr of qrCodes) {
+        try {
+          if (!validateQR(qr.data)) continue;
+          const decoded = await decodeQR(qr.data);
+          if (decoded && decoded.schemaHash) {
+            const schema = schemaHashMap.get(decoded.schemaHash);
+            if (!schema) continue;
+
+            const allFields = schema.sections.flatMap(
+              (section) => section.fields
+            );
+
+            const matchNumberIndex = allFields.findIndex(
+              (field) => field.name === "Match Number"
+            );
+
+            if (matchNumberIndex === -1) continue;
+            const matchNumberValue = decoded.data[matchNumberIndex];
+            if (matchNumberValue === null || matchNumberValue === undefined) continue;
+            const matchNumber = Number(matchNumberValue);
+            if (isNaN(matchNumber) || matchNumber === 0) continue;
+
+            if (matchNumber) {
+              if (!matchesMap.has(matchNumber)) {
+                matchesMap.set(matchNumber, []);
+              }
+              const devices = matchesMap.get(matchNumber)!;
+              if (!devices.some((d) => d.deviceID === decoded.deviceId)) {
+                devices.push({ deviceID: decoded.deviceId! });
+              }
+            }
+          }
+        } catch (e) {
+          console.error(`Failed to decode QR code ${qr.name}:`, e);
+        }
+      }
+      setReceivedMatches(matchesMap);
+    };
+
+    processQrCodes();
+  }, [qrCodes, availableSchemas]);
+
+  // Define the expected number of devices
+  const EXPECTED_DEVICES_COUNT =
+    settings.EXPECTED_DEVICES_COUNT || defaultSettings.EXPECTED_DEVICES_COUNT;
 
   // Calculate the maximum match number to iterate through
   const maxMatchNumber = useMemo(() => {
-    const matchNumbers = Object.keys(receivedMatches).map(Number);
+    const matchNumbers = Array.from(receivedMatches.keys());
     return matchNumbers.length > 0 ? Math.max(...matchNumbers) : 0;
   }, [receivedMatches]);
 
@@ -39,8 +106,7 @@ export default function LeadScoutDashboard() {
   // Calculate overall statistics
   const stats = useMemo(() => {
     const complete = allMatchNumbers.filter((matchNum) => {
-      const devices =
-        receivedMatches[matchNum as unknown as keyof typeof receivedMatches];
+      const devices = receivedMatches.get(matchNum);
       return devices && devices.length === EXPECTED_DEVICES_COUNT;
     }).length;
     const incomplete = allMatchNumbers.length - complete;
@@ -50,12 +116,12 @@ export default function LeadScoutDashboard() {
         : 0;
 
     return { complete, incomplete, completionRate };
-  }, [allMatchNumbers, EXPECTED_DEVICES_COUNT]);
+  }, [allMatchNumbers, receivedMatches, EXPECTED_DEVICES_COUNT]);
 
   return (
     <Box sx={{ p: 3 }}>
+
       {/* Main header */}
-      
       <PageHeader
         icon={<DashboardIcon sx={{ fontSize: 28 }} />}
         title="Lead Scouter's Dashboard"
@@ -68,6 +134,7 @@ export default function LeadScoutDashboard() {
           Overview
         </Typography>
         <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+
           {/* Complete Matches */}
           <Paper
             elevation={0}
@@ -239,12 +306,10 @@ export default function LeadScoutDashboard() {
           ) : (
             <Stack spacing={1.5}>
               {allMatchNumbers.map((matchNum) => {
-                const devices =
-                  receivedMatches[
-                    matchNum as unknown as keyof typeof receivedMatches
-                  ];
+                const devices = receivedMatches.get(matchNum);
+                console.log("Devices for match", matchNum, devices);
                 const scoutCount = devices ? devices.length : 0;
-                const isComplete = scoutCount === EXPECTED_DEVICES_COUNT;
+                const isComplete = scoutCount >= EXPECTED_DEVICES_COUNT;
                 const receivedDeviceIDs = devices
                   ? devices.map((d) => d.deviceID)
                   : [];
