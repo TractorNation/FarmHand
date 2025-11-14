@@ -335,6 +335,7 @@ export default function SchemaEditor() {
     for (const section of editingSchema.sections) {
       for (const field of section.fields) {
         if (!field.type) return false;
+        if (field.type === "dropdown" && !field.props?.options) return false;
       }
     }
     return true;

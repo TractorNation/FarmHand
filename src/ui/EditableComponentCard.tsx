@@ -17,7 +17,7 @@ import {
   useTheme,
 } from "@mui/material";
 import DropdownInput from "./components/DropdownInput";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useToggle from "../hooks/useToggle";
 import ExpandIcon from "@mui/icons-material/ExpandMoreRounded";
 import EditIcon from "@mui/icons-material/EditRounded";
@@ -40,12 +40,36 @@ export default function EditableComponentCard(props: ComponentCardProps) {
   const [renameDialogOpen, openRenameDialog, closeRenameDialog] = useDialog();
   const [itemToDelete, setItemToDelete] = useState<Component | null>(null);
   const [newFieldName, setNewFieldName] = useState("");
+  const [dropdownInputValue, setDropdownInputValue] = useState(
+    component.props?.options?.join(",") || ""
+  );
+  const [dropdownError, setDropdownError] = useState<string | null>(null);
   const theme = useTheme();
+
+  // Ref to track the ID of the component whose dropdownInputValue was last synced from props.
+  const lastSyncedDropdownComponentId = useRef(component.id);
 
   const isTypeUnselected = !editedComponent.type;
 
   useEffect(() => {
     setEditedComponent(component);
+    if (component.id !== lastSyncedDropdownComponentId.current) {
+      const initialDropdownValue = component.props?.options?.join(",") || "";
+      setDropdownInputValue(initialDropdownValue);
+      if (component.type.toLowerCase() === "dropdown") {
+        validateDropdown(initialDropdownValue);
+      }
+      lastSyncedDropdownComponentId.current = component.id;
+    } else if (component.type.toLowerCase() === "dropdown") {
+      validateDropdown(dropdownInputValue);
+    }
+  }, [component]);
+
+  useEffect(() => {
+    setEditedComponent(component);
+    if (component.type.toLowerCase() === "dropdown") {
+      validateDropdown(dropdownInputValue);
+    }
   }, [component]);
 
   const handleFieldChange = (field: keyof Component | string, value: any) => {
@@ -64,17 +88,53 @@ export default function EditableComponentCard(props: ComponentCardProps) {
     onChange(newComponent);
   };
 
+  const validateDropdown = (value: string) => {
+    const options = value
+      .split(",")
+      .map((opt) => opt.trim())
+      .filter(Boolean);
+
+    if (value.trim() === "") {
+      setDropdownError("At least one option is required.");
+      return false;
+    }
+    if (options.length === 0 && value.trim() !== "") {
+      setDropdownError("Invalid format. Ensure options are comma-separated.");
+      return false;
+    }
+
+    setDropdownError(null);
+    return true;
+  };
+
   const renderTypeSpecificProps = () => {
     switch (editedComponent.type.toLowerCase()) {
       case "dropdown":
         return (
           <TextField
             label="Options (comma-separated)"
-            value={editedComponent.props?.options?.join(",") || ""}
-            onChange={(e) =>
-              handleFieldChange("options", e.target.value.split(","))
-            }
+            value={dropdownInputValue}
+            onChange={(e) => {
+              const newValue = e.target.value;
+              setDropdownInputValue(newValue);
+              const isValid = validateDropdown(newValue);
+              const options = newValue
+                .split(",")
+                .map((opt) => opt.trim())
+                .filter(Boolean);
+              if (isValid) {
+                handleFieldChange("options", options);
+              }
+            }}
+            error={!!dropdownError}
+            helperText={dropdownError}
+            slotProps={{ formHelperText: { sx: { fontFamily: "inherit" } } }}
             fullWidth
+            sx={{
+              "& legend": {
+                transition: "unset",
+              },
+            }}
           />
         );
       case "counter":
