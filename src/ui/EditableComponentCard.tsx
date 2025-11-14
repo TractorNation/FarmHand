@@ -42,6 +42,8 @@ export default function EditableComponentCard(props: ComponentCardProps) {
   const [newFieldName, setNewFieldName] = useState("");
   const theme = useTheme();
 
+  const isTypeUnselected = !editedComponent.type;
+
   useEffect(() => {
     setEditedComponent(component);
   }, [component]);
@@ -190,8 +192,10 @@ export default function EditableComponentCard(props: ComponentCardProps) {
           borderRadius: 3,
           borderWidth: 2,
           borderStyle: "solid",
-          borderColor: active
-            ? theme.palette.secondary.main
+          borderColor: isTypeUnselected
+            ? theme.palette.error.main
+            : active
+            ? theme.palette.primary.main
             : theme.palette.divider,
           transition: "all 0.3s ease",
           "&:before": {
@@ -199,8 +203,14 @@ export default function EditableComponentCard(props: ComponentCardProps) {
           },
           "&:hover": !active
             ? {
-                borderColor: theme.palette.secondary.main,
-                boxShadow: `0 4px 12px ${theme.palette.secondary.main}15`,
+                borderColor: isTypeUnselected
+                  ? theme.palette.error.light
+                  : theme.palette.primary.main,
+                boxShadow: `0 4px 12px ${
+                  isTypeUnselected
+                    ? theme.palette.error.main
+                    : theme.palette.primary.main
+                }15`,
               }
             : {},
         }}
@@ -209,7 +219,9 @@ export default function EditableComponentCard(props: ComponentCardProps) {
           expandIcon={
             <ExpandIcon
               sx={{
-                color: theme.palette.secondary.main,
+                color: isTypeUnselected
+                  ? theme.palette.error.main
+                  : theme.palette.primary.main,
                 fontSize: 28,
               }}
             />
@@ -226,25 +238,53 @@ export default function EditableComponentCard(props: ComponentCardProps) {
             <Typography variant="h6" sx={{ fontWeight: 600 }}>
               {editedComponent.name}
             </Typography>
-            <IconButton
-              onClick={(e) => {
-                e.stopPropagation();
-                setNewFieldName(editedComponent.name);
-                openRenameDialog();
-              }}
-              sx={{
-                "&:hover": {
-                  backgroundColor: `${theme.palette.secondary.main}20`,
-                  color: theme.palette.secondary.main,
-                },
-              }}
-            >
-              <EditIcon />
-            </IconButton>
+            <Stack direction={"row"}>
+              <IconButton
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setNewFieldName(editedComponent.name);
+                  openRenameDialog();
+                }}
+                sx={{
+                  "&:hover": {
+                    backgroundColor: `${
+                      isTypeUnselected
+                        ? theme.palette.error.main
+                        : theme.palette.primary.main
+                    }20`,
+                    color: isTypeUnselected
+                      ? theme.palette.error.main
+                      : theme.palette.primary.main,
+                  },
+                }}
+              >
+                <EditIcon />
+              </IconButton>
+              <IconButton
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setItemToDelete(editedComponent);
+                  openDeleteDialog();
+                }}
+                sx={{
+                  "&:hover": {
+                    backgroundColor: `${theme.palette.error.main}20`,
+                    color: theme.palette.error.main,
+                  },
+                }}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </Stack>
           </Stack>
         </AccordionSummary>
         <AccordionDetails>
           <Stack spacing={2}>
+            {isTypeUnselected && (
+              <Typography color="error" variant="subtitle2">
+                Please select a field type.
+              </Typography>
+            )}
             <DropdownInput
               label="Type"
               value={
@@ -268,21 +308,6 @@ export default function EditableComponentCard(props: ComponentCardProps) {
               label="Required?"
             />
             {renderTypeSpecificProps()}
-            <Button
-              onClick={() => {
-                setItemToDelete(editedComponent);
-                openDeleteDialog();
-              }}
-              color="error"
-              variant="contained"
-              startIcon={<DeleteIcon />}
-              sx={{
-                borderRadius: 2,
-                mt: 1,
-              }}
-            >
-              Delete Field
-            </Button>
           </Stack>
         </AccordionDetails>
       </Accordion>

@@ -25,7 +25,7 @@ import AddChartIcon from "@mui/icons-material/AddchartRounded";
 import SettingsIcon from "@mui/icons-material/SettingsRounded";
 import QrCodeIcon from "@mui/icons-material/QrCodeRounded";
 import DashboardIcon from "@mui/icons-material/DashboardRounded";
-import NewspaperIcon from "@mui/icons-material/NewspaperRounded";
+import SchemaIcon from "@mui/icons-material/SchemaRounded";
 import UpdateIcon from "@mui/icons-material/SystemUpdateRounded";
 import React, { Suspense, useEffect, useState } from "react";
 import {
@@ -83,7 +83,7 @@ const pages = [
   },
   {
     title: "Schemas",
-    icon: <NewspaperIcon />,
+    icon: <SchemaIcon />,
     component: <SchemaEditor />,
     path: "/schemas",
   },
@@ -401,9 +401,7 @@ export default function App() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <ScoutDataProvider>
-        <SchemaProvider
-          schema={schema}
-        >
+        <SchemaProvider schema={schema}>
           <HashRouter>
             <Routes>
               {pages.map(({ path, component }) => (

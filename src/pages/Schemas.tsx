@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -17,6 +17,7 @@ import {
   Snackbar,
   Paper,
   Chip,
+  InputAdornment,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/AddRounded";
 import EditIcon from "@mui/icons-material/EditRounded";
@@ -24,18 +25,24 @@ import DeleteIcon from "@mui/icons-material/DeleteRounded";
 import ArrowBackIcon from "@mui/icons-material/ArrowBackRounded";
 import CloseIcon from "@mui/icons-material/CloseRounded";
 import SaveIcon from "@mui/icons-material/SaveRounded";
-import SchemaIcon from "@mui/icons-material/DescriptionRounded";
+import SchemaIcon from "@mui/icons-material/SchemaRounded";
+import WarningIcon from "@mui/icons-material/WarningRounded";
+import SearchIcon from "@mui/icons-material/SearchRounded";
 import Slide from "@mui/material/Slide";
 import useDialog from "../hooks/useDialog";
 import { useSchema } from "../context/SchemaContext";
 import { deleteSchema, saveSchema } from "../utils/SchemaUtils";
 import EditableComponentCard from "../ui/EditableComponentCard";
 import PageHeader from "../ui/PageHeader";
+import AddSectionDialog from "../ui/dialog/AddSectionDialog";
 
 export default function SchemaEditor() {
   const theme = useTheme();
   const { availableSchemas, refreshSchemas } = useSchema();
   const [editingSchema, setEditingSchema] = useState<any | null>(null);
+  const [originalSchema, setOriginalSchema] = useState<any | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [sectionDialogOpen, openSectionDialog, closeSectionDialog] =
     useDialog();
   const [renameDialogOpen, openRenameDialog, closeRenameDialog] = useDialog();
@@ -54,11 +61,22 @@ export default function SchemaEditor() {
     openDeleteSectionDialog,
     closeDeleteSectionDialog,
   ] = useDialog();
-  const [newSchemaDialogOpen, openNewSchemaDialog, closeNewSchemaDialog] =
-    useDialog();
+  const [
+    unsavedChangesDialogOpen,
+    openUnsavedChangesDialog,
+    closeUnsavedChangesDialog,
+  ] = useDialog();
+  const [
+    duplicateNameDialogOpen,
+    openDuplicateNameDialog,
+    closeDuplicateNameDialog,
+  ] = useDialog();
+
   const [sectionToRenameIndex, setSectionToRenameIndex] = useState<
     number | null
   >(null);
+  const [newSchemaDialogOpen, openNewSchemaDialog, closeNewSchemaDialog] =
+    useDialog();
   const [newSchemaName, setNewSchemaName] = useState("");
   const [schemaToRename, setSchemaToRename] = useState<SchemaMetaData | null>(
     null
@@ -69,19 +87,137 @@ export default function SchemaEditor() {
   const [sectionToDeleteIndex, setSectionToDeleteIndex] = useState<
     number | null
   >(null);
+  const [duplicateNameError, setDuplicateNameError] = useState("");
 
   const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [newSectionName, setNewSectionName] = useState("");
   const [newSectionTitle, setNewSectionTitle] = useState("");
+  const [newSchemaName, setNewSchemaName] = useState("");
+  const [nextFieldId, setNextFieldId] = useState(1);
 
   const isEditable =
     editingSchema &&
     availableSchemas.find((s) => s.name === editingSchema.name)?.type ===
       "generated";
 
+  // Initialize nextFieldId when editing schema changes
+  useEffect(() => {
+    if (editingSchema) {
+      const allIds = editingSchema.sections.flatMap((s: SectionData) =>
+        s.fields.map((f: Component) => f.id)
+      );
+      const maxId = Math.max(0, ...allIds);
+      setNextFieldId(maxId + 1);
+    }
+  }, [editingSchema?.name]);
+
+  // Check for unsaved changes whenever editingSchema changes
+  useEffect(() => {
+    if (!editingSchema || !originalSchema) {
+      setHasUnsavedChanges(false);
+      return;
+    }
+
+    const hasChanges =
+      JSON.stringify(editingSchema) !== JSON.stringify(originalSchema);
+    setHasUnsavedChanges(hasChanges);
+  }, [editingSchema, originalSchema]);
+
+  // Filter sections and fields based on search query
+  const filteredSchema = useMemo(() => {
+    if (!editingSchema || !searchQuery.trim()) {
+      return editingSchema;
+    }
+
+    const query = searchQuery.toLowerCase();
+    const filteredSections = editingSchema.sections
+      .map((section: SectionData) => {
+        const sectionMatches = section.title.toLowerCase().includes(query);
+        const filteredFields = section.fields.filter((field: Component) =>
+          field.name.toLowerCase().includes(query)
+        );
+
+        // Include section if it matches or has matching fields
+        if (sectionMatches || filteredFields.length > 0) {
+          return {
+            ...section,
+            fields: sectionMatches ? section.fields : filteredFields,
+          };
+        }
+        return null;
+      })
+      .filter(Boolean);
+
+    return {
+      ...editingSchema,
+      sections: filteredSections,
+    };
+  }, [editingSchema, searchQuery]);
+
+  const handleEditSchema = (schema: any) => {
+    const schemaCopy = JSON.parse(JSON.stringify(schema));
+    setEditingSchema(schemaCopy);
+    setOriginalSchema(JSON.parse(JSON.stringify(schemaCopy)));
+    setSearchQuery("");
+  };
+
+  const handleBackClick = () => {
+    if (hasUnsavedChanges && isEditable) {
+      openUnsavedChangesDialog();
+    } else {
+      setEditingSchema(null);
+      setOriginalSchema(null);
+      setHasUnsavedChanges(false);
+      setSearchQuery("");
+    }
+  };
+
+  const handleDiscardChanges = () => {
+    setEditingSchema(null);
+    setOriginalSchema(null);
+    setHasUnsavedChanges(false);
+    setSearchQuery("");
+    closeUnsavedChangesDialog();
+  };
+
+  const checkSchemaNameExists = (name: string, excludeName?: string) => {
+    return availableSchemas.some(
+      (s) =>
+        s.name.toLowerCase() === name.toLowerCase() && s.name !== excludeName
+    );
+  };
+
+  const checkSectionNameExists = (name: string, excludeIndex?: number) => {
+    if (!editingSchema) return false;
+    return editingSchema.sections.some(
+      (s: SectionData, i: number) =>
+        s.title.toLowerCase() === name.toLowerCase() && i !== excludeIndex
+    );
+  };
+
+  const checkFieldNameExists = (
+    sectionIndex: number,
+    name: string,
+    excludeFieldIndex?: number
+  ) => {
+    if (!editingSchema) return false;
+    const section = editingSchema.sections[sectionIndex];
+    if (!section) return false;
+    return section.fields.some(
+      (f: Component, i: number) =>
+        f.name.toLowerCase() === name.toLowerCase() && i !== excludeFieldIndex
+    );
+  };
+
   const handleCreateSchema = async () => {
     const trimmedName = newSchemaName.trim();
     if (!trimmedName) return;
+
+    if (checkSchemaNameExists(trimmedName)) {
+      setDuplicateNameError(`Schema "${trimmedName}" already exists`);
+      openDuplicateNameDialog();
+      return;
+    }
+
     await saveSchema({ name: trimmedName, sections: [] } as Schema);
     closeNewSchemaDialog();
     await refreshSchemas();
@@ -95,15 +231,23 @@ export default function SchemaEditor() {
       return;
     }
 
+    if (checkSchemaNameExists(trimmedName, schemaToRename.name)) {
+      setDuplicateNameError(`Schema "${trimmedName}" already exists`);
+      openDuplicateNameDialog();
+      closeSchemaRenameDialog();
+      return;
+    }
+
     const newSchema: Schema = {
       ...schemaToRename.schema,
-      name: newSchemaName,
+      name: trimmedName,
     };
     await saveSchema(newSchema);
     await deleteSchema(schemaToRename);
 
     await refreshSchemas();
     closeSchemaRenameDialog();
+    setNewSchemaName("");
   };
 
   const handleDeleteSchema = async () => {
@@ -111,6 +255,7 @@ export default function SchemaEditor() {
     await deleteSchema(schemaToDelete);
     await refreshSchemas();
     closeDeleteSchemaDialog();
+    setSchemaToDelete(null);
   };
 
   const handleSaveSchema = async () => {
@@ -120,20 +265,28 @@ export default function SchemaEditor() {
     const updatedSchema = newSchemas.find((s) => s.name === editingSchema.name);
 
     if (updatedSchema) {
-      setEditingSchema(updatedSchema.schema);
+      const updatedSchemaCopy = JSON.parse(
+        JSON.stringify(updatedSchema.schema)
+      );
+      setEditingSchema(updatedSchemaCopy);
+      setOriginalSchema(JSON.parse(JSON.stringify(updatedSchemaCopy)));
     }
     setSnackbarOpen(true);
   };
 
-  const handleAddSection = () => {
+  const handleAddSection = (sectionName: string) => {
     if (!editingSchema) return;
-    const trimmedName = newSectionName.trim();
-    if (!trimmedName) return; // Prevent adding empty named sections
+
+    if (checkSectionNameExists(sectionName)) {
+      setDuplicateNameError(`Section "${sectionName}" already exists`);
+      openDuplicateNameDialog();
+      return;
+    }
+
     setEditingSchema({
       ...editingSchema,
-      sections: [...editingSchema.sections, { title: trimmedName, fields: [] }],
+      sections: [...editingSchema.sections, { title: sectionName, fields: [] }],
     });
-    setNewSectionName("");
     closeSectionDialog();
   };
 
@@ -150,31 +303,44 @@ export default function SchemaEditor() {
     });
 
     closeDeleteSectionDialog();
+    setSectionToDeleteIndex(null);
   };
 
   const handleAddField = (sectionIndex: number) => {
     if (!editingSchema || !isEditable) return;
 
-    const allIds = editingSchema.sections.flatMap((s: SectionData) =>
-      s.fields.map((f: Component) => f.id)
-    );
-    const maxId = Math.max(0, ...allIds);
-
     const newField: Component = {
-      id: maxId + 1,
-      name: "New Field",
-      type: "Text",
+      id: nextFieldId,
+      name: `New Field ${nextFieldId}`,
+      type: "",
       required: false,
       props: {},
     };
 
     const newSections = [...editingSchema.sections];
-    newSections[sectionIndex].fields.push(newField);
+    newSections[sectionIndex] = {
+      ...newSections[sectionIndex],
+      fields: [...newSections[sectionIndex].fields, newField],
+    };
+
     setEditingSchema({
       ...editingSchema,
       sections: newSections,
     });
+    setNextFieldId(nextFieldId + 1);
   };
+
+  const isSchemaSaveable = useMemo(() => {
+    if (!editingSchema) {
+      return false;
+    }
+    for (const section of editingSchema.sections) {
+      for (const field of section.fields) {
+        if (!field.type) return false;
+      }
+    }
+    return true;
+  }, [editingSchema]);
 
   const handleDeleteField = (component: Component) => {
     if (!editingSchema) return;
@@ -196,14 +362,35 @@ export default function SchemaEditor() {
   const handleComponentChange = (
     sectionIndex: number,
     fieldIndex: number,
-    updatedComponent: any
+    updatedComponent: Component
   ) => {
     if (!editingSchema) return;
 
+    // Check for duplicate field name (excluding the current field)
+    if (
+      updatedComponent.name !==
+      editingSchema.sections[sectionIndex].fields[fieldIndex].name
+    ) {
+      if (
+        checkFieldNameExists(sectionIndex, updatedComponent.name, fieldIndex)
+      ) {
+        setDuplicateNameError(
+          `Field "${updatedComponent.name}" already exists in this section`
+        );
+        openDuplicateNameDialog();
+        return;
+      }
+    }
+
     const newSections = [...editingSchema.sections];
-    const newFields = [...newSections[sectionIndex].fields];
-    newFields[fieldIndex] = updatedComponent;
-    newSections[sectionIndex].fields = newFields;
+    newSections[sectionIndex] = {
+      ...newSections[sectionIndex],
+      fields: [
+        ...newSections[sectionIndex].fields.slice(0, fieldIndex),
+        updatedComponent,
+        ...newSections[sectionIndex].fields.slice(fieldIndex + 1),
+      ],
+    };
 
     setEditingSchema({
       ...editingSchema,
@@ -213,6 +400,12 @@ export default function SchemaEditor() {
 
   const handleSectionTitleChange = (sectionIndex: number, newTitle: string) => {
     if (!editingSchema || !isEditable) return;
+
+    if (checkSectionNameExists(newTitle, sectionIndex)) {
+      setDuplicateNameError(`Section "${newTitle}" already exists`);
+      openDuplicateNameDialog();
+      return;
+    }
 
     const newSections = [...editingSchema.sections];
     newSections[sectionIndex] = {
@@ -224,6 +417,16 @@ export default function SchemaEditor() {
       ...editingSchema,
       sections: newSections,
     });
+  };
+
+  // Get the original section index for filtered results
+  const getOriginalSectionIndex = (filteredIndex: number) => {
+    if (!searchQuery.trim() || !editingSchema) return filteredIndex;
+
+    const filteredSection = filteredSchema.sections[filteredIndex];
+    return editingSchema.sections.findIndex(
+      (s: SectionData) => s.title === filteredSection.title
+    );
   };
 
   return (
@@ -287,7 +490,7 @@ export default function SchemaEditor() {
                       boxShadow: `0 4px 12px ${theme.palette.primary.main}20`,
                     },
                   }}
-                  onClick={() => setEditingSchema({ ...s.schema })}
+                  onClick={() => handleEditSchema({ ...s.schema })}
                 >
                   <CardContent>
                     <Stack
@@ -373,7 +576,7 @@ export default function SchemaEditor() {
                           </>
                         ) : (
                           <Button
-                            onClick={() => setEditingSchema({ ...s.schema })}
+                            onClick={() => handleEditSchema({ ...s.schema })}
                             variant="outlined"
                             color="secondary"
                           >
@@ -420,7 +623,7 @@ export default function SchemaEditor() {
             }
             leadingComponent={
               <IconButton
-                onClick={() => setEditingSchema(null)}
+                onClick={handleBackClick}
                 sx={{
                   color: theme.palette.primary.main,
                 }}
@@ -429,119 +632,204 @@ export default function SchemaEditor() {
               </IconButton>
             }
             trailingComponent={
-              isEditable && (
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={handleSaveSchema}
-                  startIcon={<SaveIcon />}
-                  size="large"
-                  sx={{ borderRadius: 2 }}
-                >
-                  Save Schema
-                </Button>
-              )
+              <Stack direction="column" spacing={2} alignItems="center">
+                {isEditable && hasUnsavedChanges && (
+                  <Chip
+                    icon={<WarningIcon />}
+                    label="Unsaved Changes"
+                    color="warning"
+                    sx={{
+                      fontFamily: theme.typography.subtitle2,
+                    }}
+                  />
+                )}
+                {isEditable && (
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={handleSaveSchema}
+                    startIcon={<SaveIcon />}
+                    size="large"
+                    disabled={!isSchemaSaveable}
+                    sx={{ borderRadius: 2 }}
+                  >
+                    Save Schema
+                  </Button>
+                )}
+              </Stack>
             }
           />
 
+          {/* Search Bar */}
+          {editingSchema.sections?.length > 0 && (
+            <TextField
+              placeholder="Search sections and fields..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              fullWidth
+              sx={{ mb: 3 }}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                  endAdornment: searchQuery && (
+                    <InputAdornment position="end">
+                      <IconButton
+                        onClick={() => setSearchQuery("")}
+                        size="small"
+                      >
+                        <CloseIcon />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                },
+              }}
+            />
+          )}
+
           <Stack spacing={3}>
-            {editingSchema.sections?.length ? (
-              editingSchema.sections.map((section: SectionData, i: number) => (
-                <Card
-                  key={i}
-                  elevation={0}
-                  sx={{
-                    border: `2px solid ${theme.palette.divider}`,
-                    borderRadius: 3,
-                  }}
-                >
-                  <Box
+            {filteredSchema?.sections?.length ? (
+              filteredSchema.sections.map((section: SectionData, i: number) => {
+                const originalIndex = getOriginalSectionIndex(i);
+                return (
+                  <Card
+                    key={originalIndex}
+                    elevation={0}
                     sx={{
-                      background: `linear-gradient(135deg, ${theme.palette.secondary.main}15 0%, ${theme.palette.secondary.main}05 100%)`,
-                      borderBottom: `2px solid ${theme.palette.divider}`,
-                      p: 2,
+                      border: `2px solid ${theme.palette.divider}`,
+                      borderRadius: 3,
                     }}
                   >
-                    {isEditable ? (
-                      <Stack
-                        direction="row"
-                        spacing={2}
-                        alignItems="center"
-                        justifyContent="space-between"
-                      >
+                    <Box
+                      sx={{
+                        background: `linear-gradient(135deg, ${theme.palette.primary.main}15 0%, ${theme.palette.primary.main}05 100%)`,
+                        borderBottom: `2px solid ${theme.palette.divider}`,
+                        p: 2,
+                      }}
+                    >
+                      {isEditable ? (
+                        <Stack
+                          direction="row"
+                          spacing={2}
+                          alignItems="center"
+                          justifyContent="space-between"
+                        >
+                          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                            {section.title}
+                          </Typography>
+                          <Stack direction="row">
+                            <IconButton
+                              onClick={() => {
+                                setSectionToRenameIndex(originalIndex);
+                                setNewSectionTitle(section.title);
+                                openRenameDialog();
+                              }}
+                              sx={{
+                                "&:hover": {
+                                  backgroundColor: `${theme.palette.primary.main}20`,
+                                  color: theme.palette.primary.main,
+                                },
+                              }}
+                            >
+                              <EditIcon />
+                            </IconButton>
+                            <IconButton
+                              onClick={() => {
+                                setSectionToDeleteIndex(originalIndex);
+                                openDeleteSectionDialog();
+                              }}
+                              sx={{
+                                "&:hover": {
+                                  backgroundColor: `${theme.palette.error.main}20`,
+                                  color: theme.palette.error.main,
+                                },
+                              }}
+                            >
+                              <DeleteIcon />
+                            </IconButton>
+                          </Stack>
+                        </Stack>
+                      ) : (
                         <Typography variant="h6" sx={{ fontWeight: 600 }}>
                           {section.title}
                         </Typography>
-                        <Stack direction="row">
-                          <IconButton
-                            onClick={() => {
-                              setSectionToRenameIndex(i);
-                              setNewSectionTitle(section.title);
-                              openRenameDialog();
-                            }}
-                            sx={{
-                              "&:hover": {
-                                backgroundColor: `${theme.palette.secondary.main}20`,
-                                color: theme.palette.secondary.main,
-                              },
-                            }}
-                          >
-                            <EditIcon />
-                          </IconButton>
-                          <IconButton
-                            onClick={() => {
-                              setSectionToDeleteIndex(i);
-                              openDeleteSectionDialog();
-                            }}
-                            sx={{
-                              "&:hover": {
-                                backgroundColor: `${theme.palette.error.main}20`,
-                                color: theme.palette.error.main,
-                              },
-                            }}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Stack>
-                      </Stack>
-                    ) : (
-                      <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                        {section.title}
-                      </Typography>
-                    )}
-                  </Box>
-                  <CardContent>
-                    {section.fields.length ? (
-                      section.fields.map((field: Component, id) => (
-                        <EditableComponentCard
-                          key={id}
-                          component={field}
-                          onChange={(updatedComponent) =>
-                            handleComponentChange(i, id, updatedComponent)
-                          }
-                          onDelete={(component) => handleDeleteField(component)}
-                          editable={!!isEditable}
-                        />
-                      ))
-                    ) : (
-                      <Typography variant="body1" color="text.secondary">
-                        (No fields yet)
-                      </Typography>
-                    )}
-                    {isEditable && (
-                      <Button
-                        variant="outlined"
-                        onClick={() => handleAddField(i)}
-                        color="secondary"
-                        sx={{ mt: 2, borderRadius: 2 }}
-                        startIcon={<AddIcon />}
-                      >
-                        Add Field
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-              ))
+                      )}
+                    </Box>
+                    <CardContent>
+                      {section.fields.length ? (
+                        section.fields.map((field: Component) => {
+                          const fieldIndex = editingSchema.sections[
+                            originalIndex
+                          ].fields.findIndex(
+                            (f: Component) => f.id === field.id
+                          );
+                          return (
+                            <EditableComponentCard
+                              key={field.id}
+                              component={field}
+                              onChange={(updatedComponent) =>
+                                handleComponentChange(
+                                  originalIndex,
+                                  fieldIndex,
+                                  updatedComponent
+                                )
+                              }
+                              onDelete={(component) =>
+                                handleDeleteField(component)
+                              }
+                              editable={!!isEditable}
+                            />
+                          );
+                        })
+                      ) : (
+                        <Typography variant="body1" color="text.secondary">
+                          {searchQuery.trim()
+                            ? "No matching fields"
+                            : "(No fields yet)"}
+                        </Typography>
+                      )}
+                      {isEditable && !searchQuery.trim() && (
+                        <Button
+                          variant="outlined"
+                          onClick={() => handleAddField(originalIndex)}
+                          color="secondary"
+                          sx={{ mt: 2, borderRadius: 2 }}
+                          startIcon={<AddIcon />}
+                        >
+                          Add Field
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })
+            ) : searchQuery.trim() ? (
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 4,
+                  textAlign: "center",
+                  borderRadius: 3,
+                  border: `2px dashed ${theme.palette.divider}`,
+                }}
+              >
+                <SearchIcon
+                  sx={{
+                    fontSize: 64,
+                    color: theme.palette.text.disabled,
+                    mb: 2,
+                  }}
+                />
+                <Typography variant="h6" color="text.secondary" gutterBottom>
+                  No results found
+                </Typography>
+                <Typography variant="body1" color="text.secondary">
+                  Try a different search term
+                </Typography>
+              </Paper>
             ) : (
               <Paper
                 elevation={0}
@@ -558,16 +846,18 @@ export default function SchemaEditor() {
               </Paper>
             )}
 
-            {isEditable && (
+            {isEditable && !searchQuery.trim() && (
               <Button
-                variant="contained"
+                variant="outlined"
                 size="large"
                 startIcon={<AddIcon />}
                 onClick={openSectionDialog}
-                color="secondary"
+                color="primary"
                 sx={{
                   borderRadius: 2,
                   py: 1.5,
+                  borderWidth: 2,
+                  "&:hover": { borderWidth: 2 },
                 }}
               >
                 Add Section
@@ -578,35 +868,11 @@ export default function SchemaEditor() {
       )}
 
       {/* Add Section Dialog */}
-      <Dialog
+      <AddSectionDialog
         open={sectionDialogOpen}
         onClose={closeSectionDialog}
-        slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 400 } } }}
-      >
-        <DialogTitle sx={{ fontWeight: 600 }}>Add Section</DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Section Name"
-            value={newSectionName}
-            onChange={(e) => setNewSectionName(e.target.value)}
-            fullWidth
-            sx={{ mt: 1 }}
-          />
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={closeSectionDialog} sx={{ borderRadius: 2 }}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleAddSection}
-            disabled={!newSectionName.trim()}
-            variant="contained"
-            sx={{ borderRadius: 2 }}
-          >
-            Add
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onAdd={handleAddSection}
+      />
 
       {/* New Schema Dialog */}
       <Dialog
@@ -766,6 +1032,71 @@ export default function SchemaEditor() {
           </Button>
           <Button onClick={closeDeleteSectionDialog} sx={{ borderRadius: 2 }}>
             Cancel
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Duplicate Name Warning Dialog */}
+      <Dialog
+        open={duplicateNameDialogOpen}
+        onClose={closeDuplicateNameDialog}
+        slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 400 } } }}
+      >
+        <DialogTitle
+          sx={{
+            fontWeight: 600,
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+          }}
+        >
+          <WarningIcon color="warning" />
+          Duplicate Name
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>{duplicateNameError}</DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={closeDuplicateNameDialog} sx={{ borderRadius: 2 }}>
+            Ok
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Unsaved Changes Warning Dialog */}
+      <Dialog
+        open={unsavedChangesDialogOpen}
+        onClose={closeUnsavedChangesDialog}
+        slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 400 } } }}
+      >
+        <DialogTitle
+          sx={{
+            fontWeight: 600,
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+          }}
+        >
+          <WarningIcon color="warning" />
+          Unsaved Changes
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            You have unsaved changes. Are you sure you want to leave without
+            saving? All changes will be lost.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={closeUnsavedChangesDialog} sx={{ borderRadius: 2 }}>
+            Continue Editing
+          </Button>
+          <Button
+            onClick={handleDiscardChanges}
+            variant="contained"
+            color="warning"
+            sx={{ borderRadius: 2 }}
+          >
+            Discard Changes
           </Button>
         </DialogActions>
       </Dialog>
