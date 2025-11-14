@@ -12,6 +12,8 @@ export const defaultSettings: Settings = {
   LAST_SCHEMA_NAME: undefined,
   THEME: "system",
   DEVICE_ID: 1,
+  EXPECTED_DEVICES_COUNT: 6,
+  LEAD_SCOUT_ONLY: false,
 };
 
 interface SettingsContextType {

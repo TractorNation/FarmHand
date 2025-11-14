@@ -8,7 +8,13 @@ import {
   matchDataJsonToMap,
 } from "./GeneralUtils";
 import { appLocalDataDir, resolve } from "@tauri-apps/api/path";
-import { BaseDirectory, exists, mkdir, readDir, readTextFile } from "@tauri-apps/plugin-fs";
+import {
+  BaseDirectory,
+  exists,
+  mkdir,
+  readDir,
+  readTextFile,
+} from "@tauri-apps/plugin-fs";
 
 export type QrType = "match" | "schema" | "theme" | "settings";
 export type EncodedQr = string;
@@ -20,6 +26,7 @@ export interface QrCode {
 }
 
 export interface DecodedQr {
+  deviceId: number;
   type: QrType;
   schemaHash: string;
   data: any;
@@ -55,9 +62,12 @@ export function reconstructMatchDataFromArray(
 function buildQrString(
   type: QrType,
   schemaHash: string,
+  deviceId: number,
   compressedPayload: string
 ): EncodedQr {
-  return `${APP_PREFIX}:${type.charAt(0)}:${schemaHash}:${compressedPayload}`;
+  return `${APP_PREFIX}:${type.charAt(
+    0
+  )}:${schemaHash}:${deviceId}:${compressedPayload}`;
 }
 
 /**
@@ -67,26 +77,16 @@ function buildQrString(
  * @returns an object containing the type, schemaHash, and data encoded into the code
  */
 export async function decodeQR(
-  qrString: string,
-  currentSchemaHash?: string
+  qrString: string
 ): Promise<DecodedQr> {
-  const [prefix, type, schemaHash, compressed] = qrString.split(":");
-  console.log(qrString.split(":"));
+  const [prefix, type, schemaHash, deviceId, compressed] = qrString.split(":");
+
   if (prefix !== APP_PREFIX) throw new Error("Invalid QR prefix");
   if (!type) throw new Error("QR type missing");
   if (!compressed) throw new Error("QR payload missing");
   const data = await decompressData(compressed);
 
-  // If it's match data and we have a schema hash to compare
-  if (
-    currentSchemaHash &&
-    schemaHash !== currentSchemaHash &&
-    type === "match"
-  ) {
-    throw new Error("Schema mismatch");
-  }
-
-  return { type: type as QrType, schemaHash, data };
+  return { deviceId: parseInt(deviceId), type: type as QrType, schemaHash, data };
 }
 
 /**
@@ -112,10 +112,11 @@ async function writeDataToQrCode(
   type: QrType,
   schemaHash: string,
   payload: any,
-  qrNameInfo: string[]
+  qrNameInfo: string[],
+  deviceId: number
 ): Promise<QrCode> {
   const compressed = await compressData(payload);
-  const qrString = buildQrString(type, schemaHash, compressed);
+  const qrString = buildQrString(type, schemaHash, deviceId, compressed);
   const qrSvg = await invoke<string>("generate_qr_code", { data: qrString });
   const fileName = generateQrFileName(qrNameInfo);
 
@@ -128,13 +129,13 @@ async function writeDataToQrCode(
 export const QrCodeBuilder = {
   buildFileName: (qrNameInfo: string[]) => generateQrFileName(qrNameInfo),
   build: {
-    MATCH: async (schemaHash: string, payload: any, qrNameInfo: string[]) =>
-      await writeDataToQrCode("match", schemaHash, payload, qrNameInfo),
+    MATCH: async (schemaHash: string, payload: any, qrNameInfo: string[], deviceId: number) =>
+      await writeDataToQrCode("match", schemaHash, payload, qrNameInfo, deviceId),
   },
 };
 
 export function validateQR(qrString: string) {
-  const [prefix, type, schemaHash, compressed] = qrString.split(":");
+  const [prefix, type, schemaHash, _, compressed] = qrString.split(":");
   if (!prefix || !type || !schemaHash || !compressed) {
     return false;
   }
@@ -178,9 +179,9 @@ export async function createQrCodeFromImportedData(
   data: string,
   schema: Schema
 ) {
-  const [_prefix, type, schemaHash, compressed] = data.split(":");
+  const [_prefix, type, schemaHash, deviceId, compressed] = data.split(":");
 
-  const qrString = buildQrString(type as QrType, schemaHash, compressed);
+  const qrString = buildQrString(type as QrType, schemaHash, parseInt(deviceId), compressed);
   const qrSvg = await invoke<string>("generate_qr_code", { data: qrString });
   const decoded = await decodeQR(data);
   console.log(decoded);

@@ -26,6 +26,7 @@ import useDialog from "../hooks/useDialog";
 import { QrCodeBuilder, saveQrCode } from "../utils/QrUtils";
 import { getFieldValueByName } from "../utils/GeneralUtils";
 import PageHeader from "../ui/PageHeader";
+import { useSettings } from "../context/SettingsContext";
 
 export default function Scout() {
   const { schema, hash, schemaName } = useSchema();
@@ -38,7 +39,7 @@ export default function Scout() {
     clearErrors,
     getMatchDataMap,
   } = useScoutData();
-
+  const {settings} = useSettings();
   const [resetKey, setResetKey] = useState<Key>(0);
   const [showErrorPopup, openErrorPopup, closeErrorPopup] = useDialog();
   const [showResetPopup, openResetPopup, closeResetPopup] = useDialog();
@@ -46,7 +47,9 @@ export default function Scout() {
   const qrCodeData = useRef<QrCode | null>(null);
   const [expandedSectionIndex, setExpandedSectionIndex] = useState<
     number | false
-  >(0); // Start with the first section open
+  >(0);
+
+  const deviceID = settings.DEVICE_ID;
 
   const handleSectionToggle = (panelIndex: number) => (isExpanded: boolean) => {
     if (isExpanded) {
@@ -90,7 +93,7 @@ export default function Scout() {
     const qr = await QrCodeBuilder.build.MATCH(schemaHash, minifiedJSON, [
       teamNumber!,
       matchNumber!,
-    ]);
+    ], deviceID);
     qrCodeData.current = qr;
     openQrPopup();
   };

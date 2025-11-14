@@ -106,6 +106,8 @@ export const StoreKeys = {
     LAST_SCHEMA_NAME: "setings::LAST_SCHEMA_NAME",
     DEVICE_ID: "settings::DEVICE_ID",
     THEME: "settings::THEME",
+    EXPECTED_DEVICES_COUNT: "settings::EXPECTED_DEVICES_COUNT",
+    LEAD_SCOUT_ONLY: "settings::LEAD_SCOUT_ONLY",
   },
 
   match: {

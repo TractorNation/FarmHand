@@ -58,4 +58,6 @@ interface Settings {
   LAST_SCHEMA_NAME?: string;
   THEME: string;
   DEVICE_ID: number;
+  EXPECTED_DEVICES_COUNT: number;
+  LEAD_SCOUT_ONLY: boolean;
 }
