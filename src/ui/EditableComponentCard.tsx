@@ -2,6 +2,7 @@ import {
   Accordion,
   AccordionDetails,
   AccordionSummary,
+  Box,
   Button,
   Card,
   Dialog,
@@ -20,9 +21,12 @@ import DropdownInput from "./components/DropdownInput";
 import { useEffect, useRef, useState } from "react";
 import useToggle from "../hooks/useToggle";
 import ExpandIcon from "@mui/icons-material/ExpandMoreRounded";
+import DragIcon from "@mui/icons-material/DragIndicatorRounded";
 import EditIcon from "@mui/icons-material/EditRounded";
 import DeleteIcon from "@mui/icons-material/DeleteRounded";
 import useDialog from "../hooks/useDialog";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 /* Properties for the Component Card*/
 interface ComponentCardProps {
@@ -49,6 +53,24 @@ export default function EditableComponentCard(props: ComponentCardProps) {
   const isProtected =
     component.name === "Match Number" || component.name === "Team Number";
 
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
+    id: component.id
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition: isDragging ? "none" : transition, // Disable transition during drag
+    opacity: isDragging ? 0.3 : 1,
+    cursor: isDragging ? "grabbing" : "default",
+  };
+
   // Ref to track the ID of the component whose dropdownInputValue was last synced from props.
   const lastSyncedDropdownComponentId = useRef(component.id);
 
@@ -64,13 +86,6 @@ export default function EditableComponentCard(props: ComponentCardProps) {
       }
       lastSyncedDropdownComponentId.current = component.id;
     } else if (component.type.toLowerCase() === "dropdown") {
-      validateDropdown(dropdownInputValue);
-    }
-  }, [component]);
-
-  useEffect(() => {
-    setEditedComponent(component);
-    if (component.type.toLowerCase() === "dropdown") {
       validateDropdown(dropdownInputValue);
     }
   }, [component]);
@@ -241,8 +256,14 @@ export default function EditableComponentCard(props: ComponentCardProps) {
   return (
     <>
       <Accordion
+        ref={setNodeRef}
+        style={style}
         expanded={active}
-        onChange={toggleActive}
+        onChange={() => {
+          if (!isDragging) {
+            toggleActive();
+          }
+        }}
         disableGutters
         elevation={0}
         sx={{
@@ -298,9 +319,26 @@ export default function EditableComponentCard(props: ComponentCardProps) {
             sx={{ flexGrow: 1 }}
             justifyContent="space-between"
           >
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              {editedComponent.name}
-            </Typography>
+            <Stack direction="row" spacing={0} alignItems="center">
+              <Box
+                {...listeners}
+                {...attributes}
+                sx={{
+                  p: 1,
+                  cursor: isDragging ? "grabbing" : "grab",
+                  display: "flex",
+                  alignItems: "center",
+                  "&:hover": {
+                    opacity: 0.7,
+                  },
+                }}
+              >
+                <DragIcon />
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                {editedComponent.name}
+              </Typography>
+            </Stack>
             <Stack direction={"row"}>
               <IconButton
                 onClick={(e) => {
