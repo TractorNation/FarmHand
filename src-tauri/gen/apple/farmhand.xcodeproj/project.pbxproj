@@ -38,6 +38,7 @@
 		69AAE88C48D97A1331F22283 /* mod.rs */ = {isa = PBXFileReference; path = mod.rs; sourceTree = "<group>"; };
 		751397B8024189BC18D38994 /* util.rs */ = {isa = PBXFileReference; path = util.rs; sourceTree = "<group>"; };
 		766692111BA44FF302EF6A26 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
+		7D897E20647D409898098251 /* schema.rs */ = {isa = PBXFileReference; path = schema.rs; sourceTree = "<group>"; };
 		8EF57FB8ED132F756DB09128 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		8FAFDF900258E14D7AEE2ED8 /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = assets; sourceTree = SOURCE_ROOT; };
 		AA50900835B2D1783637D869 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -109,6 +110,7 @@
 			children = (
 				69AAE88C48D97A1331F22283 /* mod.rs */,
 				24309DA90730B982CDB84AEA /* qr.rs */,
+				7D897E20647D409898098251 /* schema.rs */,
 				751397B8024189BC18D38994 /* util.rs */,
 			);
 			path = core;
