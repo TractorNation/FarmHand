@@ -37,7 +37,8 @@ import {
 } from "react-router";
 import { ThemeProvider, useTheme } from "@mui/material/styles";
 import SchemaProvider from "./context/SchemaContext";
-import SchemaEditor from "./pages/Schemas";
+import Schemas from "./pages/Schemas";
+import SchemaEditor from "./pages/SchemaEditor";
 import LeadScoutDashboard from "./pages/Dashboard";
 import ScoutDataProvider from "./context/ScoutDataContext";
 import TractorDarkTheme from "./config/themes/TractorDarkTheme";
@@ -68,35 +69,30 @@ const checkForUpdates = async (): Promise<{
 };
 
 const pages = [
-  { title: "Home", icon: <HomeIcon />, component: <Home />, path: "/" },
+  { title: "Home", icon: <HomeIcon />, path: "/" },
   {
     title: "Scout",
     icon: <AddChartIcon />,
-    component: <Scout />,
     path: "/scout",
   },
   {
     title: "QR Codes",
     icon: <QrCodeIcon />,
-    component: <QRPage />,
     path: "/qr",
   },
   {
     title: "Schemas",
     icon: <SchemaIcon />,
-    component: <SchemaEditor />,
     path: "/schemas",
   },
   {
     title: "Lead Scouter Dashboard",
     icon: <DashboardIcon />,
-    component: <LeadScoutDashboard />,
     path: "/dashboard",
   },
   {
     title: "Settings",
     icon: <SettingsIcon />,
-    component: <Settings />,
     path: "/settings",
   },
 ];
@@ -136,6 +132,14 @@ function Layout({ children }: { children: React.ReactNode }) {
     },
   };
 
+  // Check if current path starts with any of the navigation paths
+  const isPathSelected = (path: string) => {
+    if (path === "/") {
+      return location.pathname === "/";
+    }
+    return location.pathname.startsWith(path);
+  };
+
   return (
     <>
       <Box
@@ -167,7 +171,7 @@ function Layout({ children }: { children: React.ReactNode }) {
           </IconButton>
           <Typography
             variant="h4"
-            sx={{ flexGrow: 1, fontWeight: 600 }}
+            sx={{ flexGrow: 1, fontWeight: 600, cursor: "pointer" }}
             onClick={() => navigate("/")}
           >
             FarmHand
@@ -275,7 +279,7 @@ function Layout({ children }: { children: React.ReactNode }) {
                 <ListItem key={item.title} disablePadding sx={{ mb: 0.5 }}>
                   <ListItemButton
                     onClick={() => navigate(item.path)}
-                    selected={location.pathname === item.path}
+                    selected={isPathSelected(item.path)}
                     sx={{
                       ...selectedItemSx,
                       borderRadius: 2,
@@ -403,25 +407,26 @@ export default function App() {
       <ScoutDataProvider>
         <SchemaProvider schema={schema}>
           <HashRouter>
-            <Routes>
-              {pages.map(({ path, component }) => (
-                <Route
-                  key={path}
-                  path={path}
-                  element={
-                    <Layout>
-                      <Suspense
-                        fallback={
-                          <Typography sx={{ p: 3 }}>Loading page...</Typography>
-                        }
-                      >
-                        {component}
-                      </Suspense>
-                    </Layout>
-                  }
-                />
-              ))}
-            </Routes>
+            <Layout>
+              <Suspense
+                fallback={
+                  <Typography sx={{ p: 3 }}>Loading page...</Typography>
+                }
+              >
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/scout" element={<Scout />} />
+                  <Route path="/qr" element={<QRPage />} />
+                  <Route path="/schemas" element={<Schemas />} />
+                  <Route
+                    path="/schemas/:schemaName"
+                    element={<SchemaEditor />}
+                  />
+                  <Route path="/dashboard" element={<LeadScoutDashboard />} />
+                  <Route path="/settings" element={<Settings />} />
+                </Routes>
+              </Suspense>
+            </Layout>
           </HashRouter>
         </SchemaProvider>
       </ScoutDataProvider>
