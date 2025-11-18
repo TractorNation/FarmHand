@@ -9,6 +9,7 @@ import TextInput from "./TextInput";
 import { isFieldInvalid } from "../../utils/GeneralUtils";
 import { useAsyncFetch } from "../../hooks/useAsyncFetch";
 import SliderInput from "./SliderInput";
+import NumberInput from "./NumberInput";
 
 /* Props for the dynamic component
  */
@@ -54,6 +55,12 @@ export default function DynamicComponent(props: DynamicComponentProps) {
       case "text":
       case "dropdown":
         emptyStateValue = component.props?.default ?? "";
+        break;
+      case "number":
+        emptyStateValue =
+          component.props?.default !== undefined
+            ? component.props.default
+            : null;
         break;
       case "counter":
         emptyStateValue = component.props?.default ?? 0;
@@ -104,7 +111,16 @@ export default function DynamicComponent(props: DynamicComponentProps) {
         clearTimeout(debounceTimeout.current);
       }
     };
-  }, [storedValue, loading, error, component, setValid, addError, removeError, getMatchData]);
+  }, [
+    storedValue,
+    loading,
+    error,
+    component,
+    setValid,
+    addError,
+    removeError,
+    getMatchData,
+  ]);
 
   const handleChange = (newValue: any) => {
     setValue(newValue);
@@ -180,7 +196,7 @@ export default function DynamicComponent(props: DynamicComponentProps) {
             value={String(value)}
             onChange={handleChange}
             multiline={component.props?.multiline}
-            label={component.props?.label}
+            label={component.name}
             error={showError}
           />
         );
@@ -193,6 +209,15 @@ export default function DynamicComponent(props: DynamicComponentProps) {
             step={component.props?.step}
             onChange={handleChange}
             selectsRange={component.props?.selectsRange}
+          />
+        );
+      case "number":
+        return (
+          <NumberInput
+            value={value}
+            onChange={handleChange}
+            label={component.name}
+            error={showError}
           />
         );
       default:

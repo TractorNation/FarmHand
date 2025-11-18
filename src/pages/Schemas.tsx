@@ -82,14 +82,14 @@ export default function Schemas() {
             {
               id: 1,
               name: "Match Number",
-              type: "text",
+              type: "number",
               required: true,
               props: {},
             },
             {
               id: 2,
               name: "Team Number",
-              type: "text",
+              type: "number",
               required: true,
               props: {},
             },

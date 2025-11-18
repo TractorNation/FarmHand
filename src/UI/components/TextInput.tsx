@@ -2,7 +2,7 @@ import { TextField } from "@mui/material";
 import { ChangeEvent } from "react";
 
 /**
- * Props for the text input component
+ * Props fsor the text input component
  */
 interface TextInputProps {
   label?: string;
@@ -12,7 +12,7 @@ interface TextInputProps {
   error?: boolean;
 }
 
-/**
+/** 
  * An input for text
  *
  * @param props {@link TextInputProps}
@@ -34,7 +34,7 @@ export default function TextInput(props: TextInputProps) {
       fullWidth
       label={label}
       onChange={updateText}
-      value={value}
+      value={value ?? ""}
       error={error}
       maxRows={5}
       slotProps={{ htmlInput: { maxLength: 75 } }}
