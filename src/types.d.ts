@@ -24,7 +24,8 @@ type ComponentType =
   | "number"
   | "slider"
   | "timer"
-  | "grid";
+  | "grid"
+  | "filler";
 
 /** An individual component, type and props */
 interface Component {

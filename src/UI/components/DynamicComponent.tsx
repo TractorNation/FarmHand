@@ -220,6 +220,8 @@ export default function DynamicComponent(props: DynamicComponentProps) {
             error={showError}
           />
         );
+      case "filler":
+        return;
       default:
         return <Typography>Unknown component type</Typography>;
     }

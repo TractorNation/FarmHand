@@ -562,6 +562,7 @@ export default function EditableComponentCard(props: ComponentCardProps) {
                 "Slider",
                 "Timer",
                 "Grid",
+                "Filler"
               ]}
             />
             <FormControlLabel
