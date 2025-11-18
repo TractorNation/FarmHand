@@ -1,5 +1,6 @@
 import { Card, Stack, Typography, useTheme } from "@mui/material";
 import useLongPress from "../../hooks/useLongPress";
+import { getDataFromQrName } from "../../utils/QrUtils";
 
 interface QrCardProps {
   qr: QrCode;
@@ -15,18 +16,6 @@ export default function QrCard(props: QrCardProps) {
   const { qr, disabled, selecting, toggleSelectMode, onSelect, onClickQr, codeIsSelected } =
     props;
   const theme = useTheme();
-
-  const getDataFromQrName = (name: string) => {
-    const [teamNumber, matchNumber, timestamp] = name
-      .replace(".svg", "")
-      .split("-");
-
-    return {
-      TeamNumber: teamNumber,
-      MatchNumber: matchNumber,
-      Timestamp: timestamp,
-    };
-  };
 
   const handleTouchLongPress = (e: TouchEvent) => {
     e.preventDefault();

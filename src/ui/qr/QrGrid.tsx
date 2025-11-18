@@ -9,6 +9,9 @@ interface QrGridProps {
   onSelect: (c: QrCode) => void;
   onClickQr: (c: QrCode) => void;
   toggleSelectMode?: () => void;
+  filter: FilterOption[];
+  sortMode: string;
+  sortDirection: string;
 }
 
 export default function QrGrid(props: QrGridProps) {

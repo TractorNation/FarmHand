@@ -164,6 +164,18 @@ export function validateQR(qrString: string) {
   return false;
 }
 
+export function getDataFromQrName(name: string) {
+  const [teamNumber, matchNumber, timestamp] = name
+    .replace(".svg", "")
+    .split("-");
+
+  return {
+    TeamNumber: teamNumber,
+    MatchNumber: matchNumber,
+    Timestamp: timestamp,
+  };
+}
+
 export async function saveQrCode(code: QrCode) {
   await mkdir("saved-matches", {
     baseDir: BaseDirectory.AppLocalData,

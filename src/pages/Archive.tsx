@@ -15,8 +15,6 @@ import {
 } from "@mui/material";
 import QrShareDialog from "../ui/dialog/QrShareDialog";
 import QrCodeIcon from "@mui/icons-material/QrCodeRounded";
-import FilterIcon from "@mui/icons-material/FilterAltRounded";
-import SortIcon from "@mui/icons-material/SortRounded";
 import ArchiveIcon from "@mui/icons-material/ArchiveRounded";
 import UnarchiveIcon from "@mui/icons-material/UnarchiveRounded";
 import DeleteIcon from "@mui/icons-material/DeleteRounded";
@@ -25,57 +23,54 @@ import QrGrid from "../ui/qr/QrGrid";
 import { useMemo, useState } from "react";
 import { useAsyncFetch } from "../hooks/useAsyncFetch";
 import useDialog from "../hooks/useDialog";
-import { useQrSelection } from "../hooks/useQrSelection";
+import { useQrManager } from "../hooks/useQrManager";
 import { fetchQrCodes, unarchiveQrCode, deleteQrCode } from "../utils/QrUtils";
+import SortFilterMenu from "../ui/SortFilterMenu";
 
 export default function ArchivePage() {
   const theme = useTheme();
   const [allQrCodes, loading, error, refetch] = useAsyncFetch(fetchQrCodes);
-  const qrCodes = useMemo(
-    () => allQrCodes?.filter((code) => code.archived) || [],
-    [allQrCodes]
-  );
-  const selection = useQrSelection(qrCodes);
   const [qrDialogOpen, openQrDialog, closeQrDialog] = useDialog();
   const [unarchiveDialogOpen, openUnarchiveDialog, closeUnarchiveDialog] =
     useDialog();
   const [deleteDialogOpen, openDeleteDialog, closeDeleteDialog] = useDialog();
   const [activeQrCode, setActiveQrCode] = useState<QrCode | null>(null);
 
-  if (loading) return <Typography>Loading...</Typography>;
-  if (error)
-    return <Typography color="error">Error fetching QR codes</Typography>;
+  const archivedQrCodes = useMemo(
+    () => allQrCodes?.filter((code) => code.archived) || [],
+    [allQrCodes]
+  );
 
-  const toggleSelectionMode = () => {
-    if (selection.selecting) {
-      selection.resetSelection();
-    }
-    selection.toggleSelecting();
-  };
+  // Use the combined hook - same as QR page!
+  const qrManager = useQrManager({ qrCodes: archivedQrCodes });
 
   const handleMassUnarchive = async () => {
     await Promise.all(
-      selection.selectedCodes.map(async (c) => await unarchiveQrCode(c))
+      qrManager.selectedCodes.map(async (c) => await unarchiveQrCode(c))
     );
-    selection.resetSelection();
+    qrManager.resetSelection();
     closeUnarchiveDialog();
-    toggleSelectionMode();
+    qrManager.toggleSelectionMode();
     refetch();
   };
 
   const handleMassDelete = async () => {
     await Promise.all(
-      selection.selectedCodes.map(async (c) => await deleteQrCode(c))
+      qrManager.selectedCodes.map(async (c) => await deleteQrCode(c))
     );
-    selection.resetSelection();
+    qrManager.resetSelection();
     closeDeleteDialog();
-    toggleSelectionMode();
+    qrManager.toggleSelectionMode();
     refetch();
   };
 
+  if (loading) return <Typography>Loading...</Typography>;
+  if (error)
+    return <Typography color="error">Error fetching QR codes</Typography>;
+
   return (
     <>
-      {!qrCodes || qrCodes.length === 0 ? (
+      {!archivedQrCodes || archivedQrCodes.length === 0 ? (
         <Box
           sx={{
             textAlign: "center",
@@ -120,14 +115,18 @@ export default function ArchivePage() {
             <PageHeader
               icon={<ArchiveIcon sx={{ fontSize: 28 }} />}
               title="QR Archive"
-              subtitle={`${qrCodes.length} code${
-                qrCodes.length !== 1 ? "s" : ""
-              } archived`}
+              subtitle={`${qrManager.filteredQrCodes.length} code${
+                qrManager.filteredQrCodes.length !== 1 ? "s" : ""
+              } ${
+                qrManager.filteredQrCodes.length !== archivedQrCodes.length
+                  ? "filtered"
+                  : "archived"
+              }`}
               trailingComponent={
-                selection.selecting &&
-                selection.selectedCodes.length > 0 && (
+                qrManager.selecting &&
+                qrManager.selectedCodes.length > 0 && (
                   <Chip
-                    label={`${selection.selectedCodes.length} selected`}
+                    label={`${qrManager.selectedCodes.length} selected`}
                     color="primary"
                     sx={{ fontWeight: 600, fontFamily: theme.typography.body1 }}
                   />
@@ -137,43 +136,27 @@ export default function ArchivePage() {
 
             {/* Action Bar */}
             <Stack direction="row" justifyContent="space-between" mb={3}>
-              <Stack direction="row" spacing={2}>
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  startIcon={<FilterIcon />}
-                  sx={{
-                    borderRadius: 2,
-                    borderWidth: 2,
-                    "&:hover": {
-                      borderWidth: 2,
-                    },
-                  }}
-                >
-                  Filter
-                </Button>
-                <Button
-                  variant="outlined"
-                  color="secondary"
-                  startIcon={<SortIcon />}
-                  sx={{
-                    borderRadius: 2,
-                    borderWidth: 2,
-                    "&:hover": {
-                      borderWidth: 2,
-                    },
-                  }}
-                >
-                  Sort
-                </Button>
-              </Stack>
+              <SortFilterMenu
+                sortMode={qrManager.sortMode}
+                sortDirection={qrManager.sortDirection}
+                activeFilters={qrManager.filters}
+                onSortModeChange={qrManager.setSortMode}
+                onSortDirectionChange={qrManager.setSortDirection}
+                onFilterToggle={qrManager.updateFilters}
+                onClearFilters={qrManager.clearFilters}
+                matchNumberFilter={qrManager.matchNumberFilter}
+                teamNumberFilter={qrManager.teamNumberFilter}
+                onMatchNumberFilterChange={qrManager.setMatchNumberFilter}
+                onTeamNumberFilterChange={qrManager.setTeamNumberFilter}
+              />
+
               <Button
-                variant={selection.selecting ? "outlined" : "contained"}
+                variant={qrManager.selecting ? "outlined" : "contained"}
                 color="secondary"
-                onClick={selection.toggleSelecting}
+                onClick={qrManager.toggleSelectionMode}
                 sx={{
                   borderRadius: 2,
-                  ...(selection.selecting && {
+                  ...(qrManager.selecting && {
                     borderWidth: 2,
                     "&:hover": {
                       borderWidth: 2,
@@ -181,26 +164,29 @@ export default function ArchivePage() {
                   }),
                 }}
               >
-                {selection.selecting ? "Cancel" : "Select"}
+                {qrManager.selecting ? "Cancel" : "Select"}
               </Button>
             </Stack>
 
             <QrGrid
-              validQrCodes={selection.validQrCodes}
-              invalidQrCodes={selection.invalidQrCodes}
-              selecting={selection.selecting}
-              codeIsSelected={selection.codeIsSelected}
-              onSelect={selection.updateSelectedCodes}
+              validQrCodes={qrManager.validQrCodes}
+              invalidQrCodes={qrManager.invalidQrCodes}
+              selecting={qrManager.selecting}
+              codeIsSelected={qrManager.codeIsSelected}
+              onSelect={qrManager.updateSelectedCodes}
               onClickQr={(c) => {
                 openQrDialog();
                 setActiveQrCode(c);
               }}
-              toggleSelectMode={toggleSelectionMode}
+              toggleSelectMode={qrManager.toggleSelectionMode}
+              filter={qrManager.filters}
+              sortMode={qrManager.sortMode}
+              sortDirection={qrManager.sortDirection}
             />
           </Box>
 
           {/* Floating Action Buttons */}
-          <Zoom in={selection.selecting} unmountOnExit>
+          <Zoom in={qrManager.selecting} unmountOnExit>
             <Stack
               direction={"row"}
               justifyContent={"space-between"}
@@ -217,7 +203,7 @@ export default function ArchivePage() {
                 color="error"
                 variant="extended"
                 size="large"
-                disabled={selection.noCodesSelected}
+                disabled={qrManager.noCodesSelected}
                 onClick={openDeleteDialog}
               >
                 <DeleteIcon sx={{ mr: 1 }} /> Delete
@@ -226,7 +212,7 @@ export default function ArchivePage() {
                 color="secondary"
                 variant="extended"
                 size="large"
-                disabled={selection.noCodesSelected}
+                disabled={qrManager.noCodesSelected}
                 onClick={openUnarchiveDialog}
               >
                 <UnarchiveIcon sx={{ mr: 1 }} /> Unarchive
@@ -260,8 +246,8 @@ export default function ArchivePage() {
         </DialogTitle>
         <DialogContent>
           <Typography>
-            Would you like to unarchive {selection.selectedCodes.length} code
-            {selection.selectedCodes.length !== 1 ? "s" : ""}?
+            Would you like to unarchive {qrManager.selectedCodes.length} code
+            {qrManager.selectedCodes.length !== 1 ? "s" : ""}?
           </Typography>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
@@ -297,8 +283,8 @@ export default function ArchivePage() {
         <DialogContent>
           <Typography>
             Are you sure you want to permanently delete{" "}
-            {selection.selectedCodes.length} code
-            {selection.selectedCodes.length !== 1 ? "s" : ""}? This action
+            {qrManager.selectedCodes.length} code
+            {qrManager.selectedCodes.length !== 1 ? "s" : ""}? This action
             cannot be undone.
           </Typography>
         </DialogContent>
