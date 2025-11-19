@@ -26,7 +26,7 @@ interface SectionProps {
 }
 
 export default function Section(props: SectionProps) {
-  const { section, submitted, expanded, onToggle } = props; // Destructure new props
+  const { section, submitted, expanded, onToggle } = props;
   const theme = useTheme();
   const { errors } = useScoutData();
 
@@ -135,6 +135,8 @@ export default function Section(props: SectionProps) {
 
       {/* Bottom AccordionSummary for collapsing */}
       <AccordionSummary
+              onClick={() => onToggle(!expanded)}
+
         expandIcon={
           <ExpandIcon
             sx={{
