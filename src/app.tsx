@@ -177,7 +177,7 @@ function Layout({ children }: { children: React.ReactNode }) {
             <MenuIcon />
           </IconButton>
           <Typography
-            variant="h4"
+            variant="h3"
             sx={{ flexGrow: 1, fontWeight: 600, cursor: "pointer" }}
             onClick={() => navigate("/")}
           >
