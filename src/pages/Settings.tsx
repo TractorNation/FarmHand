@@ -70,13 +70,22 @@ export default function Settings() {
       color: theme.palette.secondary.main,
       settings: [
         {
-          type: "switch",
-          label: "Dark Mode",
-          description: "Use dark theme throughout the app",
-          checked: settings.THEME === "dark",
-          onChange: (checked: boolean) => {
-            handleChange("THEME", checked ? "dark" : "light");
-          },
+          type: "dropdown",
+          label: "Color Theme",
+          description: "Select the color palette for the app",
+          value: settings.COLOR_THEME || "Tractor",
+          options: ["Tractor",],
+          onChange: (value: string) => handleChange("COLOR_THEME", value),
+        },
+        {
+          type: "dropdown",
+          label: "Theme Mode",
+          description: "Use light, dark, or system theme",
+          value:
+            settings.THEME.charAt(0).toUpperCase() + settings.THEME.slice(1),
+          options: ["Light", "Dark", "System"],
+          onChange: (value: string) =>
+            handleChange("THEME", value.toLowerCase()),
         },
       ],
     },

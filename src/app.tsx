@@ -36,16 +36,19 @@ import {
   useLocation,
   useNavigate,
 } from "react-router";
+import { TractorTheme } from "./config/themes/TractorTheme";
 import { ThemeProvider, useTheme } from "@mui/material/styles";
 import SchemaProvider from "./context/SchemaContext";
 import Schemas from "./pages/Schemas";
 import SchemaEditor from "./pages/SchemaEditor";
 import LeadScoutDashboard from "./pages/Dashboard";
 import ScoutDataProvider from "./context/ScoutDataContext";
-import TractorDarkTheme from "./config/themes/TractorDarkTheme";
 import { useSettings } from "./context/SettingsContext";
-import TractorLightTheme from "./config/themes/TractorLightTheme";
 import Archive from "./pages/Archive";
+
+const themes = {
+  Tractor: TractorTheme,
+};
 
 const Home = React.lazy(() => import("./pages/Home"));
 const Settings = React.lazy(() => import("./pages/Settings"));
@@ -369,8 +372,19 @@ function Layout({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   const { settings, settingsLoading } = useSettings();
+  const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
+
+  const themeName = (settings.COLOR_THEME as keyof typeof themes) || "Tractor";
+  const selectedThemeContainer = themes[themeName] || themes.Tractor;
+
   const theme =
-    settings.THEME === "dark" ? TractorDarkTheme : TractorLightTheme;
+    settings.THEME === "dark"
+      ? selectedThemeContainer.dark
+      : settings.THEME === "light"
+      ? selectedThemeContainer.light
+      : prefersDarkMode
+      ? selectedThemeContainer.dark
+      : selectedThemeContainer.light;
 
   const schema = settings.LAST_SCHEMA_NAME;
 

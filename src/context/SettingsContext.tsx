@@ -14,6 +14,7 @@ export const defaultSettings: Settings = {
   DEVICE_ID: 1,
   EXPECTED_DEVICES_COUNT: 6,
   LEAD_SCOUT_ONLY: false,
+  COLOR_THEME: "Tractor",
 };
 
 interface SettingsContextType {

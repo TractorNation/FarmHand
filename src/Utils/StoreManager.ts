@@ -120,6 +120,7 @@ export const StoreKeys = {
     THEME: "settings::THEME",
     EXPECTED_DEVICES_COUNT: "settings::EXPECTED_DEVICES_COUNT",
     LEAD_SCOUT_ONLY: "settings::LEAD_SCOUT_ONLY",
+    COLOR_THEME: "settings::COLOR_THEME"
   },
   code: {
     archived: (name: string) => `code::${name}::archived`,
