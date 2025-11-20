@@ -1,5 +1,5 @@
 import { createTheme } from "@mui/material/styles";
-import { anton, impact, baskervville } from "../../utils/Fonts";
+import { anton, antonio, baskervville } from "../../utils/Fonts";
 
 export const TractorTheme = {
   light: createTheme({
@@ -52,36 +52,36 @@ export const TractorTheme = {
     },
     typography: {
       h1: {
-        fontFamily: '"Impact", "Anton"',
+        fontFamily: "Anton",
       },
       h2: {
-        fontFamily: '"Impact", "Anton"',
+        fontFamily: "Anton",
       },
       h3: {
-        fontFamily: '"Impact", "Anton"',
+        fontFamily: "Anton",
       },
       h4: {
-        fontFamily: '"Anton"',
+        fontFamily: "Anton",
       },
       h5: {
-        fontFamily: "Anton",
+        fontFamily: "Antonio",
         fontWeight: 500,
       },
       h6: {
-        fontFamily: "Anton",
+        fontFamily: "Antonio",
         fontWeight: 500,
       },
       button: {
-        fontFamily: "Anton",
-        fontWeight: 300,
+        fontFamily: "Antonio",
+        fontWeight: 800,
       },
       subtitle1: {
-        fontFamily: "Anton",
-        fontWeight: 200,
+        fontFamily: "Antonio",
+        fontWeight: 800,
       },
       subtitle2: {
-        fontFamily: "Anton",
-        fontWeight: 100,
+        fontFamily: "Antonio",
+        fontWeight: 400,
       },
       body1: {
         fontFamily: '"Baskervville"',
@@ -91,21 +91,21 @@ export const TractorTheme = {
     components: {
       MuiCssBaseline: {
         styleOverrides: `
-        @font-face {
-          font-family: 'Anton';
-          src: ${anton.src};
-        }
-
-        @font-face {
-          font-family: 'Impact';
-          src: ${impact.src};
-        }
-        
-        @font-face {
-          font-family: 'Baskervville';
-          src: ${baskervville.src};
-        }
-      `,
+            @font-face {
+              font-family: ${anton.fontFamily};
+              src: ${anton.src};
+            }
+            
+            @font-face {
+              font-family: ${baskervville.fontFamily};
+              src: ${baskervville.src};
+            }
+    
+            @font-face {
+              font-family: ${antonio.fontFamily};
+              src: ${antonio.src};
+            }
+          `,
       },
     },
   }),
@@ -160,36 +160,36 @@ export const TractorTheme = {
     },
     typography: {
       h1: {
-        fontFamily: '"Impact", "Anton"',
+        fontFamily: "Anton",
       },
       h2: {
-        fontFamily: '"Impact", "Anton"',
+        fontFamily: "Anton",
       },
       h3: {
-        fontFamily: '"Impact", "Anton"',
+        fontFamily: "Anton",
       },
       h4: {
-        fontFamily: '"Anton"',
+        fontFamily: "Anton",
       },
       h5: {
-        fontFamily: "Anton",
+        fontFamily: "Antonio",
         fontWeight: 500,
       },
       h6: {
-        fontFamily: "Anton",
+        fontFamily: "Antonio",
         fontWeight: 500,
       },
       button: {
-        fontFamily: "Anton",
-        fontWeight: 300,
+        fontFamily: "Antonio",
+        fontWeight: 800,
       },
       subtitle1: {
-        fontFamily: "Anton",
-        fontWeight: 200,
+        fontFamily: "Antonio",
+        fontWeight: 800,
       },
       subtitle2: {
-        fontFamily: "Anton",
-        fontWeight: 100,
+        fontFamily: "Antonio",
+        fontWeight: 400,
       },
       body1: {
         fontFamily: '"Baskervville"',
@@ -199,21 +199,21 @@ export const TractorTheme = {
     components: {
       MuiCssBaseline: {
         styleOverrides: `
-        @font-face {
-          font-family: 'Anton';
-          src: ${anton.src};
-        }
-
-        @font-face {
-          font-family: 'Impact';
-          src: ${impact.src};
-        }
-        
-        @font-face {
-          font-family: 'Baskervville';
-          src: ${baskervville.src};
-        }
-      `,
+            @font-face {
+              font-family: ${anton.fontFamily};
+              src: ${anton.src};
+            }
+            
+            @font-face {
+              font-family: ${baskervville.fontFamily};
+              src: ${baskervville.src};
+            }
+    
+            @font-face {
+              font-family: ${antonio.fontFamily};
+              src: ${antonio.src};
+            }
+          `,
       },
       MuiPaper: {
         styleOverrides: {
