@@ -11,30 +11,37 @@ import {
   useMediaQuery,
   useTheme,
   Paper,
+  IconButton,
+  Chip,
+  Stack,
 } from "@mui/material";
 import { BrowserQRCodeReader, IScannerControls } from "@zxing/browser";
 import { Result } from "@zxing/library";
 import { useEffect, useRef, useState } from "react";
 import QrCodeIcon from "@mui/icons-material/QrCodeRounded";
+import SchemaIcon from "@mui/icons-material/DescriptionRounded";
+import DeleteIcon from "@mui/icons-material/DeleteRounded";
+import ErrorIcon from "@mui/icons-material/ErrorOutlineRounded";
 import {
   createQrCodeFromImportedData,
+  decodeSchemaQR,
+  getQRType,
   saveQrCode,
   validateQR,
 } from "../../utils/QrUtils";
+import { saveSchema } from "../../utils/SchemaUtils";
 import { useSchema } from "../../context/SchemaContext";
 
-/**
- * Props for the qr scanner
- */
 interface QrScannerDialogueProps {
   open: boolean;
   onClose: () => void;
   onImport: () => void;
 }
 
-interface CameraDevice {
-  index: number;
-  id: string;
+interface ScannedItem {
+  data: string;
+  type: "MATCH" | "SCHEMA" | "UNKNOWN";
+  displayName?: string;
 }
 
 const corners = [
@@ -70,7 +77,6 @@ const corners = [
 
 async function getCameraDevices(): Promise<MediaDeviceInfo[]> {
   try {
-    // Request permission so device labels become available
     await navigator.mediaDevices.getUserMedia({ video: true });
     const devices = await navigator.mediaDevices.enumerateDevices();
     return devices.filter((device) => device.kind === "videoinput");
@@ -79,50 +85,110 @@ async function getCameraDevices(): Promise<MediaDeviceInfo[]> {
   }
 }
 
-export default function QrScannerDialogue(props: QrScannerDialogueProps) {
-  const { open, onClose, onImport } = props;
-  const { schema } = useSchema();
-  const [activeCamera, setActiveCamera] = useState<CameraDevice>();
+export default function QrScannerDialogue({
+  open,
+  onClose,
+  onImport,
+}: QrScannerDialogueProps) {
+  const { schema, refreshSchemas } = useSchema();
+  const [activeCamera, setActiveCamera] = useState<{
+    index: number;
+    id: string;
+  }>();
   const [cameraDevices, setCameraDevices] = useState<MediaDeviceInfo[]>([]);
   const [hasCamera, setHasCamera] = useState(false);
-  const [results, setResults] = useState<string[]>([]);
+  const [scannedItems, setScannedItems] = useState<ScannedItem[]>([]);
+  const [hasMixedTypes, setHasMixedTypes] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const readerRef = useRef<BrowserQRCodeReader | null>(null);
 
   const theme = useTheme();
   const isLandscape = useMediaQuery("(orientation: landscape)");
 
-  const addToList = (result: Result) => {
+  const addToList = async (result: Result) => {
     const text = result.getText();
-    if (validateQR(text)) {
-      setResults((currentResults) => {
-        if (currentResults.includes(text)) {
-          return currentResults;
-        }
-        const newResults = [...currentResults, text];
-        return newResults;
-      });
+    const qrType = getQRType(text);
+
+    if (qrType === "UNKNOWN" || !validateQR(text)) {
+      return;
     }
+
+    setScannedItems((current) => {
+      // Don't add duplicates
+      if (current.some((item) => item.data === text)) {
+        return current;
+      }
+
+      let displayName = text;
+      if (qrType === "SCHEMA") {
+        // Try to decode to get schema name
+        decodeSchemaQR(text).then((decodedSchema) => {
+          if (decodedSchema) {
+            setScannedItems((items) =>
+              items.map((item) =>
+                item.data === text
+                  ? { ...item, displayName: decodedSchema.name }
+                  : item
+              )
+            );
+          }
+        });
+      }
+
+      const newItem: ScannedItem = { data: text, type: qrType, displayName };
+      const newItems = [...current, newItem];
+
+      // Check if we have mixed types
+      const types = new Set(newItems.map((item) => item.type));
+      setHasMixedTypes(types.size > 1);
+
+      return newItems;
+    });
   };
 
-  const importQRList = async () => {
-    if (!results || results.length === 0) return;
+  const removeItem = (index: number) => {
+    setScannedItems((current) => {
+      const newItems = current.filter((_, i) => i !== index);
+      const types = new Set(newItems.map((item) => item.type));
+      setHasMixedTypes(types.size > 1);
+      return newItems;
+    });
+  };
 
-    await Promise.all(
-      results.map(async (code) => {
-        const savedCode: QrCode = await createQrCodeFromImportedData(
-          code,
-          schema!
-        );
-        await saveQrCode(savedCode);
-      })
-    );
+  const importScannedItems = async () => {
+    if (scannedItems.length === 0 || hasMixedTypes) return;
+
+    const firstType = scannedItems[0].type;
+
+    if (firstType === "MATCH") {
+      // Import as matches
+      await Promise.all(
+        scannedItems.map(async (item) => {
+          const savedCode: QrCode = await createQrCodeFromImportedData(
+            item.data,
+            schema!
+          );
+          await saveQrCode(savedCode);
+        })
+      );
+    } else if (firstType === "SCHEMA") {
+      // Import as schemas
+      await Promise.all(
+        scannedItems.map(async (item) => {
+          const decodedSchema = await decodeSchemaQR(item.data);
+          if (decodedSchema) {
+            await saveSchema(decodedSchema);
+          }
+        })
+      );
+      await refreshSchemas();
+    }
 
     onImport();
     onClose();
   };
 
-  // Initialize available cameras when opened
+  // Initialize cameras
   useEffect(() => {
     if (!open) return;
     async function init() {
@@ -130,8 +196,7 @@ export default function QrScannerDialogue(props: QrScannerDialogueProps) {
       setCameraDevices(devices);
       if (devices.length > 0) {
         setHasCamera(true);
-        const id = devices[0].deviceId;
-        setActiveCamera({ index: 0, id });
+        setActiveCamera({ index: 0, id: devices[0].deviceId });
       } else {
         setHasCamera(false);
       }
@@ -139,7 +204,7 @@ export default function QrScannerDialogue(props: QrScannerDialogueProps) {
     init();
   }, [open]);
 
-  // Start scanning when a camera is available
+  // Start scanning
   useEffect(() => {
     if (!open || !hasCamera || cameraDevices.length === 0 || !videoRef.current)
       return;
@@ -158,7 +223,6 @@ export default function QrScannerDialogue(props: QrScannerDialogueProps) {
         video.srcObject = stream;
         await video.play();
 
-        // Start scanning loop
         controls = await reader.decodeFromVideoDevice(
           activeCamera?.id,
           video,
@@ -186,6 +250,28 @@ export default function QrScannerDialogue(props: QrScannerDialogueProps) {
       index: nextIndex,
       id: cameraDevices[nextIndex].deviceId,
     });
+  };
+
+  const getItemIcon = (type: ScannedItem["type"]) => {
+    switch (type) {
+      case "MATCH":
+        return <QrCodeIcon color="primary" />;
+      case "SCHEMA":
+        return <SchemaIcon color="secondary" />;
+      case "UNKNOWN":
+        return <ErrorIcon color="error" />;
+    }
+  };
+
+  const getItemColor = (type: ScannedItem["type"]) => {
+    switch (type) {
+      case "MATCH":
+        return "primary";
+      case "SCHEMA":
+        return "secondary";
+      case "UNKNOWN":
+        return "error";
+    }
   };
 
   return (
@@ -315,9 +401,43 @@ export default function QrScannerDialogue(props: QrScannerDialogueProps) {
           overflow: "hidden",
         }}
       >
-        <Typography variant="h6" sx={{ mb: 2, flexShrink: 0, fontWeight: 600 }}>
-          Scanned Codes ({results.length})
-        </Typography>
+        <Stack
+          direction="row"
+          alignItems="center"
+          justifyContent="space-between"
+          sx={{ mb: 2, flexShrink: 0 }}
+        >
+          <Typography variant="h6" sx={{ fontWeight: 600 }}>
+            Scanned Items ({scannedItems.length})
+          </Typography>
+          {hasMixedTypes && (
+            <Chip
+              icon={<ErrorIcon />}
+              label="Mixed Types"
+              color="error"
+              size="small"
+              sx={{ fontWeight: 600 }}
+            />
+          )}
+        </Stack>
+
+        {hasMixedTypes && (
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2,
+              mb: 2,
+              borderRadius: 2,
+              border: `2px solid ${theme.palette.error.main}`,
+              backgroundColor: `${theme.palette.error.main}10`,
+            }}
+          >
+            <Typography variant="body2" color="error.main">
+              Cannot import mixed types. Remove match codes or schema codes to
+              continue.
+            </Typography>
+          </Paper>
+        )}
 
         <List
           dense
@@ -328,29 +448,62 @@ export default function QrScannerDialogue(props: QrScannerDialogueProps) {
             maxHeight: isLandscape ? "none" : 250,
           }}
         >
-          {results.map((code, i) => (
+          {scannedItems.map((item, i) => (
             <Paper
               key={i}
               elevation={0}
               sx={{
                 mb: 1,
                 borderRadius: 2,
-                border: `1px solid ${theme.palette.divider}`,
+                border: `2px solid ${
+                  hasMixedTypes
+                    ? theme.palette.error.main
+                    : theme.palette[getItemColor(item.type)].main
+                }`,
+                backgroundColor: hasMixedTypes
+                  ? `${theme.palette.error.main}10`
+                  : "transparent",
               }}
             >
-              <ListItem>
+              <ListItem
+                secondaryAction={
+                  <IconButton
+                    edge="end"
+                    onClick={() => removeItem(i)}
+                    size="small"
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                }
+              >
                 <ListItemIcon sx={{ minWidth: 40 }}>
-                  <QrCodeIcon color="primary" />
+                  {getItemIcon(item.type)}
                 </ListItemIcon>
                 <ListItemText
-                  primary={code}
-                  slotProps={{
-                    primary: {
-                      textOverflow: "ellipsis",
-                      overflow: "hidden",
-                      whiteSpace: "nowrap",
-                    },
-                  }}
+                  primary={
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          textOverflow: "ellipsis",
+                          overflow: "hidden",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {item.displayName || item.data}
+                      </Typography>
+                      <Chip
+                        label={item.type}
+                        size="small"
+                        color={getItemColor(item.type)}
+                        sx={{
+                          height: 20,
+                          fontSize: "0.7rem",
+                          fontWeight: 600,
+                        }}
+                      />
+                    </Stack>
+                  }
                 />
               </ListItem>
             </Paper>
@@ -362,10 +515,10 @@ export default function QrScannerDialogue(props: QrScannerDialogueProps) {
           fullWidth
           size="large"
           sx={{ flexShrink: 0, borderRadius: 2 }}
-          onClick={importQRList}
-          disabled={results.length === 0}
+          onClick={importScannedItems}
+          disabled={scannedItems.length === 0 || hasMixedTypes}
         >
-          Import All ({results.length})
+          Import All ({scannedItems.length})
         </Button>
       </Box>
     </Dialog>

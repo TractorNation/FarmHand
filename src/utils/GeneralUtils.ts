@@ -19,6 +19,31 @@ export function isFieldInvalid(
   );
 }
 
+const typeMap: { [key: string]: string } = {
+  checkbox: "c",
+  counter: "n",
+  dropdown: "d",
+  text: "t",
+  number: "N",
+  slider: "s",
+  timer: "T",
+  grid: "g",
+  filler: "f",
+};
+
+const propMap: { [key: string]: string } = {
+  default: "d",
+  options: "o",
+  min: "m",
+  max: "M",
+  multiline: "l",
+  selectsRange: "r",
+  step: "s",
+  rows: "R",
+  cols: "C",
+  cellLabel: "L",
+};
+
 export function EmbedDataInSvg(code: QrCode) {
   let svgToSave = code.image;
   if (svgToSave && code.data) {
@@ -286,4 +311,79 @@ export async function readChangelog(): Promise<string> {
     console.error("Failed to read changelog:", e);
     return "Error reading changelog.";
   }
+}
+
+const reverseTypeMap = Object.fromEntries(
+  Object.entries(typeMap).map(([k, v]) => [v, k])
+);
+const reversePropMap = Object.fromEntries(
+  Object.entries(propMap).map(([k, v]) => [v, k])
+);
+
+export function minifySchema(schema: Schema): any[] {
+  const minifiedSections = schema.sections.map((section) => {
+    const minifiedFields = section.fields.map((field) => {
+      const minifiedProps: { [key: string]: any } = {};
+
+      if (field.props) {
+        for (const key in field.props) {
+          if (propMap[key] && field.props[key as keyof ComponentProps] !== undefined) {
+            minifiedProps[propMap[key]] = field.props[key as keyof ComponentProps];
+          }
+        }
+      }
+
+      const fieldArray: any[] = [
+        field.name,
+        typeMap[field.type.toLowerCase()] || field.type,
+        field.required ? 1 : 0,
+      ];
+
+      if (Object.keys(minifiedProps).length > 0) {
+        fieldArray.push(minifiedProps);
+      }
+
+      return fieldArray;
+    });
+    return [section.title, minifiedFields];
+  });
+
+  return [schema.name, minifiedSections];
+}
+
+export function deminifySchema(minifiedSchema: any[]): Schema {
+  const [name, minifiedSections] = minifiedSchema;
+
+  const sections: SectionData[] = minifiedSections.map(
+    (minifiedSection: any[], sectionIndex: number) => {
+      const [title, minifiedFields] = minifiedSection;
+      const fields: Component[] = minifiedFields.map(
+        (minifiedField: any[], fieldIndex: number) => {
+          const [fieldName, fieldTypeChar, requiredFlag, minifiedProps] =
+            minifiedField;
+
+          const props: { [key: string]: any } = {};
+          if (minifiedProps) {
+            for (const key in minifiedProps) {
+              if (reversePropMap[key]) {
+                props[reversePropMap[key]] = minifiedProps[key];
+              }
+            }
+          }
+
+          return {
+            id: sectionIndex * 1000 + fieldIndex, // Regenerate ID
+            name: fieldName,
+            type: reverseTypeMap[fieldTypeChar] || fieldTypeChar,
+            required: requiredFlag === 1,
+            props: props,
+          };
+        }
+      );
+
+      return { title, fields };
+    }
+  );
+
+  return { name, sections };
 }

@@ -16,6 +16,7 @@ import AddIcon from "@mui/icons-material/AddRounded";
 import EditIcon from "@mui/icons-material/EditRounded";
 import DeleteIcon from "@mui/icons-material/DeleteRounded";
 import SchemaIcon from "@mui/icons-material/SchemaRounded";
+import ShareIcon from "@mui/icons-material/ShareRounded";
 import useDialog from "../hooks/useDialog";
 import { useSchema } from "../context/SchemaContext";
 import { deleteSchema, saveSchema } from "../utils/SchemaUtils";
@@ -24,11 +25,14 @@ import CreateSchemaDialog from "../ui/dialog/CreateSchemaDialog";
 import RenameSchemaDialog from "../ui/dialog/RenameSchemaDialog";
 import DeleteSchemaDialog from "../ui/dialog/DeleteSchemaDialog";
 import DuplicateNameDialog from "../ui/dialog/DuplicateNameDialog";
+import SchemaShareDialog from "../ui/dialog/SchemaShareDialog";
 
 export default function Schemas() {
   const theme = useTheme();
   const navigate = useNavigate();
   const { availableSchemas, refreshSchemas } = useSchema();
+  const [shareDialogOpen, openShareDialog, closeShareDialog] = useDialog();
+  const [schemaToShare, setSchemaToShare] = useState<Schema | null>(null);
 
   const [newSchemaDialogOpen, openNewSchemaDialog, closeNewSchemaDialog] =
     useDialog();
@@ -278,6 +282,22 @@ export default function Schemas() {
                         >
                           <DeleteIcon />
                         </IconButton>
+                        <IconButton
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSchemaToShare(s.schema);
+                            openShareDialog();
+                          }}
+                          sx={{
+                            color: theme.palette.text.secondary,
+                            "&:hover": {
+                              backgroundColor: `${theme.palette.secondary.main}20`,
+                              color: theme.palette.secondary.main,
+                            },
+                          }}
+                        >
+                          <ShareIcon />
+                        </IconButton>
                       </>
                     ) : (
                       <Button
@@ -342,6 +362,14 @@ export default function Schemas() {
         onClose={closeDuplicateNameDialog}
         errorMessage={duplicateNameError}
       />
+
+      {schemaToShare && (
+        <SchemaShareDialog
+          open={shareDialogOpen}
+          onClose={closeShareDialog}
+          schema={schemaToShare}
+        />
+      )}
     </Box>
   );
 }
