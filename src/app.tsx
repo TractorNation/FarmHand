@@ -37,6 +37,9 @@ import {
   useNavigate,
 } from "react-router";
 import { TractorTheme } from "./config/themes/TractorTheme";
+import { ThemeNotFound } from "./config/themes/404ThemeNotFound";
+import {ThunderTheme} from './config/themes/ThunderTheme';
+import {MuttonTheme} from './config/themes/MuttonTheme'
 import { ThemeProvider, useTheme } from "@mui/material/styles";
 import SchemaProvider from "./context/SchemaContext";
 import Schemas from "./pages/Schemas";
@@ -47,7 +50,10 @@ import { useSettings } from "./context/SettingsContext";
 import Archive from "./pages/Archive";
 
 const themes = {
-  Tractor: TractorTheme,
+  TractorTheme: TractorTheme,
+  ThemeNotFound: ThemeNotFound,
+  ThunderTheme: ThunderTheme,
+  MuttonTheme: MuttonTheme
 };
 
 const Home = React.lazy(() => import("./pages/Home"));
@@ -180,7 +186,7 @@ function Layout({ children }: { children: React.ReactNode }) {
             <MenuIcon />
           </IconButton>
           <Typography
-            variant="h4"
+            variant="h3"
             sx={{ flexGrow: 1, fontWeight: 600, cursor: "pointer" }}
             onClick={() => navigate("/")}
           >
@@ -375,7 +381,7 @@ export default function App() {
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
 
   const themeName = (settings.COLOR_THEME as keyof typeof themes) || "Tractor";
-  const selectedThemeContainer = themes[themeName] || themes.Tractor;
+  const selectedThemeContainer = themes[themeName] || themes.TractorTheme;
 
   const theme =
     settings.THEME === "dark"

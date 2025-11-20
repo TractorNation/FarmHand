@@ -89,7 +89,7 @@ export default function SortFilterButtons({
         {/* Filter Button */}
         <Button
           variant="outlined"
-          color="secondary"
+          color="info"
           startIcon={<FilterIcon />}
           onClick={handleFilterClick}
           sx={{
@@ -124,7 +124,7 @@ export default function SortFilterButtons({
         {/* Sort Button */}
         <Button
           variant="outlined"
-          color="secondary"
+          color="info"
           startIcon={<SortIcon />}
           onClick={handleSortClick}
           sx={{

@@ -1,20 +1,20 @@
 import { createTheme } from "@mui/material/styles";
-import { anton, antonio, baskervville } from "../../utils/Fonts";
+import { nasalization, fredoka } from "../../utils/Fonts";
 
-export const TractorTheme = {
+export const ThemeNotFound = {
   light: createTheme({
     palette: {
       mode: "light",
       primary: {
-        main: "#339900",
-        dark: "#2d8500",
-        light: "#4db82e",
+        main: "#731daa",
+        dark: "#501476",
+        light: "#8F4ABB",
         contrastText: "#ffffff",
       },
       secondary: {
-        main: "#ffd400",
+        main: "#ffc52e",
         dark: "#f9a825",
-        light: "#fff59d",
+        light: "#da9a08",
         contrastText: "rgba(0,0,0,0.87)",
       },
       error: {
@@ -30,7 +30,7 @@ export const TractorTheme = {
         contrastText: "#ffffff",
       },
       success: {
-        main: "#00C853",
+        main: "#2e7d32",
         contrastText: "#ffffff",
       },
       warning: {
@@ -52,39 +52,39 @@ export const TractorTheme = {
     },
     typography: {
       h1: {
-        fontFamily: "Anton",
+        fontFamily: "Nasalization",
       },
       h2: {
-        fontFamily: "Anton",
+        fontFamily: "Nasalization",
       },
       h3: {
-        fontFamily: "Anton",
+        fontFamily: "Nasalization",
       },
       h4: {
-        fontFamily: "Anton",
+        fontFamily: "Nasalization",
       },
       h5: {
-        fontFamily: "Antonio",
+        fontFamily: "Nasalization",
         fontWeight: 500,
       },
       h6: {
-        fontFamily: "Antonio",
+        fontFamily: "Nasalization",
         fontWeight: 500,
       },
       button: {
-        fontFamily: "Antonio",
+        fontFamily: "Nasalization",
         fontWeight: 800,
       },
       subtitle1: {
-        fontFamily: "Antonio",
-        fontWeight: 800,
+        fontFamily: "Fredoka",
+        fontWeight: 500,
       },
       subtitle2: {
-        fontFamily: "Antonio",
+        fontFamily: "Fredoka",
         fontWeight: 400,
       },
       body1: {
-        fontFamily: '"Baskervville"',
+        fontFamily: "Fredoka",
         fontWeight: 300,
       },
     },
@@ -92,18 +92,13 @@ export const TractorTheme = {
       MuiCssBaseline: {
         styleOverrides: `
             @font-face {
-              font-family: ${anton.fontFamily};
-              src: ${anton.src};
+              font-family: ${nasalization.fontFamily};
+              src: ${nasalization.src};
             }
             
             @font-face {
-              font-family: ${baskervville.fontFamily};
-              src: ${baskervville.src};
-            }
-    
-            @font-face {
-              font-family: ${antonio.fontFamily};
-              src: ${antonio.src};
+            font-family: ${fredoka.fontFamily};
+            src: ${fredoka.src};
             }
           `,
       },
@@ -114,15 +109,15 @@ export const TractorTheme = {
     palette: {
       mode: "dark",
       primary: {
-        main: "#339900",
-        dark: "#2d8500",
-        light: "#4db82e",
+        main: "#731daa",
+        dark: "#501476",
+        light: "#8F4ABB",
         contrastText: "#ffffff",
       },
       secondary: {
-        main: "#ffd400",
+        main: "#ffc52e",
         dark: "#f9a825",
-        light: "#fff59d",
+        light: "#da9a08",
         contrastText: "rgba(0,0,0,0.87)",
       },
       error: {
@@ -138,7 +133,7 @@ export const TractorTheme = {
         contrastText: "#ffffff",
       },
       success: {
-        main: "#00C853",
+        main: "#2e7d32",
         contrastText: "#ffffff",
       },
       warning: {
@@ -153,46 +148,46 @@ export const TractorTheme = {
       },
       text: {
         primary: "#ffffff",
-        secondary: "rgba(255,255,255,0.7)",
-        disabled: "rgba(255,255,255,0.5)",
+        secondary: "rgba(255, 255, 255, 0.7)",
+        disabled: "rgba(255, 255, 255, 0.5)",
       },
-      divider: "rgba(255,255,255,0.12)",
+      divider: "rgba(0,0,0,0.12)",
     },
     typography: {
       h1: {
-        fontFamily: "Anton",
+        fontFamily: "Nasalization",
       },
       h2: {
-        fontFamily: "Anton",
+        fontFamily: "Nasalization",
       },
       h3: {
-        fontFamily: "Anton",
+        fontFamily: "Nasalization",
       },
       h4: {
-        fontFamily: "Anton",
+        fontFamily: "Nasalization",
       },
       h5: {
-        fontFamily: "Antonio",
+        fontFamily: "Nasalization",
         fontWeight: 500,
       },
       h6: {
-        fontFamily: "Antonio",
+        fontFamily: "Nasalization",
         fontWeight: 500,
       },
       button: {
-        fontFamily: "Antonio",
+        fontFamily: "Nasalization",
         fontWeight: 800,
       },
       subtitle1: {
-        fontFamily: "Antonio",
-        fontWeight: 800,
+        fontFamily: "Fredoka",
+        fontWeight: 500,
       },
       subtitle2: {
-        fontFamily: "Antonio",
+        fontFamily: "Fredoka",
         fontWeight: 400,
       },
       body1: {
-        fontFamily: '"Baskervville"',
+        fontFamily: "Fredoka",
         fontWeight: 300,
       },
     },
@@ -200,48 +195,15 @@ export const TractorTheme = {
       MuiCssBaseline: {
         styleOverrides: `
             @font-face {
-              font-family: ${anton.fontFamily};
-              src: ${anton.src};
+              font-family: ${nasalization.fontFamily};
+              src: ${nasalization.src};
             }
             
             @font-face {
-              font-family: ${baskervville.fontFamily};
-              src: ${baskervville.src};
-            }
-    
-            @font-face {
-              font-family: ${antonio.fontFamily};
-              src: ${antonio.src};
+            font-family: ${fredoka.fontFamily};
+            src: ${fredoka.src};
             }
           `,
-      },
-      MuiPaper: {
-        styleOverrides: {
-          root: ({ theme, ownerState }) => {
-            const elevationOverlays: { [key: number]: string } = {
-              0: "rgba(255, 255, 255, 0)",
-              1: "rgba(255, 255, 255, 0.03)",
-              2: "rgba(255, 255, 255, 0.04)",
-              3: "rgba(255, 255, 255, 0.05)",
-              4: "rgba(255, 255, 255, 0.06)",
-              6: "rgba(255, 255, 255, 0.08)",
-              8: "rgba(255, 255, 255, 0.09)",
-              12: "rgba(255, 255, 255, 0.11)",
-              16: "rgba(255, 255, 255, 0.12)",
-              24: "rgba(255, 255, 255, 0.14)",
-            };
-
-            const elevation = ownerState.elevation || 0;
-            const overlay =
-              elevationOverlays[elevation] || "rgba(255, 255, 255, 0)";
-
-            return theme.palette.mode === "dark"
-              ? {
-                  backgroundImage: `linear-gradient(${overlay}, ${overlay})`,
-                }
-              : {};
-          },
-        },
       },
     },
   }),
