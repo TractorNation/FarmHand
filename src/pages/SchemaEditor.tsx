@@ -920,7 +920,7 @@ export default function SchemaEditor() {
                         )}
                         {isEditable && !searchQuery.trim() && (
                           <Button
-                            variant="outlined"
+                            variant="contained"
                             onClick={() => handleAddField(originalIndex)}
                             color="secondary"
                             sx={{ mt: 2, borderRadius: 2 }}
