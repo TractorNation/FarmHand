@@ -37,6 +37,7 @@ import {
   useNavigate,
 } from "react-router";
 import { TractorTheme } from "./config/themes/TractorTheme";
+import { ThemeNotFound } from "./config/themes/404ThemeNotFound";
 import { ThemeProvider, useTheme } from "@mui/material/styles";
 import SchemaProvider from "./context/SchemaContext";
 import Schemas from "./pages/Schemas";
@@ -48,6 +49,7 @@ import Archive from "./pages/Archive";
 
 const themes = {
   Tractor: TractorTheme,
+  ThemeNotFound: ThemeNotFound,
 };
 
 const Home = React.lazy(() => import("./pages/Home"));
