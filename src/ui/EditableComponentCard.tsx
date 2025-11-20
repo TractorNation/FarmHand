@@ -66,6 +66,7 @@ export default function EditableComponentCard(props: ComponentCardProps) {
     isDragging,
   } = useSortable({
     id: component.id,
+    disabled: !editable,
   });
 
   const style = {
@@ -533,6 +534,7 @@ export default function EditableComponentCard(props: ComponentCardProps) {
                 {...attributes}
                 sx={{
                   p: 1,
+                  touchAction: "none",
                   cursor: isDragging ? "grabbing" : "grab",
                   display: "flex",
                   alignItems: "center",

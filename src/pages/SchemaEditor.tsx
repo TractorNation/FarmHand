@@ -140,11 +140,17 @@ export default function SchemaEditor() {
       activationConstraint: {
         distance: 8,
       },
+      onActivation: (event) => {
+        event.event.preventDefault();
+      },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
         delay: 250,
         tolerance: 100,
+      },
+      onActivation: (event) => {
+        event.event.preventDefault();
       },
     })
   );

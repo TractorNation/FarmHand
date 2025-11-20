@@ -41,16 +41,22 @@ export default function SchemaProvider(props: SchemaProviderProps) {
   const isInitialMount = useRef(true);
 
   const loadSchemas = useCallback(async () => {
-    const generatedSchemas = await fetchSchemas();
-    const allSchemas = [...defaultSchemas, ...generatedSchemas];
-    setAvailableSchemas(allSchemas);
-    return allSchemas;
-  }, [fetchSchemas]);
+    try {
+      const generatedSchemas = await fetchSchemas();
+      const allSchemas = [...defaultSchemas, ...generatedSchemas];
+      setAvailableSchemas(allSchemas);
+      return allSchemas;
+    } catch (error) {
+      console.error("Failed to load schemas:", error);
+      setAvailableSchemas(defaultSchemas); // Fallback to default schemas
+      return defaultSchemas;
+    }
+  }, []);
 
   // Effect to load schemas on mount
   useEffect(() => {
     loadSchemas();
-  }, [loadSchemas]);
+  }, []);
 
   // Effect to clear match data when the schema changes
   useEffect(() => {
@@ -89,15 +95,6 @@ export default function SchemaProvider(props: SchemaProviderProps) {
     setSchemaData(schema!);
   }, [schema, availableSchemas])
 
-  const refreshSchemas = async (): Promise<SchemaMetaData[]> => {
-    const schemas = await loadSchemas();
-    return schemas;
-  };
-
-  useEffect(() => {
-    loadSchemas();
-  }, [loadSchemas]);
-
   return (
     <SchemaContext.Provider
       value={{
@@ -106,7 +103,7 @@ export default function SchemaProvider(props: SchemaProviderProps) {
         schemaName: schema ?? null,
         availableSchemas: availableSchemas,
         loadSchemas,
-        refreshSchemas,
+        refreshSchemas: loadSchemas,
       }}
     >
       {children}
