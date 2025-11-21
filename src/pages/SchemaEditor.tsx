@@ -287,6 +287,7 @@ export default function SchemaEditor() {
   };
 
   const handleSaveSchema = async () => {
+    closeWarningDialog();
     if (!editingSchema) return;
     await saveSchema(editingSchema);
     const newSchemas = await refreshSchemas();
@@ -1009,7 +1010,7 @@ export default function SchemaEditor() {
         <DialogActions>
           <Button variant="text" color="primary" onClick={closeWarningDialog}>
             Cancel
-          </Button>{" "}
+          </Button>
           <Button
             variant="contained"
             color="warning"
