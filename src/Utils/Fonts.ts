@@ -7,6 +7,7 @@ import Voltec from "../assets/fonts/Voltec.ttf";
 import Goldman from "../assets/fonts/Goldman-Regular.ttf";
 import Iceland from "../assets/fonts/Iceland-Regular.ttf";
 import RussoOne from "../assets/fonts/RussoOne-Regular.ttf";
+import Telegraf from "../assets/fonts/Telegraf.otf";
 
 export const anton = {
   fontFamily: "Anton",
@@ -68,16 +69,6 @@ export const voltec = {
   `,
 };
 
-export const goldman = {
-  fontFamily: "Goldman",
-  fontStyle: "normal",
-  fontDisplay: "swap",
-  src: `
-    local('Goldman'),
-    url(${Goldman}) 
-  `,
-};
-
 export const iceland = {
   fontFamily: "Iceland",
   fontStyle: "normal",
@@ -95,5 +86,15 @@ export const russoOne = {
   src: `
     local('Russo-One'),
     url(${RussoOne}) 
+  `,
+};
+
+export const telegraf = {
+  fontFamily: "Telegraf",
+  fontStyle: "normal",
+  fontDisplay: "swap",
+  src: `
+    local('Telegraf'),
+    url(${Telegraf})
   `,
 };

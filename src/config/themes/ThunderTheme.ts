@@ -1,5 +1,5 @@
 import { createTheme } from "@mui/material/styles";
-import { goldman, voltec } from "../../utils/Fonts";
+import { telegraf, anton, voltec } from "../../utils/Fonts";
 
 export const ThunderTheme = {
   light: createTheme({
@@ -61,30 +61,30 @@ export const ThunderTheme = {
         fontFamily: "Voltec",
       },
       h4: {
-        fontFamily: "Voltec",
+        fontFamily: "Anton",
       },
       h5: {
-        fontFamily: "Voltec",
+        fontFamily: "Anton",
         fontWeight: 500,
       },
       h6: {
-        fontFamily: "Voltec",
+        fontFamily: "Anton",
         fontWeight: 500,
       },
       button: {
-        fontFamily: "Voltec",
+        fontFamily: "Anton",
         fontWeight: 800,
       },
       subtitle1: {
-        fontFamily: "goldman",
+        fontFamily: "Telegraf",
         fontWeight: 500,
       },
       subtitle2: {
-        fontFamily: "goldman",
+        fontFamily: "Telegraf",
         fontWeight: 400,
       },
       body1: {
-        fontFamily: "goldman",
+        fontFamily: "Telegraf",
         fontWeight: 300,
       },
     },
@@ -95,10 +95,15 @@ export const ThunderTheme = {
               font-family: ${voltec.fontFamily};
               src: ${voltec.src};
             }
+
+            @font-face {
+              font-family: ${anton.fontFamily};
+              src: ${voltec.src}
+            }
             
             @font-face {
-            font-family: ${goldman.fontFamily};
-            src: ${goldman.src};
+            font-family: ${telegraf.fontFamily};
+            src: ${telegraf.src};
             }
           `,
       },
@@ -164,30 +169,30 @@ export const ThunderTheme = {
         fontFamily: "Voltec",
       },
       h4: {
-        fontFamily: "Voltec",
+        fontFamily: "Anton",
       },
       h5: {
-        fontFamily: "Voltec",
+        fontFamily: "Anton",
         fontWeight: 500,
       },
       h6: {
-        fontFamily: "Voltec",
+        fontFamily: "Anton",
         fontWeight: 500,
       },
       button: {
-        fontFamily: "Voltec",
+        fontFamily: "Anton",
         fontWeight: 800,
       },
       subtitle1: {
-        fontFamily: "goldman",
+        fontFamily: "Telegraf",
         fontWeight: 500,
       },
       subtitle2: {
-        fontFamily: "goldman",
+        fontFamily: "Telegraf",
         fontWeight: 400,
       },
       body1: {
-        fontFamily: "goldman",
+        fontFamily: "Telegraf",
         fontWeight: 300,
       },
     },
@@ -198,10 +203,15 @@ export const ThunderTheme = {
               font-family: ${voltec.fontFamily};
               src: ${voltec.src};
             }
+
+            @font-face {
+              font-family: ${anton.fontFamily};
+              src: ${voltec.src}
+            }
             
             @font-face {
-            font-family: ${goldman.fontFamily};
-            src: ${goldman.src};
+            font-family: ${telegraf.fontFamily};
+            src: ${telegraf.src};
             }
           `,
       },
