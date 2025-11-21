@@ -40,8 +40,7 @@ export default function ArchivePage() {
     () => allQrCodes?.filter((code) => code.archived) || [],
     [allQrCodes]
   );
-
-  // Use the combined hook - same as QR page!
+  
   const qrManager = useQrManager({ qrCodes: archivedQrCodes });
 
   const handleMassUnarchive = async () => {
@@ -169,8 +168,8 @@ export default function ArchivePage() {
             </Stack>
 
             <QrGrid
-              validQrCodes={qrManager.validQrCodes}
-              invalidQrCodes={qrManager.invalidQrCodes}
+              validQrCodes={qrManager.filteredQrCodes}
+              invalidQrCodes={[]}
               selecting={qrManager.selecting}
               codeIsSelected={qrManager.codeIsSelected}
               onSelect={qrManager.updateSelectedCodes}
