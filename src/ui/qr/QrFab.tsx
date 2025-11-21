@@ -1,4 +1,4 @@
-import { Fab, Stack, Zoom } from "@mui/material";
+import { Box, Fab, Stack, Zoom } from "@mui/material";
 import QrScanIcon from "@mui/icons-material/QrCodeScannerRounded";
 import ExportIcon from "@mui/icons-material/IosShareRounded";
 import ArchiveIcon from "@mui/icons-material/ArchiveRounded";
@@ -25,7 +25,7 @@ export default function QrPageFab({
   };
 
   return (
-    <>
+    <Box sx={{ zIndex: 1000 }}>
       <Zoom in={!selecting} unmountOnExit>
         <Fab
           color="primary"
@@ -42,6 +42,7 @@ export default function QrPageFab({
           direction={"row"}
           justifyContent={"space-between"}
           sx={{
+            zIndex: 1000,
             position: "fixed",
             bottom: "calc(16px + env(safe-area-inset-bottom, 0px))",
             left: 0,
@@ -70,6 +71,6 @@ export default function QrPageFab({
           </Fab>
         </Stack>
       </Zoom>
-    </>
+    </Box>
   );
 }
