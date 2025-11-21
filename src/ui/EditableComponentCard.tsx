@@ -663,6 +663,7 @@ export default function EditableComponentCard(props: ComponentCardProps) {
         }}
       >
         <DialogTitle sx={{ fontWeight: 600 }}>
+          <DeleteIcon sx={{ mr: 1 }} color="error" />
           Delete Field "{itemToDelete?.name}"?
         </DialogTitle>
         <DialogContent>
@@ -704,7 +705,9 @@ export default function EditableComponentCard(props: ComponentCardProps) {
           },
         }}
       >
-        <DialogTitle sx={{ fontWeight: 600 }}>Rename Field</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 600 }}>
+          <EditIcon sx={{ mr: 1 }} color="primary" />
+          Rename Field</DialogTitle>
         <DialogContent>
           <TextField
             label="Field Name"

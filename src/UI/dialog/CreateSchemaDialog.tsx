@@ -7,6 +7,7 @@ import {
   TextField,
 } from "@mui/material";
 import { useState, useEffect } from "react";
+import AddIcon from "@mui/icons-material/AddRounded";
 
 interface CreateSchemaDialogProps {
   open: boolean;
@@ -39,7 +40,17 @@ export default function CreateSchemaDialog({
       onClose={onClose}
       slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 400 } } }}
     >
-      <DialogTitle sx={{ fontWeight: 600 }}>Create Schema</DialogTitle>
+      <DialogTitle
+        sx={{
+          fontWeight: 600,
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+        }}
+      >
+        <AddIcon color="primary" />
+        Create New Schema
+      </DialogTitle>{" "}
       <DialogContent>
         <TextField
           autoFocus

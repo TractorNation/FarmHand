@@ -7,6 +7,7 @@ import {
   TextField,
 } from "@mui/material";
 import { useState, useEffect } from "react";
+import EditIcon from "@mui/icons-material/EditRounded";
 
 interface RenameSchemaDialogProps {
   open: boolean;
@@ -41,7 +42,17 @@ export default function RenameSchemaDialog({
       onClose={onClose}
       slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 400 } } }}
     >
-      <DialogTitle sx={{ fontWeight: 600 }}>Rename Schema</DialogTitle>
+      <DialogTitle
+        sx={{
+          fontWeight: 600,
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+        }}
+      >
+        <EditIcon sx={{mr: 1}} color="primary" />
+        Rename Schema
+      </DialogTitle>
       <DialogContent>
         <TextField
           autoFocus

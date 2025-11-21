@@ -6,6 +6,7 @@ import {
   DialogContentText,
   DialogTitle,
 } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/DeleteRounded";
 
 interface DeleteSectionDialogProps {
   open: boolean;
@@ -26,8 +27,16 @@ export default function DeleteSectionDialog({
       onClose={onClose}
       slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 400 } } }}
     >
-      <DialogTitle sx={{ fontWeight: 600 }}>
-        Delete Section "{sectionName}"?
+      <DialogTitle
+        sx={{
+          fontWeight: 600,
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+        }}
+      >
+        <DeleteIcon color="error" />
+        Delete Section {sectionName}?
       </DialogTitle>
       <DialogContent>
         <DialogContentText>

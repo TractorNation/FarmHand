@@ -63,7 +63,8 @@ export default function QrShareDialog(props: QrExportDialogProps) {
   const theme = useTheme();
   const [deletePopupOpen, openDeletePopup, closeDeletePopup] = useDialog();
   const [archivePopupOpen, openArchivePopup, closeArchivePopup] = useDialog();
-  const [unarchivePopupOpen, openUnarchivePopup, closeUnarchivePopup] = useDialog();
+  const [unarchivePopupOpen, openUnarchivePopup, closeUnarchivePopup] =
+    useDialog();
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const isLandscape = useMediaQuery("(orientation: landscape)");
 
@@ -297,11 +298,12 @@ export default function QrShareDialog(props: QrExportDialogProps) {
             fontWeight: 600,
           }}
         >
-          <HelpIcon sx={{ mr: 1 }} />
+          <DeleteIcon sx={{ mr: 1 }} color="error" />
           Delete Qr
         </DialogTitle>
         <DialogContent>
-          Are you sure you want to delete this code? This action cannot be undone.
+          Are you sure you want to delete this code? This action cannot be
+          undone.
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
           <Button
@@ -338,7 +340,7 @@ export default function QrShareDialog(props: QrExportDialogProps) {
             fontWeight: 600,
           }}
         >
-          <HelpIcon sx={{ mr: 1 }} />
+          <ArchiveIcon sx={{ mr: 1 }} color="warning" />
           Archive Qr
         </DialogTitle>
         <DialogContent>
@@ -379,13 +381,16 @@ export default function QrShareDialog(props: QrExportDialogProps) {
             fontWeight: 600,
           }}
         >
-          <HelpIcon sx={{ mr: 1 }} />
+          <ArchiveIcon sx={{ mr: 1 }} color="primary" />
           Unarchive Qr
         </DialogTitle>
         <DialogContent>
           Are you sure you want to unarchive this code?
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
+          <Button onClick={closeUnarchivePopup} sx={{ borderRadius: 2 }}>
+            Cancel
+          </Button>
           <Button
             onClick={handleUnarchive}
             color="secondary"
@@ -393,9 +398,6 @@ export default function QrShareDialog(props: QrExportDialogProps) {
             sx={{ borderRadius: 2 }}
           >
             Unarchive
-          </Button>
-          <Button onClick={closeUnarchivePopup} sx={{ borderRadius: 2 }}>
-            Cancel
           </Button>
         </DialogActions>
       </Dialog>

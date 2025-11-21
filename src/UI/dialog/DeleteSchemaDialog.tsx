@@ -6,6 +6,7 @@ import {
   DialogContentText,
   DialogTitle,
 } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/DeleteRounded";
 
 interface DeleteSchemaDialogProps {
   open: boolean;
@@ -26,8 +27,16 @@ export default function DeleteSchemaDialog({
       onClose={onClose}
       slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 400 } } }}
     >
-      <DialogTitle sx={{ fontWeight: 600 }}>
-        Delete Schema "{schemaName}"?
+      <DialogTitle
+        sx={{
+          fontWeight: 600,
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+        }}
+      >
+        <DeleteIcon color="error" />
+        Delete Schema {schemaName}?
       </DialogTitle>
       <DialogContent>
         <DialogContentText>

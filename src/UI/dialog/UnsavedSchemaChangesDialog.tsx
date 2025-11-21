@@ -33,7 +33,7 @@ export default function UnsavedChangesDialog({
           gap: 1,
         }}
       >
-        <WarningIcon color="warning" />
+        <WarningIcon sx={{mr: 1}} color="warning" />
         Unsaved Changes
       </DialogTitle>
       <DialogContent>

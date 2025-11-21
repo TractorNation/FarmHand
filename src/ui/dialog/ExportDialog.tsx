@@ -11,6 +11,7 @@ import {
   Button,
 } from "@mui/material";
 import { useState } from "react";
+import ExportIcon from "@mui/icons-material/IosShareRounded";
 
 interface ExportDialogProps {
   open: boolean;
@@ -40,7 +41,17 @@ export default function ExportDialog(props: ExportDialogProps) {
         },
       }}
     >
-      <DialogTitle sx={{ fontWeight: 600 }}>Select Export Format</DialogTitle>
+      <DialogTitle
+        sx={{
+          fontWeight: 600,
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+        }}
+      >
+        <ExportIcon color="primary" />
+        Select Export Format
+      </DialogTitle>{" "}
       <DialogContent>
         <FormControl sx={{ mt: 1 }}>
           <FormLabel sx={{ fontWeight: 600, mb: 1 }}>File Type</FormLabel>

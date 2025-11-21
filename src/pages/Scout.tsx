@@ -192,7 +192,7 @@ export default function Scout() {
             fontWeight: 600,
           }}
         >
-          <HelpIcon sx={{ mr: 1 }} />
+          <HelpIcon sx={{ mr: 1 }} color="primary" />
           Are you sure you want to reset the form?
         </DialogTitle>
         <DialogActions sx={{ p: 2 }}>
@@ -231,7 +231,7 @@ export default function Scout() {
             fontWeight: 600,
           }}
         >
-          <ErrorOutlineIcon sx={{ mr: 1 }} />
+          <ErrorOutlineIcon sx={{ mr: 1 }} color="error" />
           Form Errors
         </DialogTitle>
         <DialogContent>

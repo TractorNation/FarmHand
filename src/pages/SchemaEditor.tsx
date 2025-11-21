@@ -999,7 +999,7 @@ export default function SchemaEditor() {
 
       <Dialog open={warningDialogOpen}>
         <DialogTitle>
-          <WarningIcon /> Warning
+          <WarningIcon sx={{mr: 1}} color="warning"/> Warning
         </DialogTitle>
         <DialogContent>
           Changing a schema could result in inaccurate data for the rest of your

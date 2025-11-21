@@ -21,6 +21,7 @@ import useDialog from "../hooks/useDialog";
 import QrScannerDialog from "../ui/dialog/QrScannerDialog";
 import QrShareDialog from "../ui/dialog/QrShareDialog";
 import ExportDialog from "../ui/dialog/ExportDialog";
+import ArchiveIcon from "@mui/icons-material/ArchiveRounded";
 import { exportQrCodesToCsv, exportQrCodesToJson } from "../utils/GeneralUtils";
 import { archiveQrCode, fetchQrCodes } from "../utils/QrUtils";
 import QrCodeIcon from "@mui/icons-material/QrCodeRounded";
@@ -246,7 +247,9 @@ export default function QRPage() {
         maxWidth="xs"
         fullWidth
       >
-        <DialogTitle>Archive QR Codes</DialogTitle>
+        <DialogTitle>
+          <ArchiveIcon sx={{ mr: 1 }} color="warning" /> Archive QR Codes
+        </DialogTitle>
         <DialogContent>
           <Typography>
             Would you like to archive {qrManager.selectedCodes.length} match

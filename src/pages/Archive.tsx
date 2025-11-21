@@ -240,7 +240,7 @@ export default function ArchivePage() {
         fullWidth
       >
         <DialogTitle sx={{ display: "flex", alignItems: "center" }}>
-          <UnarchiveIcon sx={{ mr: 1 }} />
+          <UnarchiveIcon sx={{ mr: 1 }} color="primary" />
           Unarchive QR Codes
         </DialogTitle>
         <DialogContent>
@@ -276,7 +276,7 @@ export default function ArchivePage() {
         fullWidth
       >
         <DialogTitle sx={{ display: "flex", alignItems: "center" }}>
-          <DeleteIcon sx={{ mr: 1 }} />
+          <DeleteIcon sx={{ mr: 1 }} color="error" />
           Delete QR Codes
         </DialogTitle>
         <DialogContent>
