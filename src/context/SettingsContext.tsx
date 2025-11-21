@@ -9,12 +9,13 @@ import {
 import StoreManager, { StoreKeys } from "../utils/StoreManager";
 
 export const defaultSettings: Settings = {
-  LAST_SCHEMA_NAME: undefined,
+  LAST_SCHEMA_NAME: "2025 Reefscape",
   THEME: "system",
   DEVICE_ID: 1,
   EXPECTED_DEVICES_COUNT: 6,
   LEAD_SCOUT_ONLY: false,
-  COLOR_THEME: "Tractor",
+
+  COLOR_THEME: "TractorTheme",
 };
 
 interface SettingsContextType {
@@ -38,37 +39,35 @@ export default function SettingsProvider({
   const [settingsLoading, setSettingsLoading] = useState(true);
 
   const loadSettings = useCallback(async () => {
-    const settingKeys = Object.keys(StoreKeys.settings) as Array<
-      keyof Settings
-    >;
-
-    const storedValues = new Map<string, string>();
+    setSettingsLoading(true);
+    const newSettings = new Map<string, any>();
+    const settingKeys = Object.keys(defaultSettings) as Array<keyof Settings>;
 
     for (const key of settingKeys) {
       const storeKey = StoreKeys.settings[key];
       if (!storeKey) continue;
-      const storedValue = await StoreManager.get(storeKey);
 
-      if (storedValue !== null && storedValue !== undefined) {
-        const defaultValue = defaultSettings[key];
+      const storedValue = await StoreManager.get(storeKey);
+      const defaultValue = defaultSettings[key as keyof Settings];
+
+      if (storedValue === null || storedValue === undefined) {
+        if (defaultValue !== undefined) {
+          await StoreManager.set(storeKey, String(defaultValue));
+        }
+        newSettings.set(key, defaultValue);
+      } else {
         if (typeof defaultValue === "boolean") {
-          storedValues.set(key, storedValue);
+          newSettings.set(key, storedValue === "true" ? true : false);
         } else if (typeof defaultValue === "number") {
-          const num = parseInt(storedValue as string, 10);
-          storedValues.set(
-            key,
-            isNaN(num) ? String(defaultValue) : String(num)
-          );
+          const num = parseInt(storedValue, 10);
+          newSettings.set(key, isNaN(num) ? defaultValue : num);
         } else {
-          storedValues.set(key, storedValue);
+          newSettings.set(key, storedValue as any);
         }
       }
     }
-    setSettings((prev) => ({
-      ...defaultSettings,
-      ...prev,
-      ...Object.fromEntries(storedValues),
-    }));
+
+    setSettings(Object.fromEntries(newSettings) as Settings);
     setSettingsLoading(false);
   }, []);
 
