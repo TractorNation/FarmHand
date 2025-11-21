@@ -15,7 +15,9 @@ export function isFieldInvalid(
     required &&
     (value === "" ||
       (type === "checkbox" && value === false) ||
-      (type === "counter" && value === defaultValue))
+      (type === "number" && (value === undefined || value === null)) ||
+      (type === "grid" && (value as string).split(":")[1] === "[]") ||
+      value === defaultValue)
   );
 }
 
@@ -327,8 +329,12 @@ export function minifySchema(schema: Schema): any[] {
 
       if (field.props) {
         for (const key in field.props) {
-          if (propMap[key] && field.props[key as keyof ComponentProps] !== undefined) {
-            minifiedProps[propMap[key]] = field.props[key as keyof ComponentProps];
+          if (
+            propMap[key] &&
+            field.props[key as keyof ComponentProps] !== undefined
+          ) {
+            minifiedProps[propMap[key]] =
+              field.props[key as keyof ComponentProps];
           }
         }
       }
