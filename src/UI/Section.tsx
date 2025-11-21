@@ -115,7 +115,15 @@ export default function Section(props: SectionProps) {
       <AccordionDetails>
         <Grid container spacing={2}>
           {section.fields.map((component, index) => (
-            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={index}>
+            <Grid
+              size={{
+                xs: component.doubleWidth ? 12 : 6,
+                sm: component.doubleWidth ? 8 : 4,
+                md: component.doubleWidth ? 6 : 3,
+                lg: component.doubleWidth ? 4 : 2,
+              }}
+              key={index}
+            >
               <ValidationProvider key={component.id}>
                 <InputCard
                   label={component.name}
@@ -135,8 +143,7 @@ export default function Section(props: SectionProps) {
 
       {/* Bottom AccordionSummary for collapsing */}
       <AccordionSummary
-              onClick={() => onToggle(!expanded)}
-
+        onClick={() => onToggle(!expanded)}
         expandIcon={
           <ExpandIcon
             sx={{

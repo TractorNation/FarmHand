@@ -155,7 +155,7 @@ export default function EditableComponentCard(props: ComponentCardProps) {
 
   const handleFieldChange = (field: keyof Component | string, value: any) => {
     let newComponent: Component;
-    if (field === "name" || field === "type" || field === "required") {
+    if (field === "name" || field === "type" || field === "required" || field === "doubleWidth") {
       // These are direct properties of the Component
       newComponent = { ...editedComponent, [field]: value };
     } else {
@@ -631,6 +631,18 @@ export default function EditableComponentCard(props: ComponentCardProps) {
                 />
               }
               label="Required?"
+            />
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={editedComponent.doubleWidth || false}
+                  disabled={isProtected}
+                  onChange={(e) =>
+                    handleFieldChange("doubleWidth", e.target.checked)
+                  }
+                />
+              }
+              label="Double Wide?"
             />
             {renderTypeSpecificProps()}
           </Stack>

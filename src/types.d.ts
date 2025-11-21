@@ -34,6 +34,7 @@ interface Component {
   id: number;
   type: ComponentType;
   required?: boolean;
+  doubleWidth?: boolean;
   props?: ComponentProps;
 }
 
@@ -78,7 +79,7 @@ interface Settings {
   DEVICE_ID: number;
   EXPECTED_DEVICES_COUNT: number;
   LEAD_SCOUT_ONLY: boolean;
-  COLOR_THEME: string
+  COLOR_THEME: string;
 }
 
 /* Options for filtering qr codes */
