@@ -337,7 +337,9 @@ export default function Settings() {
                     fullWidth
                     variant="outlined"
                     color="primary"
-                    onClick={() => navigate("/schemas")}
+                    onClick={() =>
+                      navigate("/schemas", { state: { showWarning: true } })
+                    }
                     startIcon={<SchemaIcon />}
                     sx={{
                       borderRadius: 2,

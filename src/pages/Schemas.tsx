@@ -10,14 +10,17 @@ import {
   CardContent,
   Paper,
   Chip,
+  Snackbar,
+  Slide,
 } from "@mui/material";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import AddIcon from "@mui/icons-material/AddRounded";
 import ArrowBackIcon from "@mui/icons-material/ArrowBackRounded";
 import EditIcon from "@mui/icons-material/EditRounded";
 import DeleteIcon from "@mui/icons-material/DeleteRounded";
 import SchemaIcon from "@mui/icons-material/SchemaRounded";
 import ShareIcon from "@mui/icons-material/ShareRounded";
+import CloseIcon from "@mui/icons-material/CloseRounded";
 import useDialog from "../hooks/useDialog";
 import { useSchema } from "../context/SchemaContext";
 import { deleteSchema, saveSchema } from "../utils/SchemaUtils";
@@ -31,9 +34,13 @@ import SchemaShareDialog from "../ui/dialog/SchemaShareDialog";
 export default function Schemas() {
   const theme = useTheme();
   const navigate = useNavigate();
+  const location = useLocation();
+  const { showWarning } = location.state || {};
+
   const { availableSchemas, refreshSchemas } = useSchema();
   const [shareDialogOpen, openShareDialog, closeShareDialog] = useDialog();
   const [schemaToShare, setSchemaToShare] = useState<Schema | null>(null);
+  const [warningOpen, , closeWarning] = useDialog(showWarning || false);
 
   const [newSchemaDialogOpen, openNewSchemaDialog, closeNewSchemaDialog] =
     useDialog();
@@ -381,6 +388,30 @@ export default function Schemas() {
           schema={schemaToShare}
         />
       )}
+
+      <Snackbar
+        open={warningOpen}
+        onClose={closeWarning}
+        slots={{ transition: Slide }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        sx={{ width: "100%" }}
+        slotProps={{
+          content: {
+            sx: {
+              backgroundColor: theme.palette.warning.main,
+              color: theme.palette.warning.contrastText,
+              fontFamily: theme.typography.subtitle1,
+            },
+          },
+        }}
+        message="Editing schemas can create issues with your team's data. Only do so if you have permission from your lead scouter."
+        autoHideDuration={5000}
+        action={
+          <IconButton onClick={closeWarning}>
+            <CloseIcon />
+          </IconButton>
+        }
+      />
     </Box>
   );
 }

@@ -277,7 +277,7 @@ export default function SchemaEditor() {
     if (hasUnsavedChanges && isEditable) {
       openUnsavedChangesDialog();
     } else {
-      navigate("/schemas");
+      navigate("/schemas", { state: { showWarning: false } });
     }
   };
 
