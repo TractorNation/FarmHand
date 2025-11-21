@@ -18,7 +18,7 @@ import CopyIcon from "@mui/icons-material/ContentCopyRounded";
 import DeleteIcon from "@mui/icons-material/DeleteRounded";
 import DownloadIcon from "@mui/icons-material/DownloadRounded";
 import CloseIcon from "@mui/icons-material/CloseRounded";
-import HelpIcon from "@mui/icons-material/HelpOutlineRounded";
+
 import {
   archiveQrCode,
   decodeQR,
