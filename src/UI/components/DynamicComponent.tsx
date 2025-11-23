@@ -226,6 +226,8 @@ export default function DynamicComponent(props: DynamicComponentProps) {
             onChange={handleChange}
             label={component.name}
             error={showError}
+            min={component.props?.min}
+            max={component.props?.max}
           />
         );
       case "timer":

@@ -20,6 +20,7 @@ import StorageIcon from "@mui/icons-material/StorageRounded";
 import NotificationsIcon from "@mui/icons-material/NotificationsRounded";
 import SecurityIcon from "@mui/icons-material/SecurityRounded";
 import InfoIcon from "@mui/icons-material/InfoRounded";
+import NumberInput from "../ui/components/NumberInput";
 import { useState } from "react";
 import PageHeader from "../ui/PageHeader";
 import { useSettings } from "../context/SettingsContext";
@@ -115,33 +116,27 @@ export default function Settings() {
           label: "Device ID",
           description: "Identify this device in match data",
           value: settings.DEVICE_ID,
-          onChange: (value: string) => handleChange("DEVICE_ID", value),
-          onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
-            let num = Math.round(Number(e.target.value));
-            if (isNaN(num) || num < 1) {
-              num = 1;
-            }
-            handleChange("DEVICE_ID", num);
+          onChange: (value: number | null) => {
+            handleChange("DEVICE_ID", value ?? 1);
           },
-          inputProps: { min: 1 },
+          min: 1,
         },
         {
           type: "number",
           label: "Number of Scout Devices",
           description: "Set the total number of scouting devices",
           value: settings.EXPECTED_DEVICES_COUNT,
-          onChange: (value: string) =>
-            handleChange("EXPECTED_DEVICES_COUNT", value),
-          onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
-            let num = Math.round(Number(e.target.value));
-            if (isNaN(num) || num < 1) {
-              num = 1;
-            }
-            handleChange("EXPECTED_DEVICES_COUNT", num);
+          onChange: (value: number | null) => {
+            const num = value ?? 1;
+            handleChange(
+              "EXPECTED_DEVICES_COUNT",
+              Math.min(Math.max(num, 1), 50)
+            );
           },
-          inputProps: { min: 1 },
+          min: 1,
+          max: 50,
         },
-      ].filter(Boolean),
+      ],
     },
     {
       id: "notifications",
@@ -212,14 +207,13 @@ export default function Settings() {
         );
       case "number":
         return (
-          <TextField
-            type="number"
+          <NumberInput
             value={setting.value}
-            onChange={(e) => setting.onChange(e.target.value)}
-            onBlur={setting.onBlur}
-            slotProps={{ htmlInput: setting.inputProps }}
-            size="small"
-            sx={{ minWidth: 100 }}
+            onChange={setting.onChange}
+            min={setting.min}
+            max={setting.max}
+            label=""
+            error={false}
           />
         );
       case "button":

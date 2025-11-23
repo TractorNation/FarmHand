@@ -24,6 +24,7 @@ import ExpandIcon from "@mui/icons-material/ExpandMoreRounded";
 import DragIcon from "@mui/icons-material/DragIndicatorRounded";
 import EditIcon from "@mui/icons-material/EditRounded";
 import DeleteIcon from "@mui/icons-material/DeleteRounded";
+import NumberInput from "./components/NumberInput";
 import useDialog from "../hooks/useDialog";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -155,14 +156,19 @@ export default function EditableComponentCard(props: ComponentCardProps) {
 
   const handleFieldChange = (field: keyof Component | string, value: any) => {
     let newComponent: Component;
-    if (field === "name" || field === "type" || field === "required" || field === "doubleWidth") {
-      // These are direct properties of the Component
+    if (
+      field === "name" ||
+      field === "type" ||
+      field === "required" ||
+      field === "doubleWidth"
+    ) {
       newComponent = { ...editedComponent, [field]: value };
     } else {
-      // These are properties that belong in the 'props' object
+      // Convert null to undefined for optional numeric props
+      const propValue = value === null ? undefined : value;
       newComponent = {
         ...editedComponent,
-        props: { ...editedComponent.props, [field]: value },
+        props: { ...editedComponent.props, [field]: propValue },
       };
     }
     setEditedComponent(newComponent);
@@ -221,44 +227,28 @@ export default function EditableComponentCard(props: ComponentCardProps) {
       case "counter":
         return (
           <>
-            <TextField
+            <NumberInput
               label="Default Value"
-              type="number"
               value={
                 editedComponent.props?.default !== undefined
-                  ? String(editedComponent.props.default)
-                  : ""
+                  ? Number(editedComponent.props.default)
+                  : 0
               }
-              onChange={(e) =>
-                handleFieldChange("default", parseInt(e.target.value))
-              }
-              fullWidth
+              onChange={(value) => handleFieldChange("default", value)}
             />
             <Stack direction="row" spacing={2}>
-              <TextField
+              <NumberInput
                 label="Min"
-                type="number"
-                value={editedComponent.props?.min ?? ""}
-                onChange={(e) =>
-                  handleFieldChange(
-                    "min",
-                    parseInt(e.target.value) || undefined
-                  )
-                }
-                size="small"
+                value={editedComponent.props?.min ?? null}
+                onChange={(value) => handleFieldChange("min", value)}
+                error={false}
                 fullWidth
               />
-              <TextField
+              <NumberInput
                 label="Max"
-                type="number"
-                value={editedComponent.props?.max ?? ""}
-                onChange={(e) =>
-                  handleFieldChange(
-                    "max",
-                    parseInt(e.target.value) || undefined
-                  )
-                }
-                size="small"
+                value={editedComponent.props?.max ?? null}
+                onChange={(value) => handleFieldChange("max", value)}
+                error={false}
                 fullWidth
               />
             </Stack>
@@ -293,20 +283,11 @@ export default function EditableComponentCard(props: ComponentCardProps) {
               }
               label="Range Slider?"
             />
-            <TextField
+            <NumberInput
               label="Step"
-              type="number"
-              value={editedComponent.props?.step ?? ""}
-              onChange={(e) => {
-                if (e.target.value === "") {
-                  handleFieldChange("step", undefined);
-                  return;
-                }
-                const value = parseInt(e.target.value, 10);
-                if (!isNaN(value)) {
-                  handleFieldChange("step", value);
-                }
-              }}
+              value={editedComponent.props?.step ?? null}
+              onChange={(value) => handleFieldChange("step", value)}
+              min={1}
               fullWidth
             />
             <TextField
@@ -347,63 +328,60 @@ export default function EditableComponentCard(props: ComponentCardProps) {
               slotProps={{ formHelperText: { sx: { fontFamily: "inherit" } } }}
             />
             <Stack direction="row" spacing={2}>
-              <TextField
+              <NumberInput
                 label="Min"
-                type="number"
-                value={editedComponent.props?.min ?? ""}
-                onChange={(e) =>
-                  handleFieldChange(
-                    "min",
-                    parseInt(e.target.value) || undefined
-                  )
-                }
-                size="small"
+                value={editedComponent.props?.min ?? null}
+                onChange={(value) => handleFieldChange("min", value)}
+                error={false}
                 fullWidth
               />
-              <TextField
+              <NumberInput
                 label="Max"
-                type="number"
-                value={editedComponent.props?.max ?? ""}
-                onChange={(e) =>
-                  handleFieldChange(
-                    "max",
-                    parseInt(e.target.value) || undefined
-                  )
-                }
-                size="small"
+                value={editedComponent.props?.max ?? null}
+                onChange={(value) => handleFieldChange("max", value)}
+                error={false}
                 fullWidth
               />
             </Stack>
           </>
         );
+      case "number":
+        return (
+          <Stack direction="row" spacing={2}>
+            <NumberInput
+              label="Min"
+              value={editedComponent.props?.min ?? null}
+              onChange={(value) => handleFieldChange("min", value)}
+              error={false}
+              fullWidth
+            />
+            <NumberInput
+              label="Max"
+              value={editedComponent.props?.max ?? null}
+              onChange={(value) => handleFieldChange("max", value)}
+              error={false}
+              fullWidth
+            />
+          </Stack>
+        );
       case "grid":
         return (
           <>
             <Stack direction="row" spacing={2}>
-              <TextField
+              <NumberInput
                 label="Rows"
-                type="number"
-                value={editedComponent.props?.rows ?? ""}
-                onChange={(e) =>
-                  handleFieldChange(
-                    "rows",
-                    parseInt(e.target.value) || undefined
-                  )
-                }
-                size="small"
+                value={editedComponent.props?.rows ?? null}
+                onChange={(value) => handleFieldChange("rows", value)}
+                min={1}
+                max={50}
                 fullWidth
               />
-              <TextField
+              <NumberInput
                 label="Columns"
-                type="number"
-                value={editedComponent.props?.cols ?? ""}
-                onChange={(e) =>
-                  handleFieldChange(
-                    "cols",
-                    parseInt(e.target.value) || undefined
-                  )
-                }
-                size="small"
+                value={editedComponent.props?.cols ?? null}
+                onChange={(value) => handleFieldChange("cols", value)}
+                min={1}
+                max={50}
                 fullWidth
               />
             </Stack>
@@ -707,7 +685,8 @@ export default function EditableComponentCard(props: ComponentCardProps) {
       >
         <DialogTitle sx={{ fontWeight: 600 }}>
           <EditIcon sx={{ mr: 1 }} color="primary" />
-          Rename Field</DialogTitle>
+          Rename Field
+        </DialogTitle>
         <DialogContent>
           <TextField
             label="Field Name"

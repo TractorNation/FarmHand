@@ -9,6 +9,9 @@ interface NumberInputProps {
   onChange?: (value: number | null) => void;
   label?: string;
   error?: boolean;
+  min?: number;
+  max?: number;
+  fullWidth?: boolean;
 }
 
 /**
@@ -18,7 +21,7 @@ interface NumberInputProps {
  * @returns An input that only returns whole number values
  */
 export default function NumberInput(props: NumberInputProps) {
-  const { value, onChange, error, label } = props;
+  const { value, onChange, error, label, min, max, fullWidth } = props;
   const [displayValue, setDisplayValue] = useState<string>(
     value === null || value === undefined ? "" : String(value)
   );
@@ -26,17 +29,18 @@ export default function NumberInput(props: NumberInputProps) {
   useEffect(() => {
     const propValueString =
       value === null || value === undefined ? "" : String(value);
-    if (displayValue.endsWith(".") || displayValue === "-") {
+    if (displayValue === "-" && value === null) {
       return;
     }
     if (propValueString !== displayValue) {
       setDisplayValue(propValueString);
     }
-  }, [value]);
+  }, [value, displayValue]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const stringValue = e.target.value;
-    const validNumberRegex = /^-?\d*\.?\d*$/;
+    // Only allow digits and optionally a leading minus sign for negative numbers
+    const validNumberRegex = /^-?\d*$/;
 
     if (validNumberRegex.test(stringValue) || stringValue === "") {
       setDisplayValue(stringValue);
@@ -44,9 +48,15 @@ export default function NumberInput(props: NumberInputProps) {
         if (stringValue === "" || stringValue === "-") {
           onChange(null);
         } else {
-          const num = parseFloat(stringValue);
+          const num = parseInt(stringValue, 10);
           if (!isNaN(num)) {
-            onChange(num);
+            // Apply max constraint during typing if provided
+            if (max !== undefined && num > max) {
+              setDisplayValue(String(max));
+              onChange(max);
+            } else {
+              onChange(num);
+            }
           }
         }
       }
@@ -55,23 +65,46 @@ export default function NumberInput(props: NumberInputProps) {
 
   const onBlur = () => {
     if (onChange) {
-      const num = Math.round(Number(displayValue));
+      let num = Math.round(Number(displayValue));
       if (isNaN(num) || displayValue.trim() === "") {
         onChange(null);
+        setDisplayValue("");
       } else {
+        if (min !== undefined && num < min) {
+          num = min;
+        }
+        if (max !== undefined && num > max) {
+          num = max;
+        }
+        setDisplayValue(String(num));
         onChange(num);
       }
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    // Prevent 'e', 'E', '+', '.', and other non-numeric keys
+    if (
+      e.key === "e" ||
+      e.key === "E" ||
+      e.key === "+" ||
+      e.key === "." ||
+      e.key === ","
+    ) {
+      e.preventDefault();
     }
   };
 
   return (
     <TextField
       type="text"
-      inputMode="decimal"
+      fullWidth={fullWidth}
+      slotProps={{ htmlInput: { inputMode: "numeric", pattern: "[0-9]*" } }}
       value={displayValue}
       label={label}
       onChange={handleChange}
       onBlur={onBlur}
+      onKeyDown={handleKeyDown}
       error={error}
       size="small"
       sx={{
