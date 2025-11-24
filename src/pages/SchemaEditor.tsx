@@ -57,7 +57,7 @@ import DeleteDialog from "../ui/dialog/DeleteDialog";
 import DuplicateNameDialog from "../ui/dialog/DuplicateNameDialog";
 import UnsavedSchemaChangesDialog from "../ui/dialog/UnsavedSchemaChangesDialog";
 import { saveSchema } from "../utils/SchemaUtils";
-import SchemaShareDialog from "../ui/dialog/SchemaShareDialog";
+import ShareDialog from "../ui/dialog/ShareDialog";
 import RenameDialog from "../ui/dialog/RenameDialog";
 
 function DroppableSection({
@@ -997,7 +997,8 @@ export default function SchemaEditor() {
       </DndContext>
 
       {editingSchema && (
-        <SchemaShareDialog
+        <ShareDialog
+          mode="schema"
           open={shareDialogOpen}
           onClose={closeShareDialog}
           schema={editingSchema}

@@ -13,7 +13,7 @@ import {
   DialogContent,
   DialogActions,
 } from "@mui/material";
-import QrShareDialog from "../ui/dialog/QrShareDialog";
+import ShareDialog from "../ui/dialog/ShareDialog";
 import QrCodeIcon from "@mui/icons-material/QrCodeRounded";
 import ArchiveIcon from "@mui/icons-material/ArchiveRounded";
 import UnarchiveIcon from "@mui/icons-material/UnarchiveRounded";
@@ -40,7 +40,7 @@ export default function ArchivePage() {
     () => allQrCodes?.filter((code) => code.archived) || [],
     [allQrCodes]
   );
-  
+
   const qrManager = useQrManager({ qrCodes: archivedQrCodes });
 
   const handleMassUnarchive = async () => {
@@ -221,7 +221,8 @@ export default function ArchivePage() {
         </>
       )}
 
-      <QrShareDialog
+      <ShareDialog
+        mode="match"
         qrCodeData={activeQrCode!}
         open={qrDialogOpen}
         onClose={closeQrDialog}

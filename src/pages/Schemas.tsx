@@ -29,7 +29,7 @@ import CreateDialog from "../ui/dialog/CreateDialog";
 import RenameDialog from "../ui/dialog/RenameDialog";
 import DeleteDialog from "../ui/dialog/DeleteDialog";
 import DuplicateNameDialog from "../ui/dialog/DuplicateNameDialog";
-import SchemaShareDialog from "../ui/dialog/SchemaShareDialog";
+import ShareDialog from "../ui/dialog/ShareDialog";
 
 export default function Schemas() {
   const theme = useTheme();
@@ -389,7 +389,8 @@ export default function Schemas() {
       />
 
       {schemaToShare && (
-        <SchemaShareDialog
+        <ShareDialog
+          mode="schema"
           open={shareDialogOpen}
           onClose={closeShareDialog}
           schema={schemaToShare}
