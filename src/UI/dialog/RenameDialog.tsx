@@ -9,30 +9,27 @@ import {
 import { useState, useEffect } from "react";
 import EditIcon from "@mui/icons-material/EditRounded";
 
-interface RenameSchemaDialogProps {
+interface RenameDialogProps {
   open: boolean;
   onClose: () => void;
-  onRename: (newSchemaName: string) => void;
+  onRename: (newName: string) => void;
   initialName: string;
+  title?: string;
 }
 
-export default function RenameSchemaDialog({
-  open,
-  onClose,
-  onRename,
-  initialName,
-}: RenameSchemaDialogProps) {
-  const [schemaName, setSchemaName] = useState(initialName);
+export default function RenameDialog(props: RenameDialogProps) {
+  const { open, onClose, onRename, initialName, title } = props;
+  const [name, setName] = useState(initialName);
 
   useEffect(() => {
     if (open) {
-      setSchemaName(initialName); // Reset when dialog opens or initialName changes
+      setName(initialName); // Reset when dialog opens or initialName changes
     }
   }, [open, initialName]);
 
   const handleRename = () => {
-    if (schemaName.trim()) {
-      onRename(schemaName.trim());
+    if (name.trim()) {
+      onRename(name.trim());
     }
   };
 
@@ -50,15 +47,15 @@ export default function RenameSchemaDialog({
           gap: 1,
         }}
       >
-        <EditIcon sx={{mr: 1}} color="primary" />
-        Rename Schema
+        <EditIcon sx={{ mr: 1 }} color="primary" />
+        {title || "Rename"}
       </DialogTitle>
       <DialogContent>
         <TextField
           autoFocus
-          label="Schema Name"
-          value={schemaName}
-          onChange={(e) => setSchemaName(e.target.value)}
+          label=" name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
           fullWidth
           sx={{ mt: 1 }}
         />
@@ -69,7 +66,7 @@ export default function RenameSchemaDialog({
         </Button>
         <Button
           onClick={handleRename}
-          disabled={!schemaName.trim()}
+          disabled={!name.trim()}
           variant="contained"
           sx={{ borderRadius: 2 }}
         >

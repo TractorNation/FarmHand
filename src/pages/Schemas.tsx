@@ -25,9 +25,9 @@ import useDialog from "../hooks/useDialog";
 import { useSchema } from "../context/SchemaContext";
 import { deleteSchema, saveSchema } from "../utils/SchemaUtils";
 import PageHeader from "../ui/PageHeader";
-import CreateSchemaDialog from "../ui/dialog/CreateSchemaDialog";
-import RenameSchemaDialog from "../ui/dialog/RenameSchemaDialog";
-import DeleteSchemaDialog from "../ui/dialog/DeleteSchemaDialog";
+import CreateDialog from "../ui/dialog/CreateDialog";
+import RenameDialog from "../ui/dialog/RenameDialog";
+import DeleteDialog from "../ui/dialog/DeleteDialog";
 import DuplicateNameDialog from "../ui/dialog/DuplicateNameDialog";
 import SchemaShareDialog from "../ui/dialog/SchemaShareDialog";
 
@@ -352,27 +352,34 @@ export default function Schemas() {
       </Button>
 
       {/* New Schema Dialog */}
-      <CreateSchemaDialog
+      <CreateDialog
         open={newSchemaDialogOpen}
         onClose={closeNewSchemaDialog}
         onCreate={handleCreateSchema}
+        title="Create New Schema"
+        label="Schema Name"
+        actionButtonText="Create"
       />
 
       {/* Rename Schema Dialog */}
-      <RenameSchemaDialog
+      <RenameDialog
         open={schemaRenameDialogOpen}
         onClose={closeSchemaRenameDialog}
         onRename={handleRenameSchema}
         initialName={schemaToRename?.name || ""}
+        title="Rename Schema"
       />
 
       {/* Delete Schema Confirmation Dialog */}
-      <DeleteSchemaDialog
+      <DeleteDialog
         open={deleteSchemaDialogOpen}
         onClose={closeDeleteSchemaDialog}
         onDelete={handleDeleteSchema}
-        schemaName={schemaToDelete?.name || null}
-      />
+        title={`Delete Schema "${schemaToDelete?.name || ""}"?`}
+      >
+        Are you sure you want to delete this schema? This action cannot be
+        undone.
+      </DeleteDialog>
 
       {/* Duplicate Name Warning Dialog */}
       <DuplicateNameDialog

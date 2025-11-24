@@ -3,12 +3,7 @@ import {
   AccordionDetails,
   AccordionSummary,
   Box,
-  Button,
   Card,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   FormControlLabel,
   IconButton,
   Stack,
@@ -28,6 +23,8 @@ import NumberInput from "./components/NumberInput";
 import useDialog from "../hooks/useDialog";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import RenameDialog from "./dialog/RenameDialog";
+import DeleteDialog from "./dialog/DeleteDialog";
 
 /* Properties for the Component Card*/
 interface ComponentCardProps {
@@ -628,94 +625,29 @@ export default function EditableComponentCard(props: ComponentCardProps) {
       </Accordion>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog
+      <DeleteDialog
         open={deleteDialogOpen}
         onClose={closeDeleteDialog}
-        slotProps={{
-          paper: {
-            sx: {
-              borderRadius: 3,
-              minWidth: 400,
-            },
-          },
+        onDelete={() => {
+          if (itemToDelete) {
+            onDelete?.(itemToDelete);
+          }
+          closeDeleteDialog();
         }}
+        title={`Delete Field "${itemToDelete?.name || ""}"?`}
       >
-        <DialogTitle sx={{ fontWeight: 600 }}>
-          <DeleteIcon sx={{ mr: 1 }} color="error" />
-          Delete Field "{itemToDelete?.name}"?
-        </DialogTitle>
-        <DialogContent>
-          <Typography>
-            Are you sure you want to delete this field? This action cannot be
-            undone.
-          </Typography>
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button
-            onClick={() => {
-              if (itemToDelete) {
-                onDelete?.(itemToDelete);
-              }
-              closeDeleteDialog();
-            }}
-            color="error"
-            variant="contained"
-            sx={{ borderRadius: 2 }}
-          >
-            Delete
-          </Button>
-          <Button onClick={closeDeleteDialog} sx={{ borderRadius: 2 }}>
-            Cancel
-          </Button>
-        </DialogActions>
-      </Dialog>
+        Are you sure you want to delete this field? This action cannot be
+        undone.
+      </DeleteDialog>
 
       {/* Rename Field Dialog */}
-      <Dialog
+      <RenameDialog
         open={renameDialogOpen}
+        initialName={newFieldName}
         onClose={closeRenameDialog}
-        slotProps={{
-          paper: {
-            sx: {
-              borderRadius: 3,
-              minWidth: 400,
-            },
-          },
-        }}
-      >
-        <DialogTitle sx={{ fontWeight: 600 }}>
-          <EditIcon sx={{ mr: 1 }} color="primary" />
-          Rename Field
-        </DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Field Name"
-            value={newFieldName}
-            onChange={(e) => setNewFieldName(e.target.value)}
-            fullWidth
-            sx={{ mt: 1 }}
-          />
-        </DialogContent>
-        <DialogActions sx={{ p: 2 }}>
-          <Button onClick={closeRenameDialog} sx={{ borderRadius: 2 }}>
-            Cancel
-          </Button>
-          <Button
-            onClick={() => {
-              const trimmedName = newFieldName.trim();
-              if (trimmedName) {
-                handleFieldChange("name", trimmedName);
-              }
-              closeRenameDialog();
-            }}
-            variant="contained"
-            disabled={!newFieldName.trim()}
-            sx={{ borderRadius: 2 }}
-          >
-            Rename
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onRename={(newName) => setNewFieldName(newName)}
+        title="Rename Section"
+      />
     </>
   );
 }

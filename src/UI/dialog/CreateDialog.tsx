@@ -9,28 +9,28 @@ import {
 import { useState, useEffect } from "react";
 import AddIcon from "@mui/icons-material/AddRounded";
 
-interface CreateSchemaDialogProps {
+interface CreateDialogProps {
   open: boolean;
   onClose: () => void;
-  onCreate: (schemaName: string) => void;
+  onCreate: (name: string) => void;
+  title: string;
+  label: string;
+  actionButtonText?: string;
 }
 
-export default function CreateSchemaDialog({
-  open,
-  onClose,
-  onCreate,
-}: CreateSchemaDialogProps) {
-  const [schemaName, setSchemaName] = useState("");
+export default function CreateDialog(props: CreateDialogProps) {
+  const { open, onClose, onCreate, title, label, actionButtonText } = props;
+  const [name, setName] = useState("");
 
   useEffect(() => {
     if (open) {
-      setSchemaName(""); // Reset when dialog opens
+      setName(""); // Reset when dialog opens
     }
   }, [open]);
 
   const handleCreate = () => {
-    if (schemaName.trim()) {
-      onCreate(schemaName.trim());
+    if (name.trim()) {
+      onCreate(name.trim());
     }
   };
 
@@ -41,22 +41,17 @@ export default function CreateSchemaDialog({
       slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 400 } } }}
     >
       <DialogTitle
-        sx={{
-          fontWeight: 600,
-          display: "flex",
-          alignItems: "center",
-          gap: 1,
-        }}
+        sx={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 1 }}
       >
         <AddIcon color="primary" />
-        Create New Schema
-      </DialogTitle>{" "}
+        {title}
+      </DialogTitle>
       <DialogContent>
         <TextField
           autoFocus
-          label="Schema Name"
-          value={schemaName}
-          onChange={(e) => setSchemaName(e.target.value)}
+          label={label}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
           fullWidth
           sx={{ mt: 1 }}
         />
@@ -68,10 +63,10 @@ export default function CreateSchemaDialog({
         <Button
           onClick={handleCreate}
           variant="contained"
-          disabled={!schemaName.trim()}
+          disabled={!name.trim()}
           sx={{ borderRadius: 2 }}
         >
-          Create
+          {actionButtonText}
         </Button>
       </DialogActions>
     </Dialog>
