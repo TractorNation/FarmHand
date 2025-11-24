@@ -7,20 +7,19 @@ import {
   DialogTitle,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/DeleteRounded";
+import { ReactNode } from "react";
 
-interface DeleteSchemaDialogProps {
+interface DeleteDialogProps {
   open: boolean;
   onClose: () => void;
   onDelete: () => void;
-  schemaName: string | null;
+  title: string;
+  children: ReactNode;
 }
 
-export default function DeleteSchemaDialog({
-  open,
-  onClose,
-  onDelete,
-  schemaName,
-}: DeleteSchemaDialogProps) {
+export default function DeleteDialog(props: DeleteDialogProps) {
+  const { open, onClose, onDelete, title, children } = props;
+
   return (
     <Dialog
       open={open}
@@ -35,22 +34,14 @@ export default function DeleteSchemaDialog({
           gap: 1,
         }}
       >
-        <DeleteIcon color="error" />
-        Delete Schema {schemaName}?
+        <DeleteIcon color="error" sx={{ mr: 1 }} />
+        {title}
       </DialogTitle>
       <DialogContent>
-        <DialogContentText>
-          Are you sure you want to delete this schema? This action cannot be
-          undone.
-        </DialogContentText>
+        <DialogContentText>{children}</DialogContentText>
       </DialogContent>
       <DialogActions sx={{ p: 2 }}>
-        <Button
-          onClick={onDelete}
-          variant="contained"
-          color="error"
-          sx={{ borderRadius: 2 }}
-        >
+        <Button onClick={onDelete} variant="contained" color="error" sx={{ borderRadius: 2 }}>
           Delete
         </Button>
         <Button onClick={onClose} sx={{ borderRadius: 2 }}>

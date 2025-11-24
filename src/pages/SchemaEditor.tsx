@@ -52,13 +52,13 @@ import EditIcon from "@mui/icons-material/EditRounded";
 import CloseIcon from "@mui/icons-material/CloseRounded";
 import useDialog from "../hooks/useDialog";
 import { useSchema } from "../context/SchemaContext";
-import AddSectionDialog from "../ui/dialog/AddSectionDialog";
-import DeleteSectionDialog from "../ui/dialog/DeleteSectionDialog";
+import CreateDialog from "../ui/dialog/CreateDialog";
+import DeleteDialog from "../ui/dialog/DeleteDialog";
 import DuplicateNameDialog from "../ui/dialog/DuplicateNameDialog";
-import RenameSectionDialog from "../ui/dialog/RenameSectionDialog";
 import UnsavedSchemaChangesDialog from "../ui/dialog/UnsavedSchemaChangesDialog";
 import { saveSchema } from "../utils/SchemaUtils";
-import SchemaShareDialog from "../ui/dialog/SchemaShareDialog";
+import ShareDialog from "../ui/dialog/ShareDialog";
+import RenameDialog from "../ui/dialog/RenameDialog";
 
 function DroppableSection({
   section,
@@ -896,13 +896,16 @@ export default function SchemaEditor() {
             )}
           </Stack>
 
-          <AddSectionDialog
+          <CreateDialog
             open={sectionDialogOpen}
             onClose={closeSectionDialog}
-            onAdd={handleAddSection}
+            onCreate={handleAddSection}
+            title="Add Section"
+            label="Section Name"
+            actionButtonText="Add"
           />
 
-          <RenameSectionDialog
+          <RenameDialog
             open={renameDialogOpen}
             onClose={closeRenameDialog}
             onRename={(newSectionName) => {
@@ -916,18 +919,22 @@ export default function SchemaEditor() {
                 ? editingSchema?.sections[sectionToRenameIndex]?.title || ""
                 : ""
             }
+            title="Rename Section"
           />
 
-          <DeleteSectionDialog
+          <DeleteDialog
             open={deleteSectionDialogOpen}
             onClose={closeDeleteSectionDialog}
             onDelete={handleDeleteSection}
-            sectionName={
+            title={`Delete Section "${
               sectionToDeleteIndex !== null
                 ? editingSchema?.sections[sectionToDeleteIndex]?.title || null
                 : null
-            }
-          />
+            }"?`}
+          >
+            Are you sure you want to delete this section and all of its fields?
+            This action cannot be undone.
+          </DeleteDialog>
 
           <DuplicateNameDialog
             open={duplicateNameDialogOpen}
@@ -990,7 +997,8 @@ export default function SchemaEditor() {
       </DndContext>
 
       {editingSchema && (
-        <SchemaShareDialog
+        <ShareDialog
+          mode="schema"
           open={shareDialogOpen}
           onClose={closeShareDialog}
           schema={editingSchema}
@@ -999,7 +1007,7 @@ export default function SchemaEditor() {
 
       <Dialog open={warningDialogOpen}>
         <DialogTitle>
-          <WarningIcon sx={{mr: 1}} color="warning"/> Warning
+          <WarningIcon sx={{ mr: 1 }} color="warning" /> Warning
         </DialogTitle>
         <DialogContent>
           Changing a schema could result in inaccurate data for the rest of your

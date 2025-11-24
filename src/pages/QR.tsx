@@ -19,7 +19,7 @@ import { useAsyncFetch } from "../hooks/useAsyncFetch";
 import { useQrManager } from "../hooks/useQrManager";
 import useDialog from "../hooks/useDialog";
 import QrScannerDialog from "../ui/dialog/QrScannerDialog";
-import QrShareDialog from "../ui/dialog/QrShareDialog";
+import ShareDialog from "../ui/dialog/ShareDialog";
 import ExportDialog from "../ui/dialog/ExportDialog";
 import ArchiveIcon from "@mui/icons-material/ArchiveRounded";
 import { exportQrCodesToCsv, exportQrCodesToJson } from "../utils/GeneralUtils";
@@ -225,7 +225,8 @@ export default function QRPage() {
         onClose={closeScanner}
         onImport={refetch}
       />
-      <QrShareDialog
+      <ShareDialog
+        mode="match"
         qrCodeData={activeQrCode!}
         open={qrDialogOpen}
         onClose={closeQrDialog}
