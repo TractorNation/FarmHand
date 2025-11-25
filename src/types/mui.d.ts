@@ -9,10 +9,12 @@ declare module "@mui/material/styles" {
   }
 
   interface Theme {
+    farmhandThemeId?: string;
     customShadows: CustomShadows;
   }
 
   interface ThemeOptions {
+    farmhandThemeId?: string;
     customShadows?: Partial<CustomShadows>;
   }
 

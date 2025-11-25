@@ -4,9 +4,9 @@ import {
   AccordionSummary,
   Grid,
   Typography,
-  useTheme,
   Box,
 } from "@mui/material";
+import { alpha, useTheme } from "@mui/material/styles";
 import DynamicComponent from "./components/DynamicComponent";
 import ValidationProvider from "../context/ValidationContext";
 import ExpandIcon from "@mui/icons-material/ExpandMoreRounded";
@@ -28,6 +28,7 @@ interface SectionProps {
 export default function Section(props: SectionProps) {
   const { section, submitted, expanded, onToggle } = props;
   const theme = useTheme();
+  const isWindowsXPTheme = theme.farmhandThemeId === "WindowsXPTheme";
   const { errors } = useScoutData();
 
   const getSectionFields = section.fields.map((field) => field.name);
@@ -50,7 +51,7 @@ export default function Section(props: SectionProps) {
       disableGutters
       elevation={0}
       sx={{
-        py: 3,
+        py: isWindowsXPTheme ? 2 : 3,
         px: 1,
         height: "100%",
         width: "100%",
@@ -58,19 +59,24 @@ export default function Section(props: SectionProps) {
         alignContent: "center",
         flexDirection: "column",
         backgroundColor: theme.palette.background.paper,
-        borderRadius: 3,
+        borderRadius: isWindowsXPTheme ? 2 : 3,
         borderColor: showErrorHighlight
           ? theme.palette.error.main
           : theme.palette.divider,
         borderWidth: 2,
         borderStyle: "solid",
         transition: "all 0.3s ease",
+        backgroundImage: isWindowsXPTheme
+          ? `linear-gradient(180deg, #fdfdff, #e8eef8)`
+          : undefined,
         "&:before": {
           display: "none",
         },
         "&:hover": !showErrorHighlight
           ? {
-              borderColor: theme.palette.primary.main,
+              borderColor: isWindowsXPTheme
+                ? alpha(theme.palette.primary.main, 0.7)
+                : theme.palette.primary.main,
             }
           : {},
       }}
@@ -81,6 +87,8 @@ export default function Section(props: SectionProps) {
             sx={{
               color: showErrorHighlight
                 ? theme.palette.error.main
+                : isWindowsXPTheme
+                ? "#103f91"
                 : theme.palette.secondary.main,
               fontSize: 32,
             }}
@@ -88,7 +96,17 @@ export default function Section(props: SectionProps) {
         }
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Typography variant="h5" sx={{ fontWeight: 600 }}>
+          <Typography
+            variant="h5"
+            sx={{
+              fontWeight: 600,
+              ...(isWindowsXPTheme && {
+                fontFamily: '"Trebuchet MS", "Tahoma", sans-serif',
+                fontSize: "1rem",
+                color: "#0f3fa6",
+              }),
+            }}
+          >
             {section.title}
           </Typography>
           {isSectionComplete && (
@@ -149,6 +167,8 @@ export default function Section(props: SectionProps) {
             sx={{
               color: showErrorHighlight
                 ? theme.palette.error.main
+                : isWindowsXPTheme
+                ? "#103f91"
                 : theme.palette.secondary.main,
               fontSize: 32,
               transform: "rotate(180deg)",
@@ -157,7 +177,9 @@ export default function Section(props: SectionProps) {
         }
         sx={{
           minHeight: 48,
-          borderTop: `1px solid ${theme.palette.divider}`,
+          borderTop: `1px solid ${
+            isWindowsXPTheme ? alpha("#000", 0.15) : theme.palette.divider
+          }`,
           "& .MuiAccordionSummary-content": { margin: 0 },
         }}
       />

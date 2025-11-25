@@ -745,6 +745,7 @@ export const createFarmHandTheme = (
     theme.customShadows = customShadows;
 
     theme = applyComponentOverrides(theme, config.fonts);
+    theme.farmhandThemeId = config.id;
 
     return theme;
   };
