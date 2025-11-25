@@ -6,7 +6,7 @@ import {
   useEffect,
   useState,
 } from "react";
-import StoreManager, { StoreKeys } from "../utils/StoreManager";
+import StoreManager, { StoreKeys } from "../utils/StoreManager.ts";
 
 export const defaultSettings: Settings = {
   LAST_SCHEMA_NAME: "2025 Reefscape",
