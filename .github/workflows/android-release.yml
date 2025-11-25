@@ -26,6 +26,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Verify TypeScript setup
+        run: |
+          echo "TypeScript version:"
+          npx tsc --version
+          echo "Node version:"
+          node --version
+          echo "npm version:"
+          npm --version
+          echo "Checking if source files exist:"
+          ls -la src/utils/ | head -10
+          ls -la src/ui/ | head -10
+          echo "Checking Fonts.ts:"
+          test -f src/utils/Fonts.ts && echo "Fonts.ts exists" || echo "Fonts.ts NOT FOUND"
+          echo "Checking StoreManager.ts:"
+          test -f src/utils/StoreManager.ts && echo "StoreManager.ts exists" || echo "StoreManager.ts NOT FOUND"
+
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -46,7 +62,23 @@ jobs:
           echo "storeFile=$RUNNER_TEMP/keystore.jks" >> keystore.properties
 
       - name: Build Android App
-        run: npm run tauri android build -- --release
+        run: |
+          # Clear any potential caches
+          rm -rf node_modules/.cache
+          rm -rf dist
+          # Temporarily modify tauri.conf.json to use build:ci script instead of build
+          cd src-tauri
+          # Use sed to replace the beforeBuildCommand
+          sed -i.bak 's/"beforeBuildCommand": "npm run build"/"beforeBuildCommand": "npm run build:ci"/' tauri.conf.json
+          cd ..
+          # Now build the Android app
+          npm run tauri android build -- --release
+          # Restore the original config
+          cd src-tauri
+          mv tauri.conf.json.bak tauri.conf.json
+          cd ..
+        env:
+          CI: false
 
       - name: Find APK and AAB files
         id: find-artifacts
