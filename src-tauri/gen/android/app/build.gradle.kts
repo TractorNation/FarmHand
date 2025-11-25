@@ -28,17 +28,23 @@ android {
     }
     
     signingConfigs {
-        create("release") {
-            val keystorePropertiesFile = rootProject.file("keystore.properties")
+        val keystorePropertiesFile = rootProject.file("keystore.properties")
+        if (keystorePropertiesFile.exists()) {
             val keystoreProperties = Properties()
-            if (keystorePropertiesFile.exists()) {
-                keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+            keystoreProperties.load(FileInputStream(keystorePropertiesFile))
+            
+            val keyAliasValue = keystoreProperties["keyAlias"] as? String
+            val passwordValue = keystoreProperties["password"] as? String
+            val storeFileValue = keystoreProperties["storeFile"] as? String
+            
+            if (keyAliasValue != null && passwordValue != null && storeFileValue != null) {
+                create("release") {
+                    keyAlias = keyAliasValue
+                    keyPassword = passwordValue
+                    storeFile = file(storeFileValue)
+                    storePassword = passwordValue
+                }
             }
-
-            keyAlias = keystoreProperties["keyAlias"] as String
-            keyPassword = keystoreProperties["password"] as String
-            storeFile = file(keystoreProperties["storeFile"] as String)
-            storePassword = keystoreProperties["password"] as String
         }
     }
     
@@ -56,7 +62,10 @@ android {
         }
         getByName("release") {
             isMinifyEnabled = true
-            signingConfig = signingConfigs.getByName("release")
+            // Only use signing config if it exists (i.e., keystore.properties is present)
+            if (signingConfigs.findByName("release") != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             proguardFiles(
                 *fileTree(".") { include("**/*.pro") }
                     .plus(getDefaultProguardFile("proguard-android-optimize.txt"))
