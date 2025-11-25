@@ -46,7 +46,7 @@ jobs:
           echo "storeFile=$RUNNER_TEMP/keystore.jks" >> keystore.properties
 
       - name: Build Android App
-        run: npm run tauri android build -- --release
+        run: npm run tauri android build --release
 
       - name: Find APK and AAB files
         id: find-artifacts
