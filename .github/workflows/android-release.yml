@@ -45,7 +45,7 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: aarch64-linux-android,i686-linux-android,x86_64-linux-android
+          targets: aarch64-linux-android
 
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
@@ -66,17 +66,27 @@ jobs:
           # Clear any potential caches
           rm -rf node_modules/.cache
           rm -rf dist
+          
+          # Clean Rust build cache for a fresh build
+          echo "Cleaning Rust build cache..."
+          cargo clean --target aarch64-linux-android 2>/dev/null || true
+          
           # Clean Android build to remove any cached references to old architectures
           cd src-tauri/gen/android
           ./gradlew clean || true
           cd ../../..
+          
           # Temporarily modify tauri.conf.json to use build:ci script instead of build
           cd src-tauri
           # Use sed to replace the beforeBuildCommand
           sed -i.bak 's/"beforeBuildCommand": "npm run build"/"beforeBuildCommand": "npm run build:ci"/' tauri.conf.json
           cd ..
+          
+          # Gradle properties are already set in gradle.properties to exclude armv7
+          
           # Now build the Android app
           npm run tauri android build --release
+          
           # Restore the original config
           cd src-tauri
           mv tauri.conf.json.bak tauri.conf.json
