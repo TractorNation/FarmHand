@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128">
+  <defs>
+    <linearGradient id="stoneGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#24201c" />
+      <stop offset="60%" stop-color="#171410" />
+      <stop offset="100%" stop-color="#0f0c09" />
+    </linearGradient>
+    <filter id="stoneNoise" x="0" y="0" width="1" height="1">
+      <feTurbulence
+        type="fractalNoise"
+        baseFrequency="0.6"
+        numOctaves="4"
+        seed="27"
+        stitchTiles="stitch"
+      />
+      <feComponentTransfer>
+        <feFuncR type="linear" slope="0.12" />
+        <feFuncG type="linear" slope="0.12" />
+        <feFuncB type="linear" slope="0.12" />
+        <feFuncA type="linear" slope="0.25" />
+      </feComponentTransfer>
+    </filter>
+    <pattern
+      id="stoneCracks"
+      width="32"
+      height="32"
+      patternUnits="userSpaceOnUse"
+    >
+      <path
+        d="M-4 18 L10 12 L20 20 L36 16"
+        fill="none"
+        stroke="#2d261f"
+        stroke-width="0.6"
+        stroke-linecap="round"
+        opacity="0.3"
+      />
+      <path
+        d="M8 -1 L12 10 L8 20 L16 34"
+        fill="none"
+        stroke="#2a231d"
+        stroke-width="0.5"
+        opacity="0.25"
+      />
+    </pattern>
+  </defs>
+  <rect width="128" height="128" fill="url(#stoneGradient)" />
+  <rect width="128" height="128" fill="url(#stoneCracks)" opacity="0.5" />
+  <rect width="128" height="128" filter="url(#stoneNoise)" opacity="0.3" />
+</svg>
+

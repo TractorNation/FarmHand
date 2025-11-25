@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128">
+  <defs>
+    <linearGradient id="parchmentGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f8ecd2" />
+      <stop offset="45%" stop-color="#f3ddb6" />
+      <stop offset="100%" stop-color="#f9e8c5" />
+    </linearGradient>
+    <pattern
+      id="parchmentFibers"
+      width="16"
+      height="16"
+      patternUnits="userSpaceOnUse"
+    >
+      <path
+        d="M-2 8 Q 4 6 8 8 T 18 7"
+        fill="none"
+        stroke="#d7bb8c"
+        stroke-width="0.35"
+        stroke-linecap="round"
+        opacity="0.2"
+      />
+      <path
+        d="M0 2 Q 6 3 8 0 M8 12 Q 12 11 14 12"
+        fill="none"
+        stroke="#c4a46f"
+        stroke-width="0.3"
+        opacity="0.15"
+      />
+    </pattern>
+    <filter id="grain" x="0" y="0" width="1" height="1">
+      <feTurbulence
+        type="fractalNoise"
+        baseFrequency="0.9"
+        numOctaves="3"
+        seed="12"
+        stitchTiles="stitch"
+      />
+      <feComponentTransfer>
+        <feFuncR type="linear" slope="0.15" />
+        <feFuncG type="linear" slope="0.12" />
+        <feFuncB type="linear" slope="0.08" />
+        <feFuncA type="linear" slope="0.15" />
+      </feComponentTransfer>
+    </filter>
+  </defs>
+  <rect width="128" height="128" fill="url(#parchmentGradient)" />
+  <rect width="128" height="128" fill="url(#parchmentFibers)" opacity="0.4" />
+  <rect
+    width="128"
+    height="128"
+    filter="url(#grain)"
+    opacity="0.16"
+    style="mix-blend-mode: multiply"
+  />
+</svg>
+
