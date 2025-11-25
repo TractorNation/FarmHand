@@ -647,14 +647,15 @@ const createRuneTheme = (mode: PaletteMode) => {
   const fontFaceCss = `${googleFontImport}
 ${buildFontFaceCss(runeFonts)}`;
 
+  baseTheme.farmhandThemeId = "RuneScapeTheme";
   return applyRuneComponents(baseTheme, fontFaceCss);
 };
 
 export const RuneScapeTheme: FarmHandThemeDefinition = {
   id: "RuneScapeTheme",
   meta: {
-    displayName: "RuneScape Relic",
-    flavorText: "Remixed from the classic RuneScape UI and fantasy RPG HUDs.",
+    displayName: "Dungeon Master",
+    flavorText: "Blades dull, armor breaks, but the will to grind endures.",
   },
   light: createRuneTheme("light"),
   dark: createRuneTheme("dark"),
