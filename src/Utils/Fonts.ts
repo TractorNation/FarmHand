@@ -4,7 +4,6 @@ import Antonio from "../assets/fonts/Antonio-VariableFont_wght.ttf";
 import Nasalization from "../assets/fonts/Nasalization_Rg.otf";
 import Fredoka from "../assets/fonts/Fredoka.ttf";
 import Voltec from "../assets/fonts/Voltec.ttf";
-import Goldman from "../assets/fonts/Goldman-Regular.ttf";
 import Iceland from "../assets/fonts/Iceland-Regular.ttf";
 import RussoOne from "../assets/fonts/RussoOne-Regular.ttf";
 import Telegraf from "../assets/fonts/Telegraf.otf";
@@ -30,7 +29,7 @@ export const antonio = {
 };
 
 export const baskervville = {
-  fontFamily: "baskervville",
+  fontFamily: "Baskervville",
   fontStyle: "normal",
   fontDisplay: "swap",
   src: `

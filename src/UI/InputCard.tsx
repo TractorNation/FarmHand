@@ -1,5 +1,5 @@
 import { Card, CardContent, Typography, Box } from "@mui/material";
-import { useTheme } from "@mui/material/styles";
+import { alpha, useTheme } from "@mui/material/styles";
 import { ReactNode, memo } from "react";
 import { useValidation } from "../context/ValidationContext";
 
@@ -32,13 +32,13 @@ function InputCard(props: InputCardProps) {
       sx={{
         borderColor: showError
           ? theme.palette.error.main
-          : theme.palette.divider,
-        borderWidth: 2,
+          : theme.palette.surface.outline,
+        borderWidth: 1,
         borderStyle: "solid",
-        borderRadius: 3,
+        borderRadius: theme.shape.borderRadius,
         p: 2,
         height: "100%",
-        backgroundColor: theme.palette.background.paper,
+        backgroundColor: theme.palette.surface.elevated,
         transition: "all 0.3s ease",
         alignContent: "center",
         display: "flex",
@@ -46,10 +46,11 @@ function InputCard(props: InputCardProps) {
         "&:hover": {
           borderColor: showError
             ? theme.palette.error.light
-            : theme.palette.primary.light,
+            : alpha(theme.palette.primary.main, 0.6),
           boxShadow: showError
-            ? `0 4px 12px ${theme.palette.error.main}20`
-            : `0 4px 12px ${theme.palette.primary.main}15`,
+            ? `0 6px 18px ${alpha(theme.palette.error.main, 0.3)}`
+            : theme.customShadows.card,
+          transform: "translateY(-2px)",
         },
       }}
     >

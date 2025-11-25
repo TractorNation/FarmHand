@@ -16,6 +16,7 @@ interface SectionData {
   fields: Component[];
 }
 
+/** The options for a component type */
 type ComponentType =
   | "checkbox"
   | "counter"
@@ -55,6 +56,7 @@ interface ComponentProps {
   onChange?: (value: any) => void;
 }
 
+/** Data about a specific qr code */
 interface QrCode {
   name: string;
   data: string;
@@ -82,7 +84,7 @@ interface Settings {
   COLOR_THEME: string;
 }
 
-/* Options for filtering qr codes */
+/** Options for filtering qr codes */
 type FilterOption =
   | "match number"
   | "team number"
@@ -91,8 +93,30 @@ type FilterOption =
   | "month"
   | "none";
 
-/* Options for sorting qr codes */
+/** Options for sorting qr codes */
 type SortMode = "match number" | "recent" | "none";
 
-/*The direction to sort codes by */
+/** The direction to sort codes by */
 type SortDirection = "ascending" | "descending";
+type ChartType = "bar" | "line" | "scatter" | "pie";
+
+/** Data about a specific Analysis, and what it contains */
+interface Analysis {
+  id: number;
+  name: string;
+  selectedTeams: number[];
+  selectedMatches: number[];
+  charts?: Chart[];
+  createdAt: Date;
+}
+
+/** Data about a specific chart and what it shows */
+interface Chart {
+  id: string;
+  name: string;
+  type: "bar" | "line" | "pie" | "scatter";
+  xAxis?: string; // Field name for x-axis
+  yAxis?: string; // Field name for y-axis (can be array for multi-series)
+  aggregation?: "sum" | "average" | "count" | "min" | "max";
+}
+

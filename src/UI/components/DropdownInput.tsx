@@ -6,12 +6,11 @@ import {
   FormControl,
 } from "@mui/material";
 
-/**
- * Props for the dropdown input
- */
+type DropdownOption = string | { label: string; value: string };
+
 interface DropdownInputProps {
   label?: string;
-  options: string[];
+  options: DropdownOption[];
   value?: string;
   onChange?: (value: string) => void;
   error?: boolean;
@@ -24,30 +23,36 @@ interface DropdownInputProps {
  */
 export default function DropdownInput(props: DropdownInputProps) {
   const { label, options, onChange, value, error, disabled } = props;
+  const normalizedOptions = options.map((option) =>
+    typeof option === "string"
+      ? { label: option, value: option }
+      : option
+  );
 
   const handleChange = (e: SelectChangeEvent) => {
     if (onChange) onChange(e.target.value);
   };
 
   return (
-    <FormControl fullWidth>
+    <FormControl fullWidth variant="outlined" size="small">
       <InputLabel color={error ? "error" : "secondary"}>{label}</InputLabel>
       <Select
-        value={value}
+        value={value ?? ""}
         label={label}
         onChange={handleChange}
         disabled={disabled}
         color="secondary"
         error={error}
         sx={{
+          borderRadius: (theme) => theme.shape.borderRadius,
           "& legend": {
             transition: "unset",
           },
         }}
       >
-        {options.map((option) => (
-          <MenuItem value={option} key={option}>
-            {option}
+        {normalizedOptions.map((option) => (
+          <MenuItem value={option.value} key={option.value}>
+            {option.label}
           </MenuItem>
         ))}
       </Select>

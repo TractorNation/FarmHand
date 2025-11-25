@@ -17,6 +17,7 @@ import {
   Stack,
   Tooltip,
   CssBaseline,
+  Slide,
 } from "@mui/material";
 import useDrawer from "./hooks/useDrawer";
 import MenuIcon from "@mui/icons-material/MenuRounded";
@@ -28,7 +29,7 @@ import QrCodeIcon from "@mui/icons-material/QrCodeRounded";
 import DashboardIcon from "@mui/icons-material/DashboardRounded";
 import UpdateIcon from "@mui/icons-material/SystemUpdateRounded";
 import ArchiveIcon from "@mui/icons-material/ArchiveRounded";
-import React, { Suspense, useEffect, useState } from "react";
+import React, { Suspense, useEffect, useRef, useState } from "react";
 import {
   HashRouter,
   Route,
@@ -36,26 +37,16 @@ import {
   useLocation,
   useNavigate,
 } from "react-router";
-import { TractorTheme } from "./config/themes/TractorTheme";
-import { ThemeNotFound } from "./config/themes/404ThemeNotFound";
-import { ThunderTheme } from "./config/themes/ThunderTheme";
-import { MuttonTheme } from "./config/themes/MuttonTheme";
-import { ThemeProvider, useTheme } from "@mui/material/styles";
+import { ThemeProvider, alpha, useTheme } from "@mui/material/styles";
 import SchemaProvider from "./context/SchemaContext";
 import Schemas from "./pages/Schemas";
 import SchemaEditor from "./pages/SchemaEditor";
 import LeadScoutDashboard from "./pages/Dashboard";
 import ScoutDataProvider from "./context/ScoutDataContext";
 import { useSettings } from "./context/SettingsContext";
+import { themeRegistry, type ThemeRegistryKey } from "./config/themes";
 import Archive from "./pages/Archive";
 import Help from "./pages/Help";
-
-const themes = {
-  TractorTheme: TractorTheme,
-  ThemeNotFound: ThemeNotFound,
-  ThunderTheme: ThunderTheme,
-  MuttonTheme: MuttonTheme,
-};
 
 const Home = React.lazy(() => import("./pages/Home"));
 const Settings = React.lazy(() => import("./pages/Settings"));
@@ -124,6 +115,16 @@ function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [latestVersion, setLatestVersion] = useState("");
+  const [hideHeader, setHideHeader] = useState(false);
+  const lastScrollTop = useRef(0);
+  const accentBackground =
+    theme.palette.primary.container ??
+    alpha(
+      theme.palette.primary.main,
+      theme.palette.mode === "light" ? 0.16 : 0.32
+    );
+  const accentForeground =
+    theme.palette.primary.onContainer ?? theme.palette.primary.contrastText;
 
   useEffect(() => {
     // Check for updates on mount
@@ -134,17 +135,34 @@ function Layout({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const selectedItemSx = {
-    "&.Mui-selected": {
-      backgroundColor: "transparent",
-      borderLeft: `4px solid ${theme.palette.secondary.main}`,
+  useEffect(() => {
+    const scrollThreshold = 10;
+    const handleScroll = () => {
+      const current = window.scrollY || document.documentElement.scrollTop || 0;
+      if (current > lastScrollTop.current + scrollThreshold && current > 80) {
+        setHideHeader(true);
+      } else if (current < lastScrollTop.current - scrollThreshold) {
+        setHideHeader(false);
+      }
+      lastScrollTop.current = Math.max(current, 0);
+    };
 
-      paddingLeft: "12px",
-      "&:hover": {
-        backgroundColor: theme.palette.action.hover,
-      },
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const selectedItemSx = {
+    transition: theme.transitions.create(["background-color", "box-shadow"], {
+      duration: theme.transitions.duration.shortest,
+    }),
+    "&.Mui-selected": {
+      backgroundColor: accentBackground,
+      boxShadow: `inset 4px 0 0 ${theme.palette.primary.main}`,
       "& .MuiListItemIcon-root, & .MuiTypography-root": {
-        color: theme.palette.secondary.main,
+        color: accentForeground,
+      },
+      "&:hover": {
+        backgroundColor: alpha(accentBackground, 0.9),
       },
     },
   };
@@ -162,69 +180,84 @@ function Layout({ children }: { children: React.ReactNode }) {
       <Box
         sx={{
           width: "100%",
-          backgroundColor: theme.palette.primary.dark,
           height: "env(safe-area-inset-top, 0px)",
         }}
       />
-      <AppBar
-        position="static"
-        elevation={4}
-        sx={{
-          backgroundColor: theme.palette.primary.main,
-          paddingLeft: "env(safe-area-inset-left, 0px)",
-          paddingRight: "env(safe-area-inset-right, 0px)",
-        }}
-      >
-        <Toolbar>
-          <IconButton
-            size="large"
-            edge="start"
-            color="inherit"
-            aria-label="menu"
-            sx={{ mr: 2 }}
-            onClick={toggleDrawer(true)}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography
-            variant="h3"
-            sx={{ flexGrow: 1, fontWeight: 600, cursor: "pointer" }}
-            onClick={() => navigate("/")}
-          >
-            FarmHand
-          </Typography>
-          <Stack direction="row" spacing={1} alignItems="center">
-            {updateAvailable && (
-              <Tooltip title={`Update available: v${latestVersion}`}>
-                <Chip
-                  icon={<UpdateIcon />}
-                  label="Update"
-                  color="warning"
-                  size="small"
-                  sx={{
-                    fontWeight: 600,
-                    fontFamily: theme.typography.body1,
-                    cursor: "pointer",
-                    "&:hover": {
-                      backgroundColor: theme.palette.warning.dark,
-                    },
-                  }}
-                />
-              </Tooltip>
-            )}
-            <Chip
-              label={`v${CURRENT_VERSION}`}
-              size="small"
-              sx={{
-                backgroundColor: `${theme.palette.common.white}20`,
-                color: theme.palette.common.white,
-                fontWeight: 600,
-                fontFamily: theme.typography.body1,
-              }}
-            />
-          </Stack>
-        </Toolbar>
-      </AppBar>
+      <Slide appear={false} direction="down" in={!hideHeader}>
+        <AppBar
+          position="sticky"
+          color="primary"
+          enableColorOnDark
+          elevation={0}
+          sx={{
+            backgroundColor: theme.palette.primary.main,
+            paddingLeft: "env(safe-area-inset-left, 0px)",
+            paddingRight: "env(safe-area-inset-right, 0px)",
+            borderTopRightRadius: 0,
+            borderTopLeftRadius: 0,
+            boxShadow: "none",
+            borderBottom: `1px solid ${theme.palette.surface.outline}`,
+          }}
+        >
+          <Toolbar>
+            <IconButton
+              size="large"
+              edge="start"
+              color="inherit"
+              aria-label="menu"
+              sx={{ mr: 2 }}
+              onClick={toggleDrawer(true)}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Typography
+              variant="h3"
+              sx={{ flexGrow: 1, fontWeight: 600, cursor: "pointer" }}
+              onClick={() => navigate("/")}
+            >
+              FarmHand
+            </Typography>
+            <Stack direction="row" spacing={1} alignItems="center">
+              {updateAvailable && (
+                <Tooltip title={`Update available: v${latestVersion}`}>
+                  <Chip
+                    icon={<UpdateIcon />}
+                    label="Update"
+                    color="warning"
+                    size="small"
+                    sx={{
+                      fontWeight: 600,
+                      fontFamily: theme.typography.body2?.fontFamily,
+                      cursor: "pointer",
+                      "&:hover": {
+                        backgroundColor: alpha(
+                          theme.palette.warning.main,
+                          theme.palette.mode === "light" ? 0.18 : 0.32
+                        ),
+                      },
+                    }}
+                  />
+                </Tooltip>
+              )}
+              <Chip
+                label={`v${CURRENT_VERSION}`}
+                size="small"
+                sx={{
+                  backgroundColor: theme.palette.primary.dark,
+                  color: theme.palette.text.secondary,
+                  fontWeight: 600,
+                  fontFamily: theme.typography.body2?.fontFamily,
+                  borderRadius: theme.shape.borderRadius,
+                  border: `1px solid ${alpha(
+                    theme.palette.text.primary,
+                    0.15
+                  )}`,
+                }}
+              />
+            </Stack>
+          </Toolbar>
+        </AppBar>
+      </Slide>
 
       <Drawer
         anchor="left"
@@ -235,12 +268,13 @@ function Layout({ children }: { children: React.ReactNode }) {
           paper: {
             sx: {
               width: isMobile ? "75vw" : 300,
-              backgroundColor: theme.palette.background.default,
+              backgroundColor: theme.palette.surface.base,
               display: "flex",
               flexDirection: "column",
               paddingTop: "env(safe-area-inset-top, 0px)",
               paddingBottom: "env(safe-area-inset-bottom, 0px)",
               boxSizing: "border-box",
+              borderRight: `1px solid ${theme.palette.surface.outline}`,
             },
           },
         }}
@@ -259,8 +293,8 @@ function Layout({ children }: { children: React.ReactNode }) {
           <Box
             sx={{
               p: 3,
-              background: `linear-gradient(135deg, ${theme.palette.primary.main}15 0%, ${theme.palette.primary.main}05 100%)`,
-              borderBottom: `2px solid ${theme.palette.divider}`,
+              backgroundColor: theme.palette.surface.variant,
+              borderBottom: `1px solid ${theme.palette.surface.outline}`,
             }}
           >
             <Typography variant="h5" sx={{ fontWeight: 600, mb: 0.5 }}>
@@ -311,6 +345,7 @@ function Layout({ children }: { children: React.ReactNode }) {
                       borderTopLeftRadius: 0,
                       borderBottomLeftRadius: 0,
                       mx: 1,
+                      color: theme.palette.text.secondary,
                     }}
                   >
                     <ListItemIcon sx={{ minWidth: 40 }}>
@@ -331,7 +366,9 @@ function Layout({ children }: { children: React.ReactNode }) {
 
           {/* Bottom section */}
           <Box>
-            <Divider sx={{ mb: 1 }} />
+            <Divider
+              sx={{ mb: 1, borderColor: theme.palette.surface.outline }}
+            />
             <List>
               {pages
                 .filter(
@@ -390,8 +427,10 @@ export default function App() {
   const { settings, settingsLoading } = useSettings();
   const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
 
-  const themeName = (settings.COLOR_THEME as keyof typeof themes) || "Tractor";
-  const selectedThemeContainer = themes[themeName] || themes.TractorTheme;
+  const themeName =
+    (settings.COLOR_THEME as ThemeRegistryKey) || "TractorTheme";
+  const selectedThemeContainer =
+    themeRegistry[themeName] || themeRegistry.TractorTheme;
 
   const theme =
     settings.THEME === "dark"

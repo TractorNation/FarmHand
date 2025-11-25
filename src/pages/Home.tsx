@@ -5,13 +5,13 @@ import {
   Typography,
   Card,
   CardContent,
-  useTheme,
   Box,
   Button,
   Stack,
   Grid,
   Paper,
 } from "@mui/material";
+import { alpha, useTheme } from "@mui/material/styles";
 import Markdown from "react-markdown";
 import AddChartIcon from "@mui/icons-material/AddchartRounded";
 import QrCodeIcon from "@mui/icons-material/QrCodeRounded";
@@ -93,9 +93,12 @@ export default function Home() {
         sx={{
           p: 3,
           mb: 4,
-          borderRadius: 3,
-          background: `linear-gradient(135deg, ${theme.palette.info.main}15 0%, ${theme.palette.info.main}05 100%)`,
-          border: `1px solid ${theme.palette.info.main}40`,
+          borderRadius: theme.shape.borderRadius,
+          backgroundColor: alpha(
+            theme.palette.info.main,
+            theme.palette.mode === "light" ? 0.08 : 0.22
+          ),
+          border: `1px solid ${alpha(theme.palette.info.main, 0.35)}`,
         }}
       >
         <Stack direction="row" spacing={2} alignItems="center">
@@ -112,9 +115,11 @@ export default function Home() {
             variant="contained"
             color="info"
             startIcon={<HelpIcon />}
-            onClick={() => {navigate('/help')}}
+            onClick={() => {
+              navigate("/help");
+            }}
             sx={{
-              borderRadius: 2,
+              borderRadius: theme.shape.borderRadius,
               px: 3,
             }}
           >
@@ -129,9 +134,12 @@ export default function Home() {
         sx={{
           p: 3,
           mb: 4,
-          borderRadius: 3,
-          background: `linear-gradient(135deg, ${theme.palette.secondary.main}15 0%, ${theme.palette.secondary.main}05 100%)`,
-          border: `1px solid ${theme.palette.secondary.main}40`,
+          borderRadius: theme.shape.borderRadius,
+          backgroundColor: alpha(
+            theme.palette.secondary.main,
+            theme.palette.mode === "light" ? 0.08 : 0.2
+          ),
+          border: `1px solid ${alpha(theme.palette.secondary.main, 0.35)}`,
         }}
       >
         <Stack direction="row" spacing={2} alignItems="center">
@@ -152,7 +160,7 @@ export default function Home() {
             startIcon={<InfoIcon />}
             onClick={() => {}}
             sx={{
-              borderRadius: 2,
+              borderRadius: theme.shape.borderRadius,
               px: 3,
             }}
           >
@@ -173,15 +181,15 @@ export default function Home() {
                 elevation={0}
                 sx={{
                   height: "100%",
-                  borderRadius: 3,
-                  border: `2px solid ${theme.palette.divider}`,
+                  borderRadius: theme.shape.borderRadius,
+                  border: `1px solid ${theme.palette.surface.outline}`,
                   transition: "all 0.3s ease",
                   cursor: "pointer",
                   opacity: 1,
                   "&:hover": {
                     transform: "translateY(-4px)",
-                    borderColor: action.color,
-                    boxShadow: `0 8px 24px ${action.color}30`,
+                    borderColor: alpha(action.color, 0.65),
+                    boxShadow: theme.customShadows.card,
                   },
                 }}
                 onClick={() => navigate(action.path)}
@@ -203,7 +211,10 @@ export default function Home() {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        backgroundColor: `${action.color}20`,
+                        backgroundColor: alpha(
+                          action.color,
+                          theme.palette.mode === "light" ? 0.12 : 0.32
+                        ),
                         color: action.color,
                       }}
                     >
@@ -248,17 +259,20 @@ export default function Home() {
           variant="outlined"
           elevation={0}
           sx={{
-            borderColor: theme.palette.divider,
-            borderWidth: 2,
-            borderRadius: 3,
-            backgroundColor: theme.palette.background.paper,
+            borderColor: theme.palette.surface.outline,
+            borderWidth: 1,
+            borderRadius: theme.shape.borderRadius,
+            backgroundColor: theme.palette.surface.elevated,
             overflow: "hidden",
           }}
         >
           <Box
             sx={{
-              background: `linear-gradient(135deg, ${theme.palette.success.main}20 0%, ${theme.palette.success.main}05 100%)`,
-              borderBottom: `2px solid ${theme.palette.divider}`,
+              backgroundColor: alpha(
+                theme.palette.success.main,
+                theme.palette.mode === "light" ? 0.1 : 0.25
+              ),
+              borderBottom: `1px solid ${theme.palette.surface.outline}`,
               p: 2,
             }}
           >

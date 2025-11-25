@@ -5,32 +5,43 @@ import {
   Stack,
   Card,
   CardContent,
-  useTheme,
   Divider,
   Switch,
   FormControlLabel,
   Button,
   TextField,
 } from "@mui/material";
+import { alpha, useTheme } from "@mui/material/styles";
 import DropdownInput from "../ui/components/DropdownInput";
 import SettingsIcon from "@mui/icons-material/SettingsRounded";
-import SchemaIcon from "@mui/icons-material/SchemaRounded";
+import SchemaIcon from "@mui/icons-material/DescriptionRounded";
 import PaletteIcon from "@mui/icons-material/PaletteRounded";
 import StorageIcon from "@mui/icons-material/StorageRounded";
 import NotificationsIcon from "@mui/icons-material/NotificationsRounded";
 import SecurityIcon from "@mui/icons-material/SecurityRounded";
 import InfoIcon from "@mui/icons-material/InfoRounded";
-import NumberInput from "../ui/components/NumberInput";
 import { useState } from "react";
 import PageHeader from "../ui/PageHeader";
 import { useSettings } from "../context/SettingsContext";
 import { useNavigate } from "react-router";
+import { themeRegistry } from "../config/themes";
 
 export default function Settings() {
   const { schemaName, availableSchemas } = useSchema();
   const { setSetting, settings } = useSettings();
   const theme = useTheme();
   const navigate = useNavigate();
+  const themeOptions = Object.keys(themeRegistry);
+  const themedDropdownOptions = themeOptions.map((key) => ({
+    value: key,
+    label: themeRegistry[key as keyof typeof themeRegistry].meta.displayName,
+  }));
+  const selectedTheme =
+    themeRegistry[
+      (settings.COLOR_THEME as keyof typeof themeRegistry) ?? "TractorTheme"
+    ];
+  const tintSurface = (color: string) =>
+    alpha(color, theme.palette.mode === "light" ? 0.12 : 0.32);
 
   // TODO: Make these actually function
   const [notifications, setNotifications] = useState(true);
@@ -77,12 +88,7 @@ export default function Settings() {
           label: "Color Theme",
           description: "Select the color palette for the app",
           value: settings.COLOR_THEME || "TractorTheme",
-          options: [
-            "TractorTheme",
-            "ThemeNotFound",
-            "ThunderTheme",
-            "MuttonTheme",
-          ],
+          options: themedDropdownOptions,
           onChange: (value: string) => handleChange("COLOR_THEME", value),
         },
         {
@@ -116,27 +122,33 @@ export default function Settings() {
           label: "Device ID",
           description: "Identify this device in match data",
           value: settings.DEVICE_ID,
-          onChange: (value: number | null) => {
-            handleChange("DEVICE_ID", value ?? 1);
+          onChange: (value: string) => handleChange("DEVICE_ID", value),
+          onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
+            let num = Math.round(Number(e.target.value));
+            if (isNaN(num) || num < 1) {
+              num = 1;
+            }
+            handleChange("DEVICE_ID", num);
           },
-          min: 1,
+          inputProps: { min: 1 },
         },
         {
           type: "number",
           label: "Number of Scout Devices",
           description: "Set the total number of scouting devices",
           value: settings.EXPECTED_DEVICES_COUNT,
-          onChange: (value: number | null) => {
-            const num = value ?? 1;
-            handleChange(
-              "EXPECTED_DEVICES_COUNT",
-              Math.min(Math.max(num, 1), 50)
-            );
+          onChange: (value: string) =>
+            handleChange("EXPECTED_DEVICES_COUNT", value),
+          onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
+            let num = Math.round(Number(e.target.value));
+            if (isNaN(num) || num < 1) {
+              num = 1;
+            }
+            handleChange("EXPECTED_DEVICES_COUNT", num);
           },
-          min: 1,
-          max: 50,
+          inputProps: { min: 1 },
         },
-      ],
+      ].filter(Boolean),
     },
     {
       id: "notifications",
@@ -207,13 +219,14 @@ export default function Settings() {
         );
       case "number":
         return (
-          <NumberInput
+          <TextField
+            type="number"
             value={setting.value}
-            onChange={setting.onChange}
-            min={setting.min}
-            max={setting.max}
-            label=""
-            error={false}
+            onChange={(e) => setting.onChange(e.target.value)}
+            onBlur={setting.onBlur}
+            inputProps={setting.inputProps}
+            size="small"
+            sx={{ minWidth: 100 }}
           />
         );
       case "button":
@@ -249,20 +262,22 @@ export default function Settings() {
             key={section.id}
             elevation={0}
             sx={{
-              border: `2px solid ${theme.palette.divider}`,
-              borderRadius: 3,
+              border: `1px solid ${theme.palette.surface.outline}`,
+              borderRadius: theme.shape.borderRadius,
+              backgroundColor: theme.palette.surface.elevated,
               transition: "all 0.3s ease",
               "&:hover": {
-                borderColor: section.color,
-                boxShadow: `0 4px 12px ${section.color}20`,
+                borderColor: alpha(section.color, 0.6),
+                boxShadow: theme.customShadows.card,
+                transform: "translateY(-2px)",
               },
             }}
           >
             {/* Section Header */}
             <Box
               sx={{
-                background: `linear-gradient(135deg, ${section.color}15 0%, ${section.color}05 100%)`,
-                borderBottom: `2px solid ${theme.palette.divider}`,
+                backgroundColor: tintSurface(section.color),
+                borderBottom: `1px solid ${theme.palette.surface.outline}`,
                 p: 2,
               }}
             >
@@ -275,7 +290,10 @@ export default function Settings() {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    backgroundColor: `${section.color}20`,
+                    backgroundColor: alpha(
+                      section.color,
+                      theme.palette.mode === "light" ? 0.2 : 0.35
+                    ),
                     color: section.color,
                   }}
                 >
@@ -315,8 +333,23 @@ export default function Settings() {
                             {renderSettingControl(setting)}
                           </Box>
                         </Stack>
+                        {setting.label === "Color Theme" &&
+                          selectedTheme?.meta?.flavorText && (
+                            <Typography
+                              variant="body2"
+                              color="text.secondary"
+                              sx={{ mt: 1.5 }}
+                            >
+                              {selectedTheme.meta.flavorText}
+                            </Typography>
+                          )}
                         {index < section.settings.length - 1 && (
-                          <Divider sx={{ mt: 3 }} />
+                          <Divider
+                            sx={{
+                              mt: 3,
+                              borderColor: theme.palette.surface.outline,
+                            }}
+                          />
                         )}
                       </Box>
                     )
@@ -325,7 +358,7 @@ export default function Settings() {
             </CardContent>
             {section.id === "scouting" && (
               <>
-                <Divider />
+                <Divider sx={{ borderColor: theme.palette.surface.outline }} />
                 <Box sx={{ p: 2 }}>
                   <Button
                     fullWidth
@@ -336,7 +369,7 @@ export default function Settings() {
                     }
                     startIcon={<SchemaIcon />}
                     sx={{
-                      borderRadius: 2,
+                      borderRadius: theme.shape.borderRadius,
                       py: 1.5,
                       borderWidth: 2,
                       "&:hover": { borderWidth: 2 },
@@ -354,14 +387,14 @@ export default function Settings() {
         <Card
           elevation={0}
           sx={{
-            border: `2px solid ${theme.palette.divider}`,
-            borderRadius: 3,
+            border: `1px solid ${theme.palette.surface.outline}`,
+            borderRadius: theme.shape.borderRadius,
           }}
         >
           <Box
             sx={{
-              background: `linear-gradient(135deg, ${theme.palette.info.main}15 0%, ${theme.palette.info.main}05 100%)`,
-              borderBottom: `2px solid ${theme.palette.divider}`,
+              backgroundColor: tintSurface(theme.palette.info.main),
+              borderBottom: `1px solid ${theme.palette.surface.outline}`,
               p: 2,
             }}
           >
@@ -374,7 +407,10 @@ export default function Settings() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  backgroundColor: `${theme.palette.info.main}20`,
+                  backgroundColor: alpha(
+                    theme.palette.info.main,
+                    theme.palette.mode === "light" ? 0.2 : 0.35
+                  ),
                   color: theme.palette.info.main,
                 }}
               >
@@ -395,7 +431,7 @@ export default function Settings() {
                   FarmHand v0.1.0-beta.0
                 </Typography>
               </Box>
-              <Divider />
+              <Divider sx={{ borderColor: theme.palette.surface.outline }} />
               <Box>
                 <Typography variant="subtitle2" color="text.secondary">
                   Developed by
@@ -404,7 +440,7 @@ export default function Settings() {
                   FRC Team 3655, The Tractor Technicians
                 </Typography>
               </Box>
-              <Divider />
+              <Divider sx={{ borderColor: theme.palette.surface.outline }} />
               <Box>
                 <Typography
                   variant="subtitle2"
@@ -416,7 +452,10 @@ export default function Settings() {
                 <Button
                   variant="outlined"
                   color="info"
-                  sx={{ borderRadius: 2, borderWidth: 2 }}
+                  sx={{
+                    borderRadius: theme.shape.borderRadius,
+                    borderWidth: 2,
+                  }}
                 >
                   View Open Source Licenses
                 </Button>

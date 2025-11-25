@@ -1,4 +1,5 @@
-import { Box, Stack, Typography, useTheme } from "@mui/material";
+import { Box, Stack, Typography } from "@mui/material";
+import { alpha, useTheme } from "@mui/material/styles";
 import { ReactNode } from "react";
 
 interface PageHeaderProps {
@@ -35,8 +36,12 @@ export default function PageHeader(props: PageHeaderProps) {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: `${theme.palette.primary.main}20`,
-              color: theme.palette.primary.main,
+              backgroundColor: alpha(
+                theme.palette.primary.main ?? theme.palette.primary.container,
+                0.32
+              ),
+              color:
+                theme.palette.primary.onContainer ?? theme.palette.primary.main,
             }}
           >
             {icon}
