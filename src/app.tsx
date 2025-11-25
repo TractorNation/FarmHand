@@ -200,10 +200,10 @@ function Layout({ children }: { children: React.ReactNode }) {
       border: "1px solid rgba(7, 32, 96, 0.65)",
       color: "#ffffff",
       borderRadius: 2,
-      boxShadow: `inset 1px 1px 0 ${alpha("#ffffff", 0.65)}, inset -1px -1px 0 ${alpha(
-        "#000000",
-        0.35
-      )}`,
+      boxShadow: `inset 1px 1px 0 ${alpha(
+        "#ffffff",
+        0.65
+      )}, inset -1px -1px 0 ${alpha("#000000", 0.35)}`,
       "&:hover": {
         backgroundImage: "linear-gradient(180deg, #3a80f2 0%, #1b4fb3 90%)",
       },
@@ -383,7 +383,9 @@ function Layout({ children }: { children: React.ReactNode }) {
                       color: theme.palette.text.secondary,
                     }}
                   >
-                    <ListItemIcon sx={{ minWidth: 40 }}>
+                    <ListItemIcon
+                      sx={{ minWidth: 40, color: theme.palette.text.secondary }}
+                    >
                       {item.icon}
                     </ListItemIcon>
                     <ListItemText
@@ -425,7 +427,12 @@ function Layout({ children }: { children: React.ReactNode }) {
                         mx: 1,
                       }}
                     >
-                      <ListItemIcon sx={{ minWidth: 40 }}>
+                      <ListItemIcon
+                        sx={{
+                          minWidth: 40,
+                          color: theme.palette.text.secondary,
+                        }}
+                      >
                         {item.icon}
                       </ListItemIcon>
                       <ListItemText

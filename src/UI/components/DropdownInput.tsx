@@ -44,7 +44,6 @@ export default function DropdownInput(props: DropdownInputProps) {
         color="secondary"
         error={error}
         sx={{
-          borderRadius: (theme) => theme.shape.borderRadius,
           "& legend": {
             transition: "unset",
           },
