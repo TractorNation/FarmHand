@@ -600,7 +600,6 @@ const applyComponentOverrides = (
       styleOverrides: {
         root: {
           borderRadius: 999,
-          boxShadow: theme.customShadows.glow,
         },
       },
     },
