@@ -217,6 +217,7 @@ function Layout({ children }: { children: React.ReactNode }) {
         sx={{
           width: "100%",
           height: "env(safe-area-inset-top, 0px)",
+          backgroundColor: theme.palette.primary.dark
         }}
       />
       <Slide appear={false} direction="down" in={!hideHeader}>

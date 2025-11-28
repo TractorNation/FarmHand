@@ -13,6 +13,7 @@ import {
   Snackbar,
   Slide,
   IconButton,
+  useMediaQuery,
 } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import DropdownInput from "../ui/components/DropdownInput";
@@ -51,6 +52,7 @@ export default function Settings() {
   const [editingSettings, setEditingSettings] = useState<Settings>(settings);
   const [originalSettings, setOriginalSettings] = useState<Settings>(settings);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const isLandscape = useMediaQuery("(orientation: landscape)");
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [notifications, setNotifications] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -388,13 +390,13 @@ export default function Settings() {
 
             {/* Section Content */}
             <CardContent sx={{ p: 3 }}>
-              <Stack spacing={3}>
+              <Stack spacing={3} justifyContent="center">
                 {section.settings.map(
                   (setting, index) =>
                     setting && (
                       <Box key={index}>
                         <Stack
-                          direction="row"
+                          direction={isLandscape ? "row" : "column"}
                           alignItems="center"
                           justifyContent="space-between"
                           spacing={2}
@@ -413,17 +415,17 @@ export default function Settings() {
                           <Box sx={{ flexShrink: 0 }}>
                             {renderSettingControl(setting)}
                           </Box>
+                          {setting.label === "Color Theme" &&
+                            selectedTheme?.meta?.flavorText && (
+                              <Typography
+                                variant="body2"
+                                color="text.secondary"
+                                sx={{ mt: 1.5 }}
+                              >
+                                {selectedTheme.meta.flavorText}
+                              </Typography>
+                            )}
                         </Stack>
-                        {setting.label === "Color Theme" &&
-                          selectedTheme?.meta?.flavorText && (
-                            <Typography
-                              variant="body2"
-                              color="text.secondary"
-                              sx={{ mt: 1.5 }}
-                            >
-                              {selectedTheme.meta.flavorText}
-                            </Typography>
-                          )}
                         {index < section.settings.length - 1 && (
                           <Divider
                             sx={{
