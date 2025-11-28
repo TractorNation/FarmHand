@@ -10,6 +10,10 @@ import {
   FormControlLabel,
   Button,
   TextField,
+  Chip,
+  Snackbar,
+  Slide,
+  IconButton,
 } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import DropdownInput from "../ui/components/DropdownInput";
@@ -20,15 +24,20 @@ import StorageIcon from "@mui/icons-material/StorageRounded";
 import NotificationsIcon from "@mui/icons-material/NotificationsRounded";
 import SecurityIcon from "@mui/icons-material/SecurityRounded";
 import InfoIcon from "@mui/icons-material/InfoRounded";
-import { useState } from "react";
+import SaveIcon from "@mui/icons-material/SaveRounded";
+import WarningIcon from "@mui/icons-material/WarningRounded";
+import CloseIcon from "@mui/icons-material/CloseRounded";
+import { useState, useEffect } from "react";
 import PageHeader from "../ui/PageHeader";
 import { useSettings } from "../context/SettingsContext";
 import { useNavigate } from "react-router";
 import { themeRegistry } from "../config/themes";
+import useDialog from "../hooks/useDialog";
+import UnsavedSchemaChangesDialog from "../ui/dialog/UnsavedSchemaChangesDialog";
 
 export default function Settings() {
   const { schemaName, availableSchemas } = useSchema();
-  const { setSetting, settings } = useSettings();
+  const { setSetting, settings, settingsLoading } = useSettings();
   const theme = useTheme();
   const navigate = useNavigate();
   const themeOptions = Object.keys(themeRegistry);
@@ -36,18 +45,59 @@ export default function Settings() {
     value: key,
     label: themeRegistry[key as keyof typeof themeRegistry].meta.displayName,
   }));
+
+  // Local state for editing settings
+  const [editingSettings, setEditingSettings] = useState<Settings>(settings);
+  const [originalSettings, setOriginalSettings] = useState<Settings>(settings);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [notifications, setNotifications] = useState(true);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  const [
+    unsavedChangesDialogOpen,
+    openUnsavedChangesDialog,
+    closeUnsavedChangesDialog,
+  ] = useDialog();
+
+  // Update local settings when context settings finish loading (initial load only)
+  useEffect(() => {
+    if (!settingsLoading && !isInitialized) {
+      setEditingSettings(settings);
+      setOriginalSettings(settings);
+      setIsInitialized(true);
+    }
+  }, [settings, settingsLoading, isInitialized]);
+
+  // Check for unsaved changes
+  useEffect(() => {
+    const hasChanges =
+      JSON.stringify(editingSettings) !== JSON.stringify(originalSettings);
+    setHasUnsavedChanges(hasChanges);
+  }, [editingSettings, originalSettings]);
+
   const selectedTheme =
     themeRegistry[
-      (settings.COLOR_THEME as keyof typeof themeRegistry) ?? "TractorTheme"
+      (editingSettings.COLOR_THEME as keyof typeof themeRegistry) ??
+        "TractorTheme"
     ];
   const tintSurface = (color: string) =>
     alpha(color, theme.palette.mode === "light" ? 0.12 : 0.32);
 
-  // TODO: Make these actually function
-  const [notifications, setNotifications] = useState(true);
+  const handleChange = (key: keyof Settings, value: any) => {
+    setEditingSettings((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  };
 
-  const handleChange = async (key: keyof Settings, value: any) => {
-    await setSetting(key, value);
+  const handleSaveSettings = async () => {
+    // Save all settings
+    for (const [key, value] of Object.entries(editingSettings)) {
+      await setSetting(key as keyof Settings, value);
+    }
+    setOriginalSettings(editingSettings);
+    setSnackbarOpen(true);
   };
 
   const handleLeadScoutToggle = (checked: boolean) => {
@@ -57,6 +107,20 @@ export default function Settings() {
     } else {
       handleChange("DEVICE_ID", 1);
     }
+  };
+
+  const handleNavigateToSchemas = () => {
+    if (hasUnsavedChanges) {
+      openUnsavedChangesDialog();
+    } else {
+      navigate("/schemas", { state: { showWarning: true } });
+    }
+  };
+
+  const handleDiscardChanges = () => {
+    closeUnsavedChangesDialog();
+    setEditingSettings(originalSettings);
+    navigate("/schemas", { state: { showWarning: true } });
   };
 
   // Settings sections organized by category
@@ -71,7 +135,7 @@ export default function Settings() {
           type: "dropdown",
           label: "Active Schema",
           description: "Select which scouting form to use",
-          value: settings.LAST_SCHEMA_NAME || schemaName || "",
+          value: editingSettings.LAST_SCHEMA_NAME || schemaName || "",
           options: availableSchemas.map((s) => s.name),
           onChange: (value: string) => handleChange("LAST_SCHEMA_NAME", value),
         },
@@ -87,7 +151,7 @@ export default function Settings() {
           type: "dropdown",
           label: "Color Theme",
           description: "Select the color palette for the app",
-          value: settings.COLOR_THEME || "TractorTheme",
+          value: editingSettings.COLOR_THEME || "TractorTheme",
           options: themedDropdownOptions,
           onChange: (value: string) => handleChange("COLOR_THEME", value),
         },
@@ -96,7 +160,8 @@ export default function Settings() {
           label: "Theme Mode",
           description: "Use light, dark, or system theme",
           value:
-            settings.THEME.charAt(0).toUpperCase() + settings.THEME.slice(1),
+            editingSettings.THEME.charAt(0).toUpperCase() +
+            editingSettings.THEME.slice(1),
           options: ["Light", "Dark", "System"],
           onChange: (value: string) =>
             handleChange("THEME", value.toLowerCase()),
@@ -114,14 +179,14 @@ export default function Settings() {
           label: "Lead Scout only",
           description:
             "Device is only used to view and collect match data. Matches scouted with this device will not be counted towards collected scout metrics.",
-          checked: settings.LEAD_SCOUT_ONLY || false,
+          checked: editingSettings.LEAD_SCOUT_ONLY || false,
           onChange: (checked: boolean) => handleLeadScoutToggle(checked),
         },
-        !settings.LEAD_SCOUT_ONLY && {
+        !editingSettings.LEAD_SCOUT_ONLY && {
           type: "number",
           label: "Device ID",
           description: "Identify this device in match data",
-          value: settings.DEVICE_ID,
+          value: editingSettings.DEVICE_ID,
           onChange: (value: string) => handleChange("DEVICE_ID", value),
           onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
             let num = Math.round(Number(e.target.value));
@@ -136,7 +201,7 @@ export default function Settings() {
           type: "number",
           label: "Number of Scout Devices",
           description: "Set the total number of scouting devices",
-          value: settings.EXPECTED_DEVICES_COUNT,
+          value: editingSettings.EXPECTED_DEVICES_COUNT,
           onChange: (value: string) =>
             handleChange("EXPECTED_DEVICES_COUNT", value),
           onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
@@ -253,6 +318,32 @@ export default function Settings() {
         icon={<SettingsIcon sx={{ fontSize: 28 }} />}
         title="Settings"
         subtitle="Configure FarmHand to your preferences"
+        trailingComponent={
+          <Stack direction="column" spacing={2} alignItems="center">
+            {hasUnsavedChanges && (
+              <Chip
+                icon={<WarningIcon />}
+                label="Unsaved Changes"
+                color="warning"
+                sx={{
+                  fontWeight: 600,
+                  fontFamily: theme.typography.body1,
+                }}
+              />
+            )}
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={handleSaveSettings}
+              startIcon={<SaveIcon />}
+              size="large"
+              disabled={!hasUnsavedChanges}
+              sx={{ borderRadius: 2 }}
+            >
+              Save Settings
+            </Button>
+          </Stack>
+        }
       />
 
       {/* Settings Sections */}
@@ -364,9 +455,7 @@ export default function Settings() {
                     fullWidth
                     variant="outlined"
                     color="primary"
-                    onClick={() =>
-                      navigate("/schemas", { state: { showWarning: true } })
-                    }
+                    onClick={handleNavigateToSchemas}
                     startIcon={<SchemaIcon />}
                     sx={{
                       borderRadius: theme.shape.borderRadius,
@@ -428,7 +517,7 @@ export default function Settings() {
                   Version
                 </Typography>
                 <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  FarmHand v0.2.0-beta
+                  FarmHand v0.2.0-1
                 </Typography>
               </Box>
               <Divider sx={{ borderColor: theme.palette.surface.outline }} />
@@ -464,6 +553,39 @@ export default function Settings() {
           </CardContent>
         </Card>
       </Stack>
+
+      <UnsavedSchemaChangesDialog
+        open={unsavedChangesDialogOpen}
+        onClose={closeUnsavedChangesDialog}
+        onDiscard={handleDiscardChanges}
+      />
+
+      <Snackbar
+        open={snackbarOpen}
+        onClose={() => setSnackbarOpen(false)}
+        slots={{ transition: Slide }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        slotProps={{
+          content: {
+            sx: {
+              backgroundColor: theme.palette.success.main,
+              color: theme.palette.success.contrastText,
+              fontFamily: theme.typography.subtitle1,
+            },
+          },
+        }}
+        message="Successfully saved settings"
+        autoHideDuration={1200}
+        action={
+          <IconButton
+            onClick={() => {
+              setSnackbarOpen(false);
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        }
+      />
     </Box>
   );
 }

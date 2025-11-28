@@ -118,6 +118,7 @@ function Layout({ children }: { children: React.ReactNode }) {
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [latestVersion, setLatestVersion] = useState("");
   const [hideHeader, setHideHeader] = useState(false);
+  const { settings } = useSettings();
   const lastScrollTop = useRef(0);
   const accentBackground =
     theme.palette.primary.container ??
@@ -275,7 +276,7 @@ function Layout({ children }: { children: React.ReactNode }) {
                 </Tooltip>
               )}
               <Chip
-                label={`v${CURRENT_VERSION}`}
+                label={`Device ID: ${settings.DEVICE_ID}`}
                 size="small"
                 sx={{
                   backgroundColor: theme.palette.primary.dark,
