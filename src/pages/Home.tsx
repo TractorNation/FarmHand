@@ -158,7 +158,9 @@ export default function Home() {
             variant="contained"
             color="secondary"
             startIcon={<InfoIcon />}
-            onClick={() => {}}
+            href="https://tractornation.org/home"
+            target="_blank"
+            rel="noopener noreferrer"
             sx={{
               borderRadius: theme.shape.borderRadius,
               px: 3,
