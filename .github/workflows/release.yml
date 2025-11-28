@@ -288,30 +288,6 @@ jobs:
           retention-days: 1
           if-no-files-found: error
 
-      - name: Verify Windows artifacts before upload
-        if: matrix.platform == 'windows'
-        run: |
-          $artifactDir = "${{ steps.windows_artifacts.outputs.artifact-dir }}"
-          Write-Host "Artifact directory from output: '$artifactDir'"
-
-          if ([string]::IsNullOrWhiteSpace($artifactDir)) {
-            Write-Host "Artifact directory output is empty, using default: windows-artifacts"
-            $artifactDir = "windows-artifacts"
-          }
-
-          $fullPath = Join-Path $env:GITHUB_WORKSPACE $artifactDir
-          if (-not (Test-Path $fullPath)) {
-            Write-Host "ERROR: Artifact directory does not exist: $fullPath"
-            exit 1
-          }
-
-          $files = Get-ChildItem -Path $fullPath -File
-          Write-Host "Found $($files.Count) file(s) in $artifactDir:"
-          foreach ($file in $files) {
-            Write-Host "  - $($file.Name)"
-          }
-        shell: pwsh
-
       - name: Upload Windows artifacts
         if: matrix.platform == 'windows'
         uses: actions/upload-artifact@v4
