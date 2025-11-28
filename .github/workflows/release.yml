@@ -1,0 +1,289 @@
+name: Build and Release
+
+# Required GitHub Secrets:
+# Android:
+#   - ANDROID_KEYSTORE_PASSWORD: Password for the Android keystore
+#   - ANDROID_KEY_ALIAS: Alias of the key in the keystore (e.g., "farmhand")
+#   - ANDROID_KEYSTORE_BASE64: Base64-encoded content of the .jks keystore file
+
+
+on:
+  workflow_dispatch:
+    inputs:
+      platforms:
+        description: 'Platforms to build (comma-separated: android, windows, macos, linux). Leave empty for all.'
+        required: false
+        default: 'android,windows'
+  push:
+    branches:
+      - dev
+
+jobs:
+  # Extract version and changelog once
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      tag: ${{ steps.version.outputs.tag }}
+      changelog: ${{ steps.changelog.outputs.changelog }}
+      is_prerelease: ${{ steps.version.outputs.is_prerelease }}
+      should_make_latest: ${{ steps.version.outputs.should_make_latest }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Extract version from package.json
+        id: version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=v$VERSION" >> $GITHUB_OUTPUT
+          if [[ "$VERSION" == *"-"* ]] || [[ "$VERSION" == *"beta"* ]] || [[ "$VERSION" == *"alpha"* ]]; then
+            echo "is_prerelease=true" >> $GITHUB_OUTPUT
+            echo "should_make_latest=false" >> $GITHUB_OUTPUT
+          else
+            echo "is_prerelease=false" >> $GITHUB_OUTPUT
+            echo "should_make_latest=true" >> $GITHUB_OUTPUT
+          fi
+          echo "Extracted version: $VERSION"
+
+      - name: Extract changelog for version
+        id: changelog
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          CHANGELOG=$(node scripts/extract-changelog.js "$VERSION")
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+  # Build jobs run in parallel
+  build:
+    needs: prepare
+    runs-on: ${{ matrix.runs-on }}
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: android
+            runs-on: ubuntu-latest
+            target: aarch64
+            artifact-name: android-aarch64
+          - platform: windows
+            runs-on: windows-latest
+            target: x86_64-pc-windows-msvc
+            artifact-name: windows-x64
+          # In the future i can add these
+          # - platform: macos
+          #   runs-on: macos-latest
+          #   target: x86_64-apple-darwin
+          #   artifact-name: macos-intel-x64
+          # - platform: macos-arm
+          #   runs-on: macos-latest
+          #   target: aarch64-apple-darwin
+          #   artifact-name: macos-arm64
+          # - platform: linux
+          #   runs-on: ubuntu-latest
+          #   target: x86_64-unknown-linux-gnu
+          #   artifact-name: linux-x64
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Android build steps
+      - name: Setup Rust (Android)
+        if: matrix.platform == 'android'
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - name: Setup Java (Android)
+        if: matrix.platform == 'android'
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Setup Android SDK
+        if: matrix.platform == 'android'
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Android signing
+        if: matrix.platform == 'android'
+        run: |
+          mkdir -p src-tauri/gen/android
+          echo "password=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}" >> src-tauri/gen/android/keystore.properties
+          echo "keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}" >> src-tauri/gen/android/keystore.properties
+          echo "storeFile=${{ github.workspace }}/keystore.jks" >> src-tauri/gen/android/keystore.properties
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > keystore.jks
+
+      - name: Setup Android NDK
+        if: matrix.platform == 'android'
+        run: |
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;26.1.10909125"
+
+      - name: Build Android APK
+        if: matrix.platform == 'android'
+        run: npm run tauri android build -- --target ${{ matrix.target }}
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
+          ANDROID_NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/26.1.10909125
+          JAVA_HOME: ${{ env.JAVA_HOME }}
+
+      - name: Find and rename Android APK
+        if: matrix.platform == 'android'
+        id: android_apk
+        run: |
+          APK_PATH=$(find src-tauri/gen/android/app/build/outputs/apk -name "*universal*.apk" -o -name "*release*.apk" | grep -v debug | head -n 1)
+          if [ -z "$APK_PATH" ]; then
+            APK_PATH=$(find src-tauri/gen/android/app/build/outputs/apk -name "*.apk" -type f | grep -v debug | head -n 1)
+          fi
+          if [ -z "$APK_PATH" ]; then
+            echo "APK not found!"
+            find src-tauri/gen/android -name "*.apk" -type f | head -5
+            exit 1
+          fi
+
+          VERSION="${{ needs.prepare.outputs.version }}"
+          ARCH="${ARCH:-aarch64}"
+          
+          if echo "$APK_PATH" | grep -q "arm64-v8a"; then
+            ARCH="arm64-v8a"
+          elif echo "$APK_PATH" | grep -q "armeabi-v7a"; then
+            ARCH="armeabi-v7a"
+          elif echo "$APK_PATH" | grep -qi "universal"; then
+            ARCH="universal"
+          fi
+
+          NEW_APK_NAME="farmhand-v${VERSION}-${ARCH}.apk"
+          NEW_APK_PATH="${GITHUB_WORKSPACE}/${NEW_APK_NAME}"
+          cp "$APK_PATH" "$NEW_APK_PATH"
+          
+          echo "path=$NEW_APK_PATH" >> $GITHUB_OUTPUT
+          echo "name=$NEW_APK_NAME" >> $GITHUB_OUTPUT
+
+      # Windows build steps
+      - name: Setup Rust (Windows)
+        if: matrix.platform == 'windows'
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+
+      - name: Build Windows
+        if: matrix.platform == 'windows'
+        run: npm run tauri build -- --target ${{ matrix.target }}
+
+      - name: Prepare Windows artifacts
+        if: matrix.platform == 'windows'
+        run: |
+          $version = "${{ needs.prepare.outputs.version }}"
+          
+          # Find all Windows installers
+          $bundlePath = "src-tauri/target/${{ matrix.target }}/release/bundle"
+          $installers = Get-ChildItem -Path $bundlePath -Recurse -Include "*.exe","*.msi" -ErrorAction SilentlyContinue
+          
+          if (-not $installers) {
+            Write-Host "No Windows installers found in $bundlePath"
+            Get-ChildItem -Path $bundlePath -Recurse | Select-Object FullName
+            exit 1
+          }
+          
+          # Create artifacts directory
+          $artifactsDir = Join-Path $env:GITHUB_WORKSPACE "windows-artifacts"
+          New-Item -ItemType Directory -Path $artifactsDir -Force | Out-Null
+          
+          foreach ($installer in $installers) {
+            $ext = $installer.Extension
+            $isSetup = if ($installer.Name -match "setup|installer|nsis") { "-setup" } else { "" }
+            $newName = "farmhand-v${version}-x64${isSetup}${ext}"
+            $newPath = Join-Path $artifactsDir $newName
+            Copy-Item $installer.FullName $newPath
+            Write-Host "Prepared: $newName"
+          }
+          
+          Write-Host "artifact-dir=$artifactsDir" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+        shell: pwsh
+        id: windows_artifacts
+
+      # Upload artifacts (not releases yet)
+      - name: Upload Android APK artifact
+        if: matrix.platform == 'android'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: ${{ steps.android_apk.outputs.path }}
+          retention-days: 1
+
+      - name: Upload Windows artifacts
+        if: matrix.platform == 'windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: ${{ steps.windows_artifacts.outputs.artifact-dir }}/*
+          retention-days: 1
+          if-no-files-found: error
+
+      # Cleanup sensitive files
+      - name: Cleanup Android keystore
+        if: always() && matrix.platform == 'android'
+        run: |
+          rm -f keystore.jks
+          rm -f src-tauri/gen/android/keystore.properties
+
+  # Create release with all artifacts
+  release:
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          pattern: '*'
+          merge-multiple: true
+
+      - name: List downloaded artifacts
+        run: |
+          echo "Downloaded artifacts:"
+          find artifacts -type f -exec ls -lh {} \; || true
+          
+      - name: Verify artifacts exist
+        run: |
+          if [ -z "$(find artifacts -type f)" ]; then
+            echo "No artifacts found!"
+            exit 1
+          fi
+          echo "Found $(find artifacts -type f | wc -l) artifact(s)"
+
+      - name: Create or update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.prepare.outputs.tag }}
+          name: Release ${{ needs.prepare.outputs.version }}
+          body: ${{ needs.prepare.outputs.changelog }}
+          files: artifacts/**
+          draft: false
+          prerelease: ${{ needs.prepare.outputs.is_prerelease }}
+          make_latest: ${{ needs.prepare.outputs.should_make_latest }}
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
