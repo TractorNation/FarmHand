@@ -12,6 +12,7 @@ import {
   Chip,
   Snackbar,
   Slide,
+  Alert,
 } from "@mui/material";
 import { useLocation, useNavigate } from "react-router";
 import AddIcon from "@mui/icons-material/AddRounded";
@@ -20,7 +21,6 @@ import EditIcon from "@mui/icons-material/EditRounded";
 import DeleteIcon from "@mui/icons-material/DeleteRounded";
 import SchemaIcon from "@mui/icons-material/SchemaRounded";
 import ShareIcon from "@mui/icons-material/ShareRounded";
-import CloseIcon from "@mui/icons-material/CloseRounded";
 import useDialog from "../hooks/useDialog";
 import { useSchema } from "../context/SchemaContext";
 import { deleteSchema, saveSchema } from "../utils/SchemaUtils";
@@ -403,23 +403,17 @@ export default function Schemas() {
         slots={{ transition: Slide }}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
         sx={{ width: "100%" }}
-        slotProps={{
-          content: {
-            sx: {
-              backgroundColor: theme.palette.warning.main,
-              color: theme.palette.warning.contrastText,
-              fontFamily: theme.typography.subtitle1,
-            },
-          },
-        }}
-        message="Editing schemas can create issues with your team's data. Only do so if you have permission from your lead scouter."
         autoHideDuration={5000}
-        action={
-          <IconButton onClick={closeWarning}>
-            <CloseIcon />
-          </IconButton>
-        }
-      />
+      >
+        <Alert
+          onClose={closeWarning}
+          severity="warning"
+          variant="filled"
+        >
+          Editing schemas can create issues with your team's data. Only do so if
+          you have permission from your lead scouter.
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

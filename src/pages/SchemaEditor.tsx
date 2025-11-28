@@ -37,6 +37,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Alert,
 } from "@mui/material";
 import EditableComponentCard from "../ui/EditableComponentCard";
 import PageHeader from "../ui/PageHeader";
@@ -953,27 +954,12 @@ export default function SchemaEditor() {
             onClose={() => setSnackbarOpen(false)}
             slots={{ transition: Slide }}
             anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-            slotProps={{
-              content: {
-                sx: {
-                  backgroundColor: theme.palette.success.main,
-                  color: theme.palette.success.contrastText,
-                  fontFamily: theme.typography.subtitle1,
-                },
-              },
-            }}
-            message="Successfully saved schema"
             autoHideDuration={1200}
-            action={
-              <IconButton
-                onClick={() => {
-                  setSnackbarOpen(false);
-                }}
-              >
-                <CloseIcon />
-              </IconButton>
-            }
-          />
+          >
+            <Alert onClose={() => setSnackbarOpen(false)} severity="success" variant="filled">
+              Successfully saved schema
+            </Alert>
+          </Snackbar>
 
           <DragOverlay dropAnimation={undefined}>
             {activeComponent ? (

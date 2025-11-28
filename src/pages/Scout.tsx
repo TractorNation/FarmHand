@@ -22,7 +22,7 @@ import QrCodeIcon from "@mui/icons-material/QrCodeRounded";
 import AddChartIcon from "@mui/icons-material/AddchartRounded";
 
 import useDialog from "../hooks/useDialog";
-import { QrCodeBuilder } from "../utils/QrUtils";
+import { QrCodeBuilder, saveQrCode } from "../utils/QrUtils";
 import { getFieldValueByName } from "../utils/GeneralUtils";
 import PageHeader from "../ui/PageHeader";
 import { useSettings } from "../context/SettingsContext";
@@ -60,6 +60,12 @@ export default function Scout() {
       const nextIndex = (panelIndex + 1) % totalSections;
       setExpandedSectionIndex(nextIndex);
     }
+  };
+
+  const handleSaveQr = async (code: QrCode) => {
+    await saveQrCode(code);
+
+    closeQrPopup();
   };
 
   const schemaData = schema;
@@ -279,6 +285,7 @@ export default function Scout() {
         mode="match"
         open={showQrPopup}
         onClose={closeQrPopup}
+        onSave={handleSaveQr}
         qrCodeData={qrCodeData.current!}
       />
     </>

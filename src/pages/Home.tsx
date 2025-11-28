@@ -10,6 +10,7 @@ import {
   Stack,
   Grid,
   Paper,
+  useMediaQuery,
 } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import Markdown from "react-markdown";
@@ -26,6 +27,7 @@ export default function Home() {
   const theme = useTheme();
   const navigate = useNavigate();
   const [latestEntry, setLatestEntry] = useState<string>("");
+  const isLandscape = useMediaQuery("(orientation: landscape)");
 
   const components = {
     h1: ({ ...props }) => <Typography variant="h3" gutterBottom {...props} />,
@@ -101,7 +103,11 @@ export default function Home() {
           border: `1px solid ${alpha(theme.palette.info.main, 0.35)}`,
         }}
       >
-        <Stack direction="row" spacing={2} alignItems="center">
+        <Stack
+          direction={isLandscape ? "row" : "column"}
+          spacing={2}
+          alignItems="center"
+        >
           <HelpIcon sx={{ fontSize: 32, color: theme.palette.info.main }} />
           <Box sx={{ flexGrow: 1 }}>
             <Typography variant="h6" gutterBottom>
@@ -142,7 +148,11 @@ export default function Home() {
           border: `1px solid ${alpha(theme.palette.secondary.main, 0.35)}`,
         }}
       >
-        <Stack direction="row" spacing={2} alignItems="center">
+        <Stack
+          direction={isLandscape ? "row" : "column"}
+          spacing={2}
+          alignItems="center"
+        >
           <InfoIcon
             sx={{ fontSize: 32, color: theme.palette.secondary.main }}
           />
@@ -158,7 +168,9 @@ export default function Home() {
             variant="contained"
             color="secondary"
             startIcon={<InfoIcon />}
-            onClick={() => {}}
+            href="https://tractornation.org/home"
+            target="_blank"
+            rel="noopener noreferrer"
             sx={{
               borderRadius: theme.shape.borderRadius,
               px: 3,

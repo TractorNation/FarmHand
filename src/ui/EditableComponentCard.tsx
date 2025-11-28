@@ -594,6 +594,7 @@ export default function EditableComponentCard(props: ComponentCardProps) {
                 "Grid",
                 "Filler",
               ]}
+              allowUnset={false}
             />
             <FormControlLabel
               control={

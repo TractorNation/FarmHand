@@ -55,8 +55,10 @@ export default function DynamicComponent(props: DynamicComponentProps) {
         emptyStateValue = component.props?.default ?? false;
         break;
       case "text":
-      case "dropdown":
         emptyStateValue = component.props?.default ?? "";
+        break;
+      case "dropdown":
+        emptyStateValue = component.props?.default ?? "Select an option...";
         break;
       case "number":
         emptyStateValue =
@@ -85,7 +87,7 @@ export default function DynamicComponent(props: DynamicComponentProps) {
         emptyStateValue = component.props?.default ?? "0.0";
         break;
       case "grid":
-        emptyStateValue = component.props?.default ?? '3x3[]';
+        emptyStateValue = component.props?.default ?? "3x3[]";
         break;
       default:
         emptyStateValue = undefined;
@@ -185,13 +187,31 @@ export default function DynamicComponent(props: DynamicComponentProps) {
         );
 
       case "dropdown":
+        // Ensure value is valid - handle null/undefined and validate against options
+        const dropdownOptions = component.props?.options || [];
+        const normalizedDropdownValue =
+          value === null || value === undefined ? undefined : String(value);
+        // Validate the value is in the options list (including "Select an option...")
+        const isValidDropdownValue =
+          normalizedDropdownValue === undefined ||
+          normalizedDropdownValue === "Select an option..." ||
+          dropdownOptions.some((opt) => {
+            const optionValue =
+              typeof opt === "string" ? opt : "Error fetching value";
+            return optionValue === normalizedDropdownValue;
+          });
+        const safeDropdownValue = isValidDropdownValue
+          ? normalizedDropdownValue
+          : undefined;
+
         return (
           <DropdownInput
-            value={String(value)}
-            options={component.props?.options!}
+            value={safeDropdownValue}
+            options={dropdownOptions}
             onChange={handleChange}
             label={component.props?.label}
             error={showError}
+            allowUnset
           />
         );
 
