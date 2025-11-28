@@ -203,7 +203,7 @@ jobs:
           projectPath: .
           # Don't create release, just build
           # Omit tagName/releaseName to prevent release creation
-          args: --target ${{ matrix.target }} --version ${{ needs.prepare.outputs.version_numeric }}
+          args: --target ${{ matrix.target }}
           # Don't upload artifacts automatically
           uploadWorkflowArtifacts: false
           tauriScript: npm run tauri --
