@@ -137,8 +137,8 @@ export default function Section(props: SectionProps) {
               size={{
                 xs: component.doubleWidth ? 12 : 12,
                 sm: component.doubleWidth ? 12 : 6,
-                md: component.doubleWidth ? 6 : 3,
-                lg: component.doubleWidth ? 4 : 4,
+                md: component.doubleWidth ? 4 : 4,
+                lg: component.doubleWidth ? 6 : 3,
               }}
               key={index}
             >
