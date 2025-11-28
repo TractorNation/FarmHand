@@ -9,7 +9,6 @@ import {
   Switch,
   FormControlLabel,
   Button,
-  TextField,
   Chip,
   Snackbar,
   Slide,
@@ -34,6 +33,8 @@ import { useNavigate } from "react-router";
 import { themeRegistry } from "../config/themes";
 import useDialog from "../hooks/useDialog";
 import UnsavedSchemaChangesDialog from "../ui/dialog/UnsavedSchemaChangesDialog";
+import NumberInput from "../ui/components/NumberInput";
+import TextInput from "../ui/components/TextInput";
 
 export default function Settings() {
   const { schemaName, availableSchemas } = useSchema();
@@ -187,12 +188,8 @@ export default function Settings() {
           label: "Device ID",
           description: "Identify this device in match data",
           value: editingSettings.DEVICE_ID,
-          onChange: (value: string) => handleChange("DEVICE_ID", value),
-          onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
-            let num = Math.round(Number(e.target.value));
-            if (isNaN(num) || num < 1) {
-              num = 1;
-            }
+          onChange: (value: number | null) => {
+            const num = value === null ? 1 : Math.max(1, value);
             handleChange("DEVICE_ID", num);
           },
           inputProps: { min: 1 },
@@ -202,16 +199,11 @@ export default function Settings() {
           label: "Number of Scout Devices",
           description: "Set the total number of scouting devices",
           value: editingSettings.EXPECTED_DEVICES_COUNT,
-          onChange: (value: string) =>
-            handleChange("EXPECTED_DEVICES_COUNT", value),
-          onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
-            let num = Math.round(Number(e.target.value));
-            if (isNaN(num) || num < 1) {
-              num = 1;
-            }
+          onChange: (value: number | null) => {
+            const num = value === null ? 1 : Math.max(1, Math.min(50, value));
             handleChange("EXPECTED_DEVICES_COUNT", num);
           },
-          inputProps: { min: 1 },
+          inputProps: { min: 1, max: 50 },
         },
       ].filter(Boolean),
     },
@@ -275,23 +267,21 @@ export default function Settings() {
 
       case "text":
         return (
-          <TextField
+          <TextInput
             value={setting.value}
-            onChange={(e) => setting.onChange(e.target.value)}
-            size="small"
-            sx={{ minWidth: 200 }}
+            onChange={(value) => setting.onChange(value)}
+            label={setting.label}
           />
         );
       case "number":
         return (
-          <TextField
-            type="number"
+          <NumberInput
+            label={setting.label}
             value={setting.value}
-            onChange={(e) => setting.onChange(e.target.value)}
-            onBlur={setting.onBlur}
-            inputProps={setting.inputProps}
-            size="small"
-            sx={{ minWidth: 100 }}
+            onChange={(value) => setting.onChange(value)}
+            min={setting.inputProps.min}
+            max={setting.inputProps.max}
+            fullWidth
           />
         );
       case "button":

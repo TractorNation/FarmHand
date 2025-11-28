@@ -2,7 +2,7 @@ import { TextField } from "@mui/material";
 import { ChangeEvent } from "react";
 
 /**
- * Props fsor the text input component
+ * Props for the text input component
  */
 interface TextInputProps {
   label?: string;
