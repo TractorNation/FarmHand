@@ -6,16 +6,15 @@ import {
   Button,
   Snackbar,
   Slide,
-  IconButton,
   useTheme,
   useMediaQuery,
   Box,
   DialogTitle,
   DialogActions,
+  Alert,
 } from "@mui/material";
 import { useState, useEffect } from "react";
 import DownloadIcon from "@mui/icons-material/DownloadRounded";
-import CloseIcon from "@mui/icons-material/CloseRounded";
 import CopyIcon from "@mui/icons-material/ContentCopyRounded";
 import DeleteIcon from "@mui/icons-material/DeleteRounded";
 import ArchiveIcon from "@mui/icons-material/ArchiveRounded";
@@ -462,48 +461,32 @@ export default function ShareDialog(props: ShareDialogProps) {
         onClose={() => setDownloadSnackbarOpen(false)}
         slots={{ transition: Slide }}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-        slotProps={{
-          content: {
-            sx: {
-              backgroundColor: theme.palette.success.main,
-              color: theme.palette.success.contrastText,
-              fontFamily: theme.typography.subtitle1,
-              borderRadius: 2,
-            },
-          },
-        }}
-        message="QR code downloaded"
         autoHideDuration={1200}
-        action={
-          <IconButton onClick={() => setDownloadSnackbarOpen(false)}>
-            <CloseIcon />
-          </IconButton>
-        }
-      />
+      >
+        <Alert
+          onClose={() => setDownloadSnackbarOpen(false)}
+          severity="success"
+          variant="filled"
+        >
+          "QR code downloaded"
+        </Alert>
+      </Snackbar>
 
       <Snackbar
         open={copySnackbarOpen}
         onClose={() => setCopySnackbarOpen(false)}
         slots={{ transition: Slide }}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-        slotProps={{
-          content: {
-            sx: {
-              fontFamily: theme.typography.subtitle1,
-              borderRadius: 2,
-              backgroundColor: theme.palette.success.main,
-              color: theme.palette.success.contrastText,
-            },
-          },
-        }}
-        message="Form data copied to clipboard"
         autoHideDuration={1200}
-        action={
-          <IconButton onClick={() => setCopySnackbarOpen(false)}>
-            <CloseIcon />
-          </IconButton>
-        }
-      />
+      >
+        <Alert
+          onClose={() => setCopySnackbarOpen(false)}
+          severity="success"
+          variant="filled"
+        >
+          Form data copied to clipboard
+        </Alert>
+      </Snackbar>
     </>
   );
 }

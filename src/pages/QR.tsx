@@ -4,7 +4,6 @@ import {
   Snackbar,
   Stack,
   Typography,
-  IconButton,
   Slide,
   Paper,
   Chip,
@@ -12,8 +11,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Alert,
 } from "@mui/material";
-import CloseIcon from "@mui/icons-material/CloseRounded";
 import { useSchema } from "../context/SchemaContext";
 import { useAsyncFetch } from "../hooks/useAsyncFetch";
 import { useQrManager } from "../hooks/useQrManager";
@@ -279,24 +278,18 @@ export default function QRPage() {
       <Snackbar
         open={success}
         onClose={() => setSuccess(false)}
-        message={`Exported to ${filename}`}
-        autoHideDuration={2000}
+        autoHideDuration={1200}
         slots={{ transition: Slide }}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-        slotProps={{
-          content: {
-            sx: {
-              backgroundColor: theme.palette.success.main,
-              color: theme.palette.success.contrastText,
-            },
-          },
-        }}
-        action={
-          <IconButton onClick={() => setSuccess(false)}>
-            <CloseIcon />
-          </IconButton>
-        }
-      />
+      >
+        <Alert
+          onClose={() => setSuccess(false)}
+          severity="success"
+          variant="filled"
+        >
+          Exported to {filename}
+        </Alert>
+      </Snackbar>
     </>
   );
 }

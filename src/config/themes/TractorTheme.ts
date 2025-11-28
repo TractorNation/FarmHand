@@ -4,8 +4,7 @@ import { createFarmHandTheme } from "./createFarmHandTheme";
 export const TractorTheme = createFarmHandTheme({
   id: "TractorTheme",
   displayName: "Tractor Technicians (default)",
-  flavorText:
-    '"🚜"',
+  flavorText: '"🚜"',
   brand: {
     primary: {
       main: "#339900",
@@ -17,7 +16,7 @@ export const TractorTheme = createFarmHandTheme({
       main: "#ffd400",
       dark: "#f9a825",
       light: "#fff59d",
-      contrastText: "rgba(0,0,0,0.87)",
+      contrastText: "rgba(0, 0, 0, 0.87)",
     },
     info: {
       main: "#0066b3",

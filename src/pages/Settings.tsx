@@ -12,8 +12,8 @@ import {
   Chip,
   Snackbar,
   Slide,
-  IconButton,
   useMediaQuery,
+  Alert,
 } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import DropdownInput from "../ui/components/DropdownInput";
@@ -26,7 +26,6 @@ import SecurityIcon from "@mui/icons-material/SecurityRounded";
 import InfoIcon from "@mui/icons-material/InfoRounded";
 import SaveIcon from "@mui/icons-material/SaveRounded";
 import WarningIcon from "@mui/icons-material/WarningRounded";
-import CloseIcon from "@mui/icons-material/CloseRounded";
 import { useState, useEffect } from "react";
 import PageHeader from "../ui/PageHeader";
 import { useSettings } from "../context/SettingsContext";
@@ -557,27 +556,16 @@ export default function Settings() {
         onClose={() => setSnackbarOpen(false)}
         slots={{ transition: Slide }}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-        slotProps={{
-          content: {
-            sx: {
-              backgroundColor: theme.palette.success.main,
-              color: theme.palette.success.contrastText,
-              fontFamily: theme.typography.subtitle1,
-            },
-          },
-        }}
-        message="Successfully saved settings"
         autoHideDuration={1200}
-        action={
-          <IconButton
-            onClick={() => {
-              setSnackbarOpen(false);
-            }}
-          >
-            <CloseIcon />
-          </IconButton>
-        }
-      />
+      >
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity="success"
+          variant="filled"
+        >
+          Successfully saved settings
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

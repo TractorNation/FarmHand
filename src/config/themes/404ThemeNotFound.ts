@@ -16,7 +16,7 @@ export const ThemeNotFound = createFarmHandTheme({
       main: "#ffc52e",
       dark: "#f9a825",
       light: "#da9a08",
-      contrastText: "rgba(0,0,0,0.87)",
+      contrastText: "rgba(0, 0, 0, 0.87)",
     },
     info: {
       main: "#0066b3",
