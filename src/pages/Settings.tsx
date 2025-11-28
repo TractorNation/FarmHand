@@ -179,7 +179,7 @@ export default function Settings() {
           type: "switch",
           label: "Lead Scout only",
           description:
-            "Device is only used to view and collect match data. Matches scouted with this device will not be counted towards collected scout metrics.",
+            "If checked, device will only be used to collect scouting data. Matches scouted on this device will not count towards total scouting metrics",
           checked: editingSettings.LEAD_SCOUT_ONLY || false,
           onChange: (checked: boolean) => handleLeadScoutToggle(checked),
         },
