@@ -76,7 +76,7 @@ jobs:
           ANDROID_NDK_HOME: ${{ env.ANDROID_HOME }}/ndk/26.1.10909125
           JAVA_HOME: ${{ env.JAVA_HOME }}
 
-      - name: Find built APK
+      - name: Find and rename APK
         id: apk_path
         run: |
           # Look for universal APK first, then any release APK
@@ -94,9 +94,40 @@ jobs:
             exit 1
           fi
 
-          echo "path=$APK_PATH" >> $GITHUB_OUTPUT
           echo "Found APK at: $APK_PATH"
           ls -lh "$APK_PATH"
+
+          # Determine architecture from APK path or build target
+          # Try to detect from APK path first (e.g., .../arm64-v8a/...)
+          if echo "$APK_PATH" | grep -q "arm64-v8a"; then
+            ARCH="arm64-v8a"
+          elif echo "$APK_PATH" | grep -q "armeabi-v7a"; then
+            ARCH="armeabi-v7a"
+          elif echo "$APK_PATH" | grep -q "x86_64"; then
+            ARCH="x86_64"
+          elif echo "$APK_PATH" | grep -q "x86"; then
+            ARCH="x86"
+          elif echo "$APK_PATH" | grep -qi "universal"; then
+            ARCH="universal"
+          else
+            # Default to aarch64 based on your build target
+            ARCH="aarch64"
+          fi
+
+          VERSION="${{ steps.package_version.outputs.version }}"
+          
+          # Create a descriptive filename: farmhand-v0.2.0-beta-aarch64.apk
+          NEW_APK_NAME="farmhand-v${VERSION}-${ARCH}.apk"
+          NEW_APK_PATH="${GITHUB_WORKSPACE}/${NEW_APK_NAME}"
+          
+          # Copy and rename the APK
+          cp "$APK_PATH" "$NEW_APK_PATH"
+          
+          echo "Renamed APK to: $NEW_APK_NAME"
+          echo "Detected architecture: $ARCH"
+          echo "path=$NEW_APK_PATH" >> $GITHUB_OUTPUT
+          echo "name=$NEW_APK_NAME" >> $GITHUB_OUTPUT
+          ls -lh "$NEW_APK_PATH"
 
       - name: Extract changelog for version
         id: changelog
