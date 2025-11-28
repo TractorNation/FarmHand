@@ -28,3 +28,6 @@ keystore.properties
 *.jks
 *.keystore
 src-tauri/gen/android/keystore.properties
+
+# Version backup file (temporary, used during Windows builds)
+.version-backup.json
