@@ -41,7 +41,7 @@ interface ShareDialogProps {
 
   // Match mode props
   qrCodeData?: QrCode | null;
-  onSave?: () => void;
+  onSave?: (code: QrCode) => Promise<void>;
   forQrPage?: boolean;
   isArchived?: boolean;
   onDelete?: () => void;
@@ -291,7 +291,7 @@ export default function ShareDialog(props: ShareDialogProps) {
                       color="primary"
                       variant="contained"
                       sx={{ width: "100%", borderRadius: 2 }}
-                      onClick={onSave}
+                      onClick={() => onSave && qrCodeData && onSave(qrCodeData)}
                     >
                       Save to Match History
                     </Button>
