@@ -239,14 +239,12 @@ export default function EditableComponentCard(props: ComponentCardProps) {
                 value={editedComponent.props?.min ?? null}
                 onChange={(value) => handleFieldChange("min", value)}
                 error={false}
-                fullWidth
               />
               <NumberInput
                 label="Max"
                 value={editedComponent.props?.max ?? null}
                 onChange={(value) => handleFieldChange("max", value)}
                 error={false}
-                fullWidth
               />
             </Stack>
           </>
@@ -285,7 +283,6 @@ export default function EditableComponentCard(props: ComponentCardProps) {
               value={editedComponent.props?.step ?? null}
               onChange={(value) => handleFieldChange("step", value)}
               min={1}
-              fullWidth
             />
             <TextField
               label="Default Value"
@@ -330,14 +327,12 @@ export default function EditableComponentCard(props: ComponentCardProps) {
                 value={editedComponent.props?.min ?? null}
                 onChange={(value) => handleFieldChange("min", value)}
                 error={false}
-                fullWidth
               />
               <NumberInput
                 label="Max"
                 value={editedComponent.props?.max ?? null}
                 onChange={(value) => handleFieldChange("max", value)}
                 error={false}
-                fullWidth
               />
             </Stack>
           </>
@@ -350,14 +345,12 @@ export default function EditableComponentCard(props: ComponentCardProps) {
               value={editedComponent.props?.min ?? null}
               onChange={(value) => handleFieldChange("min", value)}
               error={false}
-              fullWidth
             />
             <NumberInput
               label="Max"
               value={editedComponent.props?.max ?? null}
               onChange={(value) => handleFieldChange("max", value)}
               error={false}
-              fullWidth
             />
           </Stack>
         );
@@ -371,7 +364,6 @@ export default function EditableComponentCard(props: ComponentCardProps) {
                 onChange={(value) => handleFieldChange("rows", value)}
                 min={1}
                 max={50}
-                fullWidth
               />
               <NumberInput
                 label="Columns"
@@ -379,7 +371,6 @@ export default function EditableComponentCard(props: ComponentCardProps) {
                 onChange={(value) => handleFieldChange("cols", value)}
                 min={1}
                 max={50}
-                fullWidth
               />
             </Stack>
             <FormControlLabel

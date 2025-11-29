@@ -15,6 +15,7 @@
     "reset-ios": "xcrun simctl shutdown all && xcrun simctl erase all"
   },
   "dependencies": {
+    "@base-ui-components/react": "^1.0.0-beta.7",
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
