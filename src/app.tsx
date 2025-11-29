@@ -40,6 +40,7 @@ import {
 } from "react-router";
 import { ThemeProvider, alpha, useTheme } from "@mui/material/styles";
 import SchemaProvider from "./context/SchemaContext";
+import AnalysisProvider from "./context/AnalysisContext";
 import Schemas from "./pages/Schemas";
 import SchemaEditor from "./pages/SchemaEditor";
 import LeadScoutDashboard from "./pages/Dashboard";
@@ -48,8 +49,8 @@ import { useSettings } from "./context/SettingsContext";
 import { themeRegistry, type ThemeRegistryKey } from "./config/themes";
 import Archive from "./pages/Archive";
 import Help from "./pages/Help";
-import Analyzer from "./pages/Analyzer";
-
+import Analyses from "./pages/Analyses";
+import AnalysisViewer from "./pages/AnalysisViewer";
 const Home = React.lazy(() => import("./pages/Home"));
 const Settings = React.lazy(() => import("./pages/Settings"));
 const Scout = React.lazy(() => import("./pages/Scout"));
@@ -91,9 +92,9 @@ const pages = [
     path: "/dashboard",
   },
   {
-    title: "Analyze",
+    title: "Analysis",
     icon: <AnalysisIcon />,
-    path: "/analysis",
+    path: "/analyses",
   },
   {
     title: "Archive",
@@ -536,31 +537,34 @@ export default function App() {
       <CssBaseline />
       <ScoutDataProvider>
         <SchemaProvider schema={schema}>
-          <HashRouter>
-            <Layout>
-              <Suspense
-                fallback={
-                  <Typography sx={{ p: 3 }}>Loading page...</Typography>
-                }
-              >
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/scout" element={<Scout />} />
-                  <Route path="/qr" element={<QRPage />} />
-                  <Route path="/schemas" element={<Schemas />} />
-                  <Route
-                    path="/schemas/:schemaName"
-                    element={<SchemaEditor />}
-                  />
-                  <Route path="/dashboard" element={<LeadScoutDashboard />} />
-                  <Route path="/analysis" element={<Analyzer />} />
-                  <Route path="/archive" element={<Archive />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/help" element={<Help />} />
-                </Routes>
-              </Suspense>
-            </Layout>
-          </HashRouter>
+          <AnalysisProvider>
+            <HashRouter>
+              <Layout>
+                <Suspense
+                  fallback={
+                    <Typography sx={{ p: 3 }}>Loading page...</Typography>
+                  }
+                >
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/scout" element={<Scout />} />
+                    <Route path="/qr" element={<QRPage />} />
+                    <Route path="/schemas" element={<Schemas />} />
+                    <Route
+                      path="/schemas/:schemaName"
+                      element={<SchemaEditor />}
+                    />
+                    <Route path="/dashboard" element={<LeadScoutDashboard />} />
+                    <Route path="/analyses" element={<Analyses />} />
+                    <Route path="/analyses/:id" element={<AnalysisViewer />} />
+                    <Route path="/archive" element={<Archive />} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/help" element={<Help />} />
+                  </Routes>
+                </Suspense>
+              </Layout>
+            </HashRouter>
+          </AnalysisProvider>
         </SchemaProvider>
       </ScoutDataProvider>
     </ThemeProvider>
