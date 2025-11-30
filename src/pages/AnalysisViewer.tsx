@@ -27,7 +27,7 @@ import {
 } from "@mui/material";
 import PageHeader from "../ui/PageHeader";
 import AnalysisIcon from "@mui/icons-material/AutoGraphRounded";
-import BarChartIcon from "@mui/icons-material/BarChartRounded";
+import BarChartIcon from "@mui/icons-material/CandlestickChartRounded";
 import LineChartIcon from "@mui/icons-material/ShowChartRounded";
 import PieChartIcon from "@mui/icons-material/PieChartRounded";
 import ScatterPlotIcon from "@mui/icons-material/ScatterPlotRounded";
@@ -159,29 +159,50 @@ export default function AnalysisViewer() {
       );
 
       const filtered = decoded.filter((item) => {
-        if (!item) return false;
+        if (!item || !item.decoded || !item.decoded.data) return false;
 
-        // Apply team filter
-        if (editingAnalysis.selectedTeams.length > 0 && teamNumberIndex !== -1) {
+        // Apply team filter (only if teams are explicitly selected)
+        if (editingAnalysis.selectedTeams.length > 0) {
+          if (teamNumberIndex === -1) {
+            // No team field in schema, can't filter by team - exclude this item
+            return false;
+          }
           const teamField = item.decoded.data[teamNumberIndex];
           if (teamField === undefined || teamField === null) return false;
-          if (!editingAnalysis.selectedTeams.includes(Number(teamField))) {
+          const teamNum = Number(teamField);
+          if (isNaN(teamNum) || !editingAnalysis.selectedTeams.includes(teamNum)) {
             return false;
           }
         }
 
-        // Apply match filter
-        if (editingAnalysis.selectedMatches.length > 0 && matchNumberIndex !== -1) {
+        // Apply match filter (only if matches are explicitly selected)
+        // When selectedMatches.length === 0, include ALL matches (skip this filter)
+        if (editingAnalysis.selectedMatches.length > 0) {
+          if (matchNumberIndex === -1) {
+            // No match field in schema, can't filter by match - exclude this item
+            return false;
+          }
           const matchField = item.decoded.data[matchNumberIndex];
           if (matchField === undefined || matchField === null) return false;
-          if (!editingAnalysis.selectedMatches.includes(Number(matchField))) {
+          const matchNum = Number(matchField);
+          if (isNaN(matchNum) || !editingAnalysis.selectedMatches.includes(matchNum)) {
             return false;
           }
         }
 
+        // Item passes all filters (or no filters are applied)
         return true;
       });
 
+      console.log('AnalysisViewer - Filtered data:', {
+        totalDecoded: decoded.length,
+        filtered: filtered.length,
+        selectedTeams: editingAnalysis.selectedTeams.length > 0 ? editingAnalysis.selectedTeams : 'ALL',
+        selectedMatches: editingAnalysis.selectedMatches.length > 0 ? editingAnalysis.selectedMatches : 'ALL',
+        teamFieldIndex: teamNumberIndex,
+        matchFieldIndex: matchNumberIndex,
+      });
+      
       setFilteredData(filtered);
     };
 
@@ -344,9 +365,10 @@ export default function AnalysisViewer() {
               sx={{
                 border: `2px solid ${theme.palette.divider}`,
                 borderRadius: 3,
+                overflow: "visible",
               }}
             >
-              <CardContent>
+              <CardContent sx={{ overflow: "visible" }}>
                 <Stack
                   direction="row"
                   justifyContent="space-between"
@@ -370,7 +392,13 @@ export default function AnalysisViewer() {
                     </IconButton>
                   </Stack>
                 </Stack>
-                <Box sx={{ height: 300 }}>
+                <Box 
+                  sx={{ 
+                    height: 300,
+                    overflow: "visible",
+                    position: "relative",
+                  }}
+                >
                   <ChartRenderer
                     chart={chart}
                     data={filteredData}
