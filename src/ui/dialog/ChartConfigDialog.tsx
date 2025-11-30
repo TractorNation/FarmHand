@@ -21,6 +21,7 @@ export default function ChartConfigDialog({
   const [yAxis, setYAxis] = useState("");
   const [aggregation, setAggregation] = useState<Chart["aggregation"]>("sum");
   const [sortMode, setSortMode] = useState<Chart["sortMode"]>("none");
+  const [colorScheme, setColorScheme] = useState<string>("theme-primary");
 
   useEffect(() => {
     if (open) {
@@ -29,13 +30,29 @@ export default function ChartConfigDialog({
       setYAxis(existingChart?.yAxis || "");
       setAggregation(existingChart?.aggregation || "sum");
       setSortMode(existingChart?.sortMode || "none");
+      setColorScheme(existingChart?.colorScheme || "theme-primary");
     }
   }, [open, existingChart]);
 
   const handleSave = () => {
-    onSave({ name, xAxis, yAxis, aggregation, sortMode });
+    onSave({ name, xAxis, yAxis, aggregation, sortMode, colorScheme });
     onClose();
   };
+
+  // Predefined color schemes for heatmaps
+  // Using only sequential schemes since heatmaps show count data (0 to max)
+  // Only including schemes that are confirmed to work with Nivo heatmap
+  const heatmapColorSchemes = [
+    { value: "theme-primary", label: "Theme Primary (Custom)" },
+    { value: "blues", label: "Blues" },
+    { value: "greens", label: "Greens" },
+    { value: "greys", label: "Greys" },
+    { value: "oranges", label: "Oranges" },
+    { value: "purples", label: "Purples" },
+    { value: "reds", label: "Reds" },
+    { value: "viridis", label: "Viridis" },
+    { value: "plasma", label: "Plasma" },
+  ];
 
   // Get grid fields for heatmap
   const gridFields = useMemo(() => {
@@ -115,6 +132,20 @@ export default function ChartConfigDialog({
                       </MenuItem>
                     ))
                   )}
+                </Select>
+              </FormControl>
+              <FormControl fullWidth>
+                <InputLabel>Color Scheme</InputLabel>
+                <Select
+                  value={colorScheme}
+                  label="Color Scheme"
+                  onChange={(e) => setColorScheme(e.target.value)}
+                >
+                  {heatmapColorSchemes.map((scheme) => (
+                    <MenuItem key={scheme.value} value={scheme.value}>
+                      {scheme.label}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
             </>

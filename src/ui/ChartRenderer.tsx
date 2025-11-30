@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { alpha, lighten, darken } from "@mui/material/styles";
 import { useTheme } from "@mui/material/styles";
 import { Box, Typography } from "@mui/material";
 import { ResponsiveBar } from "@nivo/bar";
@@ -727,28 +728,146 @@ export default function ChartRenderer({
     return result;
   }, [chart, data, schema]);
 
-  const chartTheme = {
+  // Get borderRadius as a number for bar charts (must be defined before chartTheme)
+  const borderRadius = useMemo(() => {
+    const br = theme.shape?.borderRadius;
+    return typeof br === 'number' ? br : (typeof br === 'string' ? parseInt(br, 10) || 4 : 4);
+  }, [theme.shape]);
+
+  // Create comprehensive Nivo theme from Material-UI theme
+  // Reference: https://nivo.rocks/guides/theming/
+  const chartTheme = useMemo(() => {
+    return {
+      fontFamily: theme.typography.fontFamily,
+      fontSize: typeof theme.typography.fontSize === 'number' ? theme.typography.fontSize : 12,
+      
+      // Axes & Grid styling
     axis: {
+        domain: {
+          line: {
+            stroke: theme.palette.divider,
+            strokeWidth: 1,
+          },
+        },
       ticks: {
-        text: { fill: theme.palette.text.primary },
+          line: {
+            stroke: theme.palette.divider,
+            strokeWidth: 1,
+          },
+          text: {
+            fill: theme.palette.text.secondary,
+            fontSize: typeof theme.typography.fontSize === 'number' ? theme.typography.fontSize : 12,
+            fontFamily: theme.typography.fontFamily,
+          },
       },
       legend: {
-        text: { fill: theme.palette.text.primary },
+          text: {
+            fill: theme.palette.text.primary,
+            fontSize: (typeof theme.typography.fontSize === 'number' ? theme.typography.fontSize : 12) + 2,
+            fontFamily: theme.typography.fontFamily,
+            fontWeight: theme.typography.fontWeightMedium ?? 500,
+          },
+        },
       },
-    },
+      
+      // Grid lines
+      grid: {
+        line: {
+          stroke: theme.palette.divider,
+          strokeWidth: 1,
+          strokeDasharray: "3 3",
+          opacity: 0.5,
+        },
+      },
+      
+      // Legends styling
     legends: {
-      text: { fill: theme.palette.text.primary },
-    },
+        text: {
+          fill: theme.palette.text.primary,
+          fontSize: typeof theme.typography.fontSize === 'number' ? theme.typography.fontSize : 12,
+          fontFamily: theme.typography.fontFamily,
+        },
+        title: {
+          text: {
+            fill: theme.palette.text.primary,
+            fontSize: (typeof theme.typography.fontSize === 'number' ? theme.typography.fontSize : 12) + 2,
+            fontFamily: theme.typography.fontFamily,
+            fontWeight: theme.typography.fontWeightMedium ?? 500,
+          },
+        },
+      },
+      
+      // Labels styling (for pie charts, etc.)
     labels: {
-      text: { fill: theme.palette.text.primary },
-    },
+        text: {
+          fill: theme.palette.text.primary,
+          fontSize: typeof theme.typography.fontSize === 'number' ? theme.typography.fontSize : 12,
+          fontFamily: theme.typography.fontFamily,
+        },
+      },
+      
+      // Tooltip styling
     tooltip: {
       container: {
         background: theme.palette.background.paper,
         color: theme.palette.text.primary,
+          fontSize: typeof theme.typography.fontSize === 'number' ? theme.typography.fontSize : 12,
+          fontFamily: theme.typography.fontFamily,
+          padding: "8px 12px",
+          borderRadius: borderRadius,
+          boxShadow: (theme as any).shadows?.[4] || "0px 2px 8px rgba(0,0,0,0.15)",
+          border: `1px solid ${theme.palette.divider}`,
+        },
       },
-    },
-  };
+      
+      // Annotations (for future use)
+      annotations: {
+        text: {
+          fill: theme.palette.text.primary,
+          fontSize: typeof theme.typography.fontSize === 'number' ? theme.typography.fontSize : 12,
+          fontFamily: theme.typography.fontFamily,
+          outlineWidth: 2,
+          outlineColor: theme.palette.background.paper,
+        },
+        link: {
+          stroke: theme.palette.divider,
+          strokeWidth: 1,
+          outlineWidth: 2,
+          outlineColor: theme.palette.background.paper,
+        },
+        outline: {
+          stroke: theme.palette.divider,
+          strokeWidth: 2,
+          outlineWidth: 2,
+          outlineColor: theme.palette.background.paper,
+        },
+        symbol: {
+          fill: theme.palette.background.paper,
+          outlineWidth: 2,
+          outlineColor: theme.palette.background.paper,
+        },
+      },
+      
+    };
+  }, [theme, borderRadius]);
+  
+  // Generate color palette from theme for charts
+  // Creates a color scale based on the theme's primary/secondary colors
+  const chartColors = useMemo(() => {
+    // Create a color scale that harmonizes with the app theme
+    // For multi-series charts, we'll use variations of the primary color
+    const primary = theme.palette.primary.main;
+    const secondary = theme.palette.secondary?.main || primary;
+    const info = theme.palette.info?.main || primary;
+    const success = theme.palette.success?.main || primary;
+    const warning = theme.palette.warning?.main || primary;
+    const error = theme.palette.error?.main || primary;
+    
+    // Return an array of colors for multi-series charts
+    // Nivo will cycle through these colors
+    return [primary, secondary, info, success, warning, error];
+  }, [theme.palette]);
+  
 
   if (processedData.length === 0) {
     return (
@@ -783,8 +902,9 @@ export default function ChartRenderer({
           indexBy="id"
           margin={{ top: 20, right: 20, bottom: 50, left: 60 }}
           padding={0.3}
-          colors={{ scheme: "nivo" }}
+          colors={chartColors}
           theme={chartTheme}
+          borderRadius={borderRadius}
           axisBottom={{
             tickRotation: -45,
             legend: chart.xAxis,
@@ -809,7 +929,7 @@ export default function ChartRenderer({
           xScale={{ type: "linear", min: "auto", max: "auto" }}
           yScale={{ type: "linear", min: "auto", max: "auto" }}
           curve="monotoneX"
-          colors={{ scheme: "nivo" }}
+          colors={chartColors}
           theme={chartTheme}
           axisBottom={{
             legend: chart.xAxis,
@@ -849,8 +969,8 @@ export default function ChartRenderer({
           margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
           innerRadius={0.5}
           padAngle={0.7}
-          cornerRadius={3}
-          colors={{ scheme: "nivo" }}
+          cornerRadius={borderRadius}
+          colors={chartColors}
           theme={chartTheme}
           arcLinkLabelsTextColor={theme.palette.text.primary}
           arcLabelsTextColor={theme.palette.background.paper}
@@ -871,7 +991,7 @@ export default function ChartRenderer({
           margin={{ top: 20, right: 20, bottom: 50, left: 60 }}
           xScale={{ type: "linear" }}
           yScale={{ type: "linear" }}
-          colors={{ scheme: "nivo" }}
+          colors={chartColors}
           theme={chartTheme}
           axisBottom={{
             legend: chart.xAxis,
@@ -891,12 +1011,12 @@ export default function ChartRenderer({
       return (
         <Box sx={chartContainerSx}>
         <ResponsiveBoxPlot
-          theme={chartTheme as any}
           data={processedData}
           margin={{ top: 40, right: 140, bottom: 80, left: 60 }}
           minValue="auto"
           maxValue="auto"
-          colors={{ scheme: "nivo" }}
+          colors={chartColors}
+          theme={chartTheme as any}
           axisTop={null}
           axisRight={null}
           axisBottom={{
@@ -915,7 +1035,7 @@ export default function ChartRenderer({
             legendPosition: "middle",
             legendOffset: -50,
           }}
-          borderRadius={2}
+          borderRadius={borderRadius}
           padding={0.12}
         />
         </Box>
@@ -963,8 +1083,6 @@ export default function ChartRenderer({
       }
       
       // Calculate max value for color scale (min is always 0 for unchecked cells)
-      let maxValue: number | "auto" = "auto";
-      
       const allValues: number[] = [];
       processedData.forEach((item: any) => {
         if (item.data && Array.isArray(item.data)) {
@@ -976,8 +1094,53 @@ export default function ChartRenderer({
         }
       });
       
-      if (allValues.length > 0) {
-        maxValue = Math.max(...allValues);
+      const maxValue = allValues.length > 0 ? Math.max(...allValues) : 1;
+      
+      // Determine color scheme configuration
+      const selectedScheme = chart.colorScheme || "theme-primary";
+      
+      let colorsConfig: any;
+      
+      if (selectedScheme === "theme-primary") {
+        // Use theme-based custom color function
+        const mode = theme.palette.mode;
+        const primary = theme.palette.primary.main;
+        
+        const getHeatmapColor = (cell: any) => {
+          const value = cell.value || 0;
+          const normalizedValue = maxValue > 0 && value > 0 ? value / maxValue : 0;
+          
+          // Create a sequential gradient from light to dark using primary color
+          if (normalizedValue === 0) {
+            return alpha(theme.palette.text.secondary, 0.1);
+          }
+          
+          // Interpolate from light to dark based on normalized value
+          if (normalizedValue <= 0.15) {
+            return lighten(primary, mode === 'light' ? 0.75 : 0.55);
+          } else if (normalizedValue <= 0.3) {
+            return lighten(primary, mode === 'light' ? 0.6 : 0.4);
+          } else if (normalizedValue <= 0.45) {
+            return lighten(primary, mode === 'light' ? 0.45 : 0.25);
+          } else if (normalizedValue <= 0.6) {
+            return lighten(primary, mode === 'light' ? 0.3 : 0.15);
+          } else if (normalizedValue <= 0.75) {
+            return lighten(primary, mode === 'light' ? 0.15 : 0.05);
+          } else if (normalizedValue <= 0.9) {
+            return primary;
+          } else {
+            return darken(primary, mode === 'light' ? 0.15 : 0.1);
+          }
+        };
+        
+        colorsConfig = getHeatmapColor;
+      } else {
+        // Use predefined Nivo sequential color scheme
+        // All schemes are sequential since heatmaps show count data (0 to max)
+        colorsConfig = {
+          type: 'sequential',
+          scheme: selectedScheme,
+        };
       }
       
       return (
@@ -1000,14 +1163,10 @@ export default function ChartRenderer({
             legend: chart.yAxis || "Group",
             legendOffset: -72,
           }}
-          colors={{
-            type: 'diverging',
-            scheme: 'red_yellow_blue',
-            divergeAt: 0.5,
-            minValue: maxValue === "auto" ? undefined : 0,
-            maxValue: maxValue === "auto" ? undefined : maxValue,
-          }}
-          emptyColor="#555555"
+          colors={colorsConfig}
+          emptyColor={alpha(theme.palette.text.secondary, 0.15)}
+          borderWidth={1}
+          borderColor={theme.palette.divider}
           theme={chartTheme}
           legends={[
             {

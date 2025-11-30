@@ -119,6 +119,7 @@ interface Chart {
   groupBy?: string; 
   aggregation?: "sum" | "average" | "count" | "min" | "max";
   sortMode?: "ascending" | "descending" | "none";
+  colorScheme?: string; // For heatmap color scheme selection
 }
 
 
