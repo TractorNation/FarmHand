@@ -1147,21 +1147,18 @@ export default function ChartRenderer({
         <Box sx={chartContainerSx}>
         <ResponsiveHeatMap
           data={processedData}
-          margin={{ top: 60, right: 90, bottom: 60, left: 90 }}
-          valueFormat=">-.2s"
+          margin={{ top: 40, right: 90, bottom: 50, left: 90 }}
           axisTop={{
-            tickRotation: -90,
-            legend: chart.xAxis || "Cell Position",
+            tickSize: 0,
+            tickPadding: 0,
+            tickValues: [],
+            legend: chart.yAxis || "Field",
             legendPosition: "middle",
-            legendOffset: 40,
-          }}
-          axisRight={{
-            legend: chart.yAxis || "Group",
-            legendOffset: 70,
+            legendOffset: -30,
           }}
           axisLeft={{
-            legend: chart.yAxis || "Group",
-            legendOffset: -72,
+            legend: chart.xAxis || "Group",
+            legendOffset: -70,
           }}
           colors={colorsConfig}
           emptyColor={alpha(theme.palette.text.secondary, 0.15)}
@@ -1172,7 +1169,7 @@ export default function ChartRenderer({
             {
               anchor: 'bottom',
               translateX: 0,
-              translateY: 30,
+              translateY: 40,
               length: 400,
               thickness: 8,
               direction: 'row',
