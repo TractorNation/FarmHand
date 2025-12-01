@@ -90,7 +90,7 @@ export default function NumberInput(props: NumberFieldProps) {
               // On blur, apply min/max validation only if a value is present
               if (e.target.value === "") {
                 // Empty input - allow null unless required
-                if (onChange && required && min !== undefined) {
+                if (onChange && min !== undefined) {
                   // Only enforce minimum on empty required fields
                   onChange(min);
                   setInputValue(String(min));
