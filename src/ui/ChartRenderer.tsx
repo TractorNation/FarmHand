@@ -235,9 +235,15 @@ export default function ChartRenderer({
           )
         : originalProcessedData;
 
+      // Create a key that changes when any relevant bar chart configuration changes
+      const barKey = `bar-${chart.id}-${chart.aggregation || "sum"}-${
+        chart.sortMode || "none"
+      }-${chart.xAxis || ""}-${chart.yAxis || ""}`;
+
       return (
         <Box sx={chartContainerSx}>
           <ResponsiveBar
+            key={barKey}
             data={barData}
             keys={isGroupedBar ? teamKeys : ["value"]}
             indexBy={isGroupedBar ? "category" : "id"}
@@ -297,11 +303,15 @@ export default function ChartRenderer({
 
     case "line":
       const lerpType = chart.linearInterpolation ?? "natural";
+      // Create a key that changes when any relevant line chart configuration changes
+      const lineKey = `line-${chart.id}-${lerpType}-${
+        chart.aggregation || "sum"
+      }-${chart.groupBy || ""}-${chart.xAxis || ""}-${chart.yAxis || ""}`;
 
       return (
         <Box sx={chartContainerSx}>
           <ResponsiveLine
-            key={`line-${chart.id}-${lerpType}`}
+            key={lineKey}
             data={processedData}
             margin={{ top: 20, right: 110, bottom: 50, left: 60 }}
             xScale={{ type: "linear", min: "auto", max: "auto" }}
@@ -346,9 +356,15 @@ export default function ChartRenderer({
       );
 
     case "pie":
+      // Create a key that changes when any relevant pie chart configuration changes
+      const pieKey = `pie-${chart.id}-${chart.aggregation || "sum"}-${
+        chart.yAxis || ""
+      }`;
+
       return (
         <Box sx={chartContainerSx}>
           <ResponsivePie
+            key={pieKey}
             data={processedData}
             margin={{ top: 20, right: 20, bottom: 20, left: 20 }}
             innerRadius={0.5}
@@ -363,9 +379,15 @@ export default function ChartRenderer({
       );
 
     case "scatter":
+      // Create a key that changes when any relevant scatter chart configuration changes
+      const scatterKey = `scatter-${chart.id}-${chart.aggregation || "sum"}-${
+        chart.groupBy || ""
+      }-${chart.xAxis || ""}-${chart.yAxis || ""}`;
+
       return (
         <Box sx={chartContainerSx}>
           <ResponsiveScatterPlot
+            key={scatterKey}
             data={processedData}
             margin={{ top: 20, right: 110, bottom: 50, left: 60 }}
             xScale={{ type: "linear" }}
@@ -400,9 +422,15 @@ export default function ChartRenderer({
       );
 
     case "boxplot":
+      // Create a key that changes when any relevant boxplot configuration changes
+      const boxplotKey = `boxplot-${chart.id}-${chart.sortMode || "none"}-${
+        chart.xAxis || ""
+      }-${chart.yAxis || ""}`;
+
       return (
         <Box sx={chartContainerSx}>
           <ResponsiveBoxPlot
+            key={boxplotKey}
             data={processedData}
             margin={{ top: 40, right: 140, bottom: 80, left: 60 }}
             minValue="auto"
@@ -540,9 +568,15 @@ export default function ChartRenderer({
         };
       }
 
+      // Create a key that changes when any relevant heatmap configuration changes
+      const heatmapKey = `heatmap-${chart.id}-${
+        chart.colorScheme || "theme-primary"
+      }-${chart.xAxis || ""}-${chart.yAxis || ""}`;
+
       return (
         <Box sx={chartContainerSx}>
           <ResponsiveHeatMap
+            key={heatmapKey}
             data={processedData}
             margin={{ top: 40, right: 90, bottom: 50, left: 90 }}
             axisTop={{
