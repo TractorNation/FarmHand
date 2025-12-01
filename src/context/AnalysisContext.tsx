@@ -6,6 +6,11 @@ import {
   useState,
   useEffect,
 } from "react";
+import {
+  fetchAnalyses,
+  saveAnalysis as saveAnalysisFile,
+  deleteAnalysis as deleteAnalysisFile,
+} from "../utils/AnalysisUtils";
 import StoreManager, { StoreKeys } from "../utils/StoreManager";
 
 interface AnalysisContextType {
@@ -26,55 +31,52 @@ export default function AnalysisProvider({
 
   const loadAnalyses = useCallback(async () => {
     try {
-      // Get list of analysis IDs
+      // First, try to migrate any analyses from the store to files
       const idsList = await StoreManager.get(StoreKeys.analysis.list);
-      if (!idsList) {
-        // Backwards compatibility: check for old format
-        const oldData = await StoreManager.get("analyses");
-        if (oldData) {
-          const oldAnalyses: Analysis[] = JSON.parse(oldData);
-          // Migrate old format to new format
-          const migratedIds: number[] = [];
-          for (const analysis of oldAnalyses) {
-            await StoreManager.set(
-              StoreKeys.analysis.byId(analysis.id),
-              JSON.stringify(analysis)
+      if (idsList) {
+        const ids: number[] = JSON.parse(idsList);
+
+        // Migrate each analysis from store to file
+        for (const id of ids) {
+          try {
+            const analysisData = await StoreManager.get(
+              StoreKeys.analysis.byId(id)
             );
-            migratedIds.push(analysis.id);
+            if (analysisData) {
+              const analysis: Analysis = JSON.parse(analysisData);
+              // Save to file
+              await saveAnalysisFile(analysis);
+              // Remove from store
+              await StoreManager.remove(StoreKeys.analysis.byId(id));
+            }
+          } catch (error) {
+            console.error(`Failed to migrate analysis ${id}:`, error);
           }
-          await StoreManager.set(
-            StoreKeys.analysis.list,
-            JSON.stringify(migratedIds)
-          );
+        }
+
+        // Remove the list from store after migration
+        await StoreManager.remove(StoreKeys.analysis.list);
+      }
+
+      // Check for old format (single "analyses" key)
+      const oldData = await StoreManager.get("analyses");
+      if (oldData) {
+        try {
+          const oldAnalyses: Analysis[] = JSON.parse(oldData);
+          // Migrate each to file
+          for (const analysis of oldAnalyses) {
+            await saveAnalysisFile(analysis);
+          }
           // Remove old key
           await StoreManager.remove("analyses");
-          setAnalyses(oldAnalyses);
-          return;
+        } catch (error) {
+          console.error("Failed to migrate old analyses format:", error);
         }
-        setAnalyses([]);
-        return;
       }
 
-      const ids: number[] = JSON.parse(idsList);
-      if (ids.length === 0) {
-        setAnalyses([]);
-        return;
-      }
-
-      // Load each analysis individually
-      const analysisPromises = ids.map(async (id) => {
-        const analysisData = await StoreManager.get(StoreKeys.analysis.byId(id));
-        if (analysisData) {
-          return JSON.parse(analysisData) as Analysis;
-        }
-        return null;
-      });
-
-      const loadedAnalyses = await Promise.all(analysisPromises);
-      const validAnalyses = loadedAnalyses.filter(
-        (a): a is Analysis => a !== null
-      );
-      setAnalyses(validAnalyses);
+      // Load analyses from files
+      const loadedAnalyses = await fetchAnalyses();
+      setAnalyses(loadedAnalyses);
     } catch (error) {
       console.error("Failed to load analyses:", error);
       setAnalyses([]);
@@ -82,39 +84,24 @@ export default function AnalysisProvider({
   }, []);
 
   const saveAnalysis = useCallback(async (analysis: Analysis) => {
-    // Save individual analysis
-    await StoreManager.set(
-      StoreKeys.analysis.byId(analysis.id),
-      JSON.stringify(analysis)
-    );
+    // Save analysis to file
+    await saveAnalysisFile(analysis);
 
-    // Update the list of analysis IDs
+    // Update local state
     setAnalyses((prev) => {
       const existing = prev.findIndex((a) => a.id === analysis.id);
-      const updated =
-        existing >= 0
-          ? prev.map((a) => (a.id === analysis.id ? analysis : a))
-          : [...prev, analysis];
-
-      // Save updated ID list
-      const ids = updated.map((a) => a.id);
-      StoreManager.set(StoreKeys.analysis.list, JSON.stringify(ids));
-
-      return updated;
+      return existing >= 0
+        ? prev.map((a) => (a.id === analysis.id ? analysis : a))
+        : [...prev, analysis];
     });
   }, []);
 
   const deleteAnalysis = useCallback(async (id: number) => {
-    // Remove individual analysis
-    await StoreManager.remove(StoreKeys.analysis.byId(id));
+    // Delete analysis file
+    await deleteAnalysisFile(id);
 
-    // Update the list of analysis IDs
-    setAnalyses((prev) => {
-      const updated = prev.filter((a) => a.id !== id);
-      const ids = updated.map((a) => a.id);
-      StoreManager.set(StoreKeys.analysis.list, JSON.stringify(ids));
-      return updated;
-    });
+    // Update local state
+    setAnalyses((prev) => prev.filter((a) => a.id !== id));
   }, []);
 
   useEffect(() => {
