@@ -38,6 +38,12 @@ export function useQrSortFilter({
         }
       }
 
+      if (filters.includes("unscanned")) {
+        if (code.scanned) {
+          return false;
+        }
+      }
+
       const hasDateFilter =
         filters.includes("day") ||
         filters.includes("week") ||

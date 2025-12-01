@@ -31,14 +31,10 @@ export default function Section(props: SectionProps) {
   const isWindowsXPTheme = theme.farmhandThemeId === "WindowsXPTheme";
   const { errors } = useScoutData();
 
-  const getSectionFields = section.fields.map((field) => field.name);
-
-  const sectionFields = getSectionFields;
-
   // Check if any field in this section has an error
   const hasErrorInSection = useMemo(
-    () => sectionFields.some((field) => errors.includes(field)),
-    [sectionFields, errors]
+    () => section.fields.some((field) => errors.includes(field.name)),
+    [section.fields, errors]
   );
 
   const showErrorHighlight = hasErrorInSection && !expanded && submitted;
@@ -161,7 +157,10 @@ export default function Section(props: SectionProps) {
 
       {/* Bottom AccordionSummary for collapsing */}
       <AccordionSummary
-        onClick={() => onToggle(!expanded)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggle(!expanded);
+        }}
         expandIcon={
           <ExpandIcon
             sx={{

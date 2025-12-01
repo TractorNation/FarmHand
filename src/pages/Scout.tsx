@@ -14,7 +14,7 @@ import {
 import Section from "../ui/Section";
 import { useSchema } from "../context/SchemaContext";
 import { useScoutData } from "../context/ScoutDataContext";
-import { useState, Key, useRef } from "react";
+import { useState, Key, useRef, useCallback } from "react";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutlineRounded";
 import ResetIcon from "@mui/icons-material/ReplayRounded";
 import HelpIcon from "@mui/icons-material/HelpOutlineRounded";
@@ -51,16 +51,27 @@ export default function Scout() {
 
   const deviceID = settings.DEVICE_ID;
 
-  const handleSectionToggle = (panelIndex: number) => (isExpanded: boolean) => {
-    if (isExpanded) {
-      setExpandedSectionIndex(panelIndex);
-    } else {
-      // If the current panel is being closed, open the next one
-      const totalSections = schema!.sections.length;
-      const nextIndex = (panelIndex + 1) % totalSections;
-      setExpandedSectionIndex(nextIndex);
-    }
-  };
+  const handleSectionToggle = useCallback(
+    (panelIndex: number) => (isExpanded: boolean) => {
+      if (isExpanded) {
+        // Only update if the state is actually different
+        setExpandedSectionIndex((prev) => {
+          if (prev === panelIndex) return prev;
+          return panelIndex;
+        });
+      } else {
+        // If the current panel is being closed, open the next one
+        // Only do this if the current panel is actually expanded
+        setExpandedSectionIndex((prev) => {
+          if (prev !== panelIndex) return prev; // Panel wasn't expanded, no change needed
+          const totalSections = schema!.sections.length;
+          const nextIndex = (panelIndex + 1) % totalSections;
+          return nextIndex;
+        });
+      }
+    },
+    [schema]
+  );
 
   const handleSaveQr = async (code: QrCode) => {
     await saveQrCode(code);

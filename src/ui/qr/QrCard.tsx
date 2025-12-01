@@ -1,4 +1,5 @@
-import { Card, Stack, Typography, useTheme } from "@mui/material";
+import { Card, Stack, Typography, useTheme, Box } from "@mui/material";
+import CheckCircleIcon from "@mui/icons-material/CheckCircleRounded";
 import useLongPress from "../../hooks/useLongPress";
 import { useRef } from "react";
 import { getDataFromQrName } from "../../utils/QrUtils";
@@ -63,19 +64,46 @@ export default function QrCard(props: QrCardProps) {
       }}
     >
       <Stack direction={"row"} spacing={2} alignItems={"center"}>
-        <img
-          src={`data:image/svg+xml,${encodeURIComponent(qr.image)}`}
-          alt={`Team: ${getDataFromQrName(qr.name).TeamNumber}, Match: ${
-            getDataFromQrName(qr.name).MatchNumber
-          }`}
-          style={{
-            borderRadius: 8,
-            width: "clamp(60px, 30%, 100px)",
-            height: "auto",
-            aspectRatio: "1/1",
+        <Box
+          sx={{
+            position: "relative",
             flexShrink: 0,
+            width: "clamp(60px, 30%, 100px)",
+            height: "clamp(60px, 30%, 100px)",
           }}
-        />
+        >
+          <img
+            src={`data:image/svg+xml,${encodeURIComponent(qr.image)}`}
+            alt={`Team: ${getDataFromQrName(qr.name).TeamNumber}, Match: ${
+              getDataFromQrName(qr.name).MatchNumber
+            }`}
+            style={{
+              borderRadius: 8,
+              width: "100%",
+              height: "100%",
+              objectFit: "contain",
+              opacity: qr.scanned ? 0.6 : 1,
+              transition: "opacity 0.2s ease",
+              display: "block",
+            }}
+          />
+          {qr.scanned && (
+            <CheckCircleIcon
+              sx={{
+                position: "absolute",
+                top: -6,
+                right: -6,
+                fontSize: 28,
+                color: theme.palette.success.main,
+                backgroundColor: theme.palette.background.paper,
+                borderRadius: "50%",
+                boxShadow: `0 2px 4px ${theme.palette.mode === "dark" ? "rgba(0,0,0,0.3)" : "rgba(0,0,0,0.2)"}`,
+                pointerEvents: "none",
+                zIndex: 1,
+              }}
+            />
+          )}
+        </Box>
         <Stack direction={"column"} spacing={0.5} sx={{ minWidth: 0, flex: 1 }}>
           <Typography variant="subtitle1" noWrap>
             Team: {getDataFromQrName(qr.name).TeamNumber}

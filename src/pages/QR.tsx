@@ -227,12 +227,17 @@ export default function QRPage() {
       <ShareDialog
         mode="match"
         qrCodeData={activeQrCode!}
+        allQrCodes={unarchivedQrCodes}
         open={qrDialogOpen}
         onClose={closeQrDialog}
         forQrPage
         isArchived={false}
         onDelete={refetch}
         onArchive={refetch}
+        onScanned={refetch}
+        onChangeQrCode={(code) => {
+          setActiveQrCode(code);
+        }}
       />
       <ExportDialog
         open={exportDialogOpen}

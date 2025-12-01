@@ -78,6 +78,7 @@ export default function SortFilterButtons({
   const filterOptions: { value: FilterOption; label: string }[] = [
     { value: "match number", label: "Match Number" },
     { value: "team number", label: "Team Number" },
+    { value: "unscanned", label: "Unscanned" },
     { value: "day", label: "Today" },
     { value: "week", label: "This Week" },
     { value: "month", label: "This Month" },

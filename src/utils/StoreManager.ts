@@ -109,6 +109,19 @@ const StoreManager = {
     const value = await this.get(StoreKeys.code.archived(name));
     return value === "true";
   },
+
+  async markQrCodeAsScanned(name: string) {
+    await this.set(StoreKeys.code.scanned(name), "true");
+  },
+
+  async markQrCodeAsUnscanned(name: string) {
+    await this.remove(StoreKeys.code.scanned(name));
+  },
+
+  async isQrCodeScanned(name: string): Promise<boolean> {
+    const value = await this.get(StoreKeys.code.scanned(name));
+    return value === "true";
+  },
 };
 
 export default StoreManager;
@@ -124,6 +137,7 @@ export const StoreKeys = {
   },
   code: {
     archived: (name: string) => `code::${name}::archived`,
+    scanned: (name: string) => `code::${name}::scanned`,
   },
   match: {
     field: (name: string) => `match::field::${name}`,

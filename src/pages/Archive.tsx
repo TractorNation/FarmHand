@@ -224,12 +224,17 @@ export default function ArchivePage() {
       <ShareDialog
         mode="match"
         qrCodeData={activeQrCode!}
+        allQrCodes={archivedQrCodes}
         open={qrDialogOpen}
         onClose={closeQrDialog}
         forQrPage
         isArchived
         onDelete={refetch}
         onUnarchive={refetch}
+        onScanned={refetch}
+        onChangeQrCode={(code) => {
+          setActiveQrCode(code);
+        }}
         canDelete
       />
 

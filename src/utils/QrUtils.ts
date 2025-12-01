@@ -182,6 +182,18 @@ export async function isQrCodeArchived(qrCode: QrCode): Promise<boolean> {
   return await StoreManager.isQrCodeArchived(qrCode.name);
 }
 
+export async function markQrCodeAsScanned(qrCode: QrCode): Promise<void> {
+  await StoreManager.markQrCodeAsScanned(qrCode.name);
+}
+
+export async function markQrCodeAsUnscanned(qrCode: QrCode): Promise<void> {
+  await StoreManager.markQrCodeAsUnscanned(qrCode.name);
+}
+
+export async function isQrCodeScanned(qrCode: QrCode): Promise<boolean> {
+  return await StoreManager.isQrCodeScanned(qrCode.name);
+}
+
 export function validateQR(qrString: string): boolean {
   const parts = qrString.split(":");
   if (parts.length !== 5) return false;
@@ -281,11 +293,13 @@ export async function fetchQrCodes(): Promise<QrCode[] | undefined> {
       });
 
       const archived = await StoreManager.isQrCodeArchived(file.name);
+      const scanned = await StoreManager.isQrCodeScanned(file.name);
       return {
         name: file.name,
         data: GetDescFromSvg(contents),
         image: contents,
         archived,
+        scanned,
       } as QrCode;
     })
   );

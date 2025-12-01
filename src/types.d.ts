@@ -62,6 +62,7 @@ interface QrCode {
   data: string;
   image: string;
   archived?: boolean;
+  scanned?: boolean;
 }
 
 /**
@@ -91,6 +92,7 @@ type FilterOption =
   | "day"
   | "week"
   | "month"
+  | "unscanned"
   | "none";
 
 /** Options for sorting qr codes */
