@@ -1340,14 +1340,17 @@ export default function ChartRenderer({
       );
 
     case "line":
+      const lerpType = chart.linearInterpolation ?? "natural";
+
       return (
         <Box sx={chartContainerSx}>
           <ResponsiveLine
+            key={`line-${chart.id}-${lerpType}`}
             data={processedData}
             margin={{ top: 20, right: 110, bottom: 50, left: 60 }}
             xScale={{ type: "linear", min: "auto", max: "auto" }}
             yScale={{ type: "linear", min: "auto", max: "auto" }}
-            curve="monotoneX"
+            curve={lerpType}
             colors={chartColors}
             theme={chartTheme}
             axisBottom={{

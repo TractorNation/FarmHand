@@ -59,14 +59,13 @@ export default function AnalysisViewer() {
   const [editingAnalysis, setEditingAnalysis] = useState<Analysis | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-
   // Load schema based on analysis schemaHash
   useEffect(() => {
     const loadSchema = async () => {
       if (!editingAnalysis || availableSchemas.length === 0) {
         return;
       }
-      
+
       // If no schemaHash, use first available schema (backwards compatibility)
       if (!editingAnalysis.schemaHash) {
         const firstSchema = availableSchemas[0]?.schema;
@@ -127,7 +126,9 @@ export default function AnalysisViewer() {
 
     const processData = async () => {
       // Find field indices for Match Number and Team Number
-      const allFields = selectedSchema.sections.flatMap((section) => section.fields);
+      const allFields = selectedSchema.sections.flatMap(
+        (section) => section.fields
+      );
       const matchNumberIndex = allFields.findIndex(
         (field) => field.name === "Match Number"
       );
@@ -164,7 +165,10 @@ export default function AnalysisViewer() {
           const teamField = item.decoded.data[teamNumberIndex];
           if (teamField === undefined || teamField === null) return false;
           const teamNum = Number(teamField);
-          if (isNaN(teamNum) || !editingAnalysis.selectedTeams.includes(teamNum)) {
+          if (
+            isNaN(teamNum) ||
+            !editingAnalysis.selectedTeams.includes(teamNum)
+          ) {
             return false;
           }
         }
@@ -179,7 +183,10 @@ export default function AnalysisViewer() {
           const matchField = item.decoded.data[matchNumberIndex];
           if (matchField === undefined || matchField === null) return false;
           const matchNum = Number(matchField);
-          if (isNaN(matchNum) || !editingAnalysis.selectedMatches.includes(matchNum)) {
+          if (
+            isNaN(matchNum) ||
+            !editingAnalysis.selectedMatches.includes(matchNum)
+          ) {
             return false;
           }
         }
@@ -188,15 +195,21 @@ export default function AnalysisViewer() {
         return true;
       });
 
-      console.log('AnalysisViewer - Filtered data:', {
+      console.log("AnalysisViewer - Filtered data:", {
         totalDecoded: decoded.length,
         filtered: filtered.length,
-        selectedTeams: editingAnalysis.selectedTeams.length > 0 ? editingAnalysis.selectedTeams : 'ALL',
-        selectedMatches: editingAnalysis.selectedMatches.length > 0 ? editingAnalysis.selectedMatches : 'ALL',
+        selectedTeams:
+          editingAnalysis.selectedTeams.length > 0
+            ? editingAnalysis.selectedTeams
+            : "ALL",
+        selectedMatches:
+          editingAnalysis.selectedMatches.length > 0
+            ? editingAnalysis.selectedMatches
+            : "ALL",
         teamFieldIndex: teamNumberIndex,
         matchFieldIndex: matchNumberIndex,
       });
-      
+
       setFilteredData(filtered);
     };
 
@@ -209,7 +222,11 @@ export default function AnalysisViewer() {
     { id: "pie", label: "Pie Chart", icon: <PieChartIcon /> },
     { id: "scatter", label: "Scatter Plot", icon: <ScatterPlotIcon /> },
     { id: "boxplot", label: "Box Plot", icon: <BoxPlotIcon /> },
-    { id: "heatmap", label: "Heatmap", icon: <HeatmapIcon sx={{transform: 'rotate(90deg)'}}/> },
+    {
+      id: "heatmap",
+      label: "Heatmap",
+      icon: <HeatmapIcon sx={{ transform: "rotate(90deg)" }} />,
+    },
   ];
 
   const handleSave = async () => {
@@ -252,6 +269,7 @@ export default function AnalysisViewer() {
         yAxis: chartConfig.yAxis,
         groupBy: chartConfig.groupBy,
         aggregation: chartConfig.aggregation || "sum",
+        linearInterpolation: chartConfig.linearInterpolation || "natural",
         sortMode: chartConfig.sortMode || "none",
       };
       setEditingAnalysis({
@@ -279,7 +297,6 @@ export default function AnalysisViewer() {
     });
     closeFilterDialog();
   };
-
 
   if (!analysis || !editingAnalysis) {
     return (
@@ -387,8 +404,8 @@ export default function AnalysisViewer() {
                     </IconButton>
                   </Stack>
                 </Stack>
-                <Box 
-                  sx={{ 
+                <Box
+                  sx={{
                     height: 300,
                     overflow: "visible",
                     position: "relative",
@@ -434,7 +451,7 @@ export default function AnalysisViewer() {
           <SpeedDialAction
             key={chart.id}
             icon={chart.icon}
-            slotProps={{tooltip: {title: chart.label}}}
+            slotProps={{ tooltip: { title: chart.label } }}
             onClick={() => handleAddChart(chart.id as Chart["type"])}
           />
         ))}

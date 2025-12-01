@@ -99,28 +99,35 @@ type SortMode = "match number" | "recent" | "none";
 /** The direction to sort codes by */
 type SortDirection = "ascending" | "descending";
 
-
 interface Analysis {
   id: number;
   name: string;
   selectedTeams: number[];
-  selectedMatches: number[]; 
+  selectedMatches: number[];
   charts: Chart[];
   createdAt: Date;
-  schemaHash: string; 
+  schemaHash: string;
 }
 
 interface Chart {
   id: string;
   name: string;
   type: "bar" | "line" | "pie" | "scatter" | "boxplot" | "heatmap";
-  xAxis?: string; 
-  yAxis?: string; 
-  groupBy?: string; 
+  xAxis?: string;
+  yAxis?: string;
+  groupBy?: string;
   aggregation?: "sum" | "average" | "count" | "min" | "max";
   sortMode?: "ascending" | "descending" | "none";
+  linearInterpolation?: // for line charts
+  | "basis"
+    | "cardinal"
+    | "catmullRom"
+    | "linear"
+    | "monotoneX"
+    | "monotoneY"
+    | "natural"
+    | "step"
+    | "stepAfter"
+    | "stepBefore";
   colorScheme?: string; // For heatmap color scheme selection
 }
-
-
-

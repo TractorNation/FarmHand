@@ -1,4 +1,16 @@
-import { Dialog, DialogTitle, DialogContent, Stack, TextField, FormControl, InputLabel, Select, MenuItem, DialogActions, Button } from "@mui/material";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  Stack,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  DialogActions,
+  Button,
+} from "@mui/material";
 import { useState, useEffect, useMemo } from "react";
 
 export default function ChartConfigDialog({
@@ -20,6 +32,8 @@ export default function ChartConfigDialog({
   const [xAxis, setXAxis] = useState("");
   const [yAxis, setYAxis] = useState("");
   const [aggregation, setAggregation] = useState<Chart["aggregation"]>("sum");
+  const [linearInterpolation, setLinearInterpolation] =
+    useState<Chart["linearInterpolation"]>("natural");
   const [sortMode, setSortMode] = useState<Chart["sortMode"]>("none");
   const [colorScheme, setColorScheme] = useState<string>("theme-primary");
 
@@ -29,13 +43,22 @@ export default function ChartConfigDialog({
       setXAxis(existingChart?.xAxis || "");
       setYAxis(existingChart?.yAxis || "");
       setAggregation(existingChart?.aggregation || "sum");
+      setLinearInterpolation(existingChart?.linearInterpolation || "natural");
       setSortMode(existingChart?.sortMode || "none");
       setColorScheme(existingChart?.colorScheme || "theme-primary");
     }
   }, [open, existingChart]);
 
   const handleSave = () => {
-    onSave({ name, xAxis, yAxis, aggregation, sortMode, colorScheme });
+    onSave({
+      name,
+      xAxis,
+      yAxis,
+      aggregation,
+      sortMode,
+      linearInterpolation,
+      colorScheme,
+    });
     onClose();
   };
 
@@ -230,6 +253,28 @@ export default function ChartConfigDialog({
             </FormControl>
           )}
 
+          {chartType === "line" && (
+            <FormControl fullWidth>
+              <InputLabel>Line</InputLabel>
+              <Select
+                value={linearInterpolation}
+                label="Aggregation"
+                onChange={(e) => setLinearInterpolation(e.target.value)}
+              >
+                <MenuItem value="basis">Basis</MenuItem>
+                <MenuItem value="cardinal">Cardinal</MenuItem>
+                <MenuItem value="catmullRom">CatmullRom</MenuItem>
+                <MenuItem value="linear">Linear</MenuItem>
+                <MenuItem value="monotoneX">MonotoneX</MenuItem>
+                <MenuItem value="monotoneY">MonotoneY</MenuItem>
+                <MenuItem value="natural">Natural</MenuItem>
+                <MenuItem value="step">Step</MenuItem>
+                <MenuItem value="stepBefore">Step Before</MenuItem>
+                <MenuItem value="stepAfter">Step After</MenuItem>
+              </Select>
+            </FormControl>
+          )}
+
           {(chartType === "bar" || chartType === "boxplot") && (
             <FormControl fullWidth>
               <InputLabel>Sort Mode</InputLabel>
@@ -253,7 +298,9 @@ export default function ChartConfigDialog({
         <Button
           variant="contained"
           onClick={handleSave}
-          disabled={!name || (chartType === "heatmap" ? (!xAxis || !yAxis) : !xAxis)}
+          disabled={
+            !name || (chartType === "heatmap" ? !xAxis || !yAxis : !xAxis)
+          }
         >
           {existingChart ? "Save" : "Add Chart"}
         </Button>
