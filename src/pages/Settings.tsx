@@ -14,6 +14,10 @@ import {
   Slide,
   useMediaQuery,
   Alert,
+  Dialog,
+  DialogTitle,
+  DialogActions,
+  DialogContent,
 } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import DropdownInput from "../ui/components/DropdownInput";
@@ -26,7 +30,7 @@ import SecurityIcon from "@mui/icons-material/SecurityRounded";
 import InfoIcon from "@mui/icons-material/InfoRounded";
 import SaveIcon from "@mui/icons-material/SaveRounded";
 import WarningIcon from "@mui/icons-material/WarningRounded";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import PageHeader from "../ui/PageHeader";
 import { useSettings } from "../context/SettingsContext";
 import { useNavigate } from "react-router";
@@ -38,7 +42,8 @@ import TextInput from "../ui/components/TextInput";
 
 export default function Settings() {
   const { schemaName, availableSchemas } = useSchema();
-  const { setSetting, settings, settingsLoading } = useSettings();
+  const { setSetting, settings, settingsLoading, resetToDefaults } =
+    useSettings();
   const theme = useTheme();
   const navigate = useNavigate();
   const themeOptions = Object.keys(themeRegistry);
@@ -51,10 +56,13 @@ export default function Settings() {
   const [editingSettings, setEditingSettings] = useState<Settings>(settings);
   const [originalSettings, setOriginalSettings] = useState<Settings>(settings);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [warningDialogOpen, openWarningDialog, closeWarningDialog] =
+    useDialog();
   const isLandscape = useMediaQuery("(orientation: landscape)");
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [notifications, setNotifications] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
+  const previousSettingsRef = useRef<Settings>(settings);
 
   const [
     unsavedChangesDialogOpen,
@@ -67,7 +75,22 @@ export default function Settings() {
     if (!settingsLoading && !isInitialized) {
       setEditingSettings(settings);
       setOriginalSettings(settings);
+      previousSettingsRef.current = settings;
       setIsInitialized(true);
+    }
+  }, [settings, settingsLoading, isInitialized]);
+
+  // Sync local settings when context settings change (e.g., after reset to defaults)
+  useEffect(() => {
+    if (!settingsLoading && isInitialized) {
+      // Only sync if settings actually changed (not just a re-render)
+      if (
+        JSON.stringify(previousSettingsRef.current) !== JSON.stringify(settings)
+      ) {
+        setEditingSettings(settings);
+        setOriginalSettings(settings);
+        previousSettingsRef.current = settings;
+      }
     }
   }, [settings, settingsLoading, isInitialized]);
 
@@ -96,19 +119,27 @@ export default function Settings() {
   const handleSaveSettings = async () => {
     // Validate and clamp number fields before saving
     const validatedSettings = { ...editingSettings };
-    
+
     // Ensure DEVICE_ID is valid (min 1)
-    if (validatedSettings.DEVICE_ID === null || validatedSettings.DEVICE_ID === undefined || validatedSettings.DEVICE_ID < 1) {
+    if (
+      validatedSettings.DEVICE_ID === null ||
+      validatedSettings.DEVICE_ID === undefined ||
+      validatedSettings.DEVICE_ID < 1
+    ) {
       validatedSettings.DEVICE_ID = 1;
     }
-    
+
     // Ensure EXPECTED_DEVICES_COUNT is valid (min 1, max 50)
-    if (validatedSettings.EXPECTED_DEVICES_COUNT === null || validatedSettings.EXPECTED_DEVICES_COUNT === undefined || validatedSettings.EXPECTED_DEVICES_COUNT < 1) {
+    if (
+      validatedSettings.EXPECTED_DEVICES_COUNT === null ||
+      validatedSettings.EXPECTED_DEVICES_COUNT === undefined ||
+      validatedSettings.EXPECTED_DEVICES_COUNT < 1
+    ) {
       validatedSettings.EXPECTED_DEVICES_COUNT = 1;
     } else if (validatedSettings.EXPECTED_DEVICES_COUNT > 50) {
       validatedSettings.EXPECTED_DEVICES_COUNT = 50;
     }
-    
+
     // Save all settings
     for (const [key, value] of Object.entries(validatedSettings)) {
       await setSetting(key as keyof Settings, value);
@@ -558,7 +589,28 @@ export default function Settings() {
             </Stack>
           </CardContent>
         </Card>
+
+        <Button variant="contained" color="warning" onClick={openWarningDialog}>
+          Reset to defaults
+        </Button>
       </Stack>
+
+      <Dialog open={warningDialogOpen}>
+        <DialogTitle>
+          <WarningIcon sx={{ mr: 1 }} color="warning" /> Are you sure?
+        </DialogTitle>
+        <DialogContent>
+          Would you like to reset all settings to defaults?
+        </DialogContent>
+        <DialogActions>
+          <Button variant="text" color="primary" onClick={closeWarningDialog}>
+            Cancel
+          </Button>
+          <Button variant="contained" color="warning" onClick={resetToDefaults}>
+            Continue Reset
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <UnsavedSchemaChangesDialog
         open={unsavedChangesDialogOpen}
