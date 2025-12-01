@@ -185,7 +185,7 @@ export default function ChartRenderer({
     let groupByFieldIndex = -1;
     let groupByFieldName = "";
 
-    if (chart.type === "line" && chart.groupBy) {
+    if ((chart.type === "line" || chart.type === "scatter") && chart.groupBy) {
       // Use explicit groupBy field if specified
       const groupByParts = chart.groupBy.split(" - ");
       if (groupByParts.length === 2) {
@@ -212,7 +212,10 @@ export default function ChartRenderer({
           if (groupByFieldIndex !== -1) break;
         }
       }
-    } else if (chart.type === "line" && xFieldName === "Match Number") {
+    } else if (
+      chart.type === "line" ||
+      (chart.type === "scatter" && xFieldName === "Match Number")
+    ) {
       // Auto-detect: if X-axis is Match Number, group by Team Number
       absoluteIndex = 0;
       for (
@@ -243,7 +246,10 @@ export default function ChartRenderer({
     let groupedSimple: Map<string, (number | string | number[])[]> | null =
       null;
 
-    if (chart.type === "line" && groupByFieldIndex !== -1) {
+    if (
+      (chart.type === "line" || chart.type === "scatter") &&
+      groupByFieldIndex !== -1
+    ) {
       groupedByLine = new Map<string, Map<string, (number | string)[]>>();
     } else {
       groupedSimple = new Map<string, (number | string)[]>();
@@ -320,7 +326,11 @@ export default function ChartRenderer({
         }
       }
 
-      if (chart.type === "line" && groupByFieldIndex !== -1 && groupedByLine) {
+      if (
+        (chart.type === "line" || chart.type === "scatter") &&
+        groupByFieldIndex !== -1 &&
+        groupedByLine
+      ) {
         // For line charts with grouping: group by team/groupBy, then by X-axis value
         const groupValue = item.decoded.data[groupByFieldIndex];
         if (groupValue === undefined || groupValue === null) return;
@@ -462,7 +472,11 @@ export default function ChartRenderer({
 
     // Handle line charts - create one line per group (team)
     // Format: [{ id: "123", data: [{x: 1, y: 10}, {x: 2, y: 15}] }, { id: "456", data: [...] }]
-    if (chart.type === "line" && groupByFieldIndex !== -1 && groupedByLine) {
+    if (
+      (chart.type === "line" || chart.type === "scatter") &&
+      groupByFieldIndex !== -1 &&
+      groupedByLine
+    ) {
       const result: Array<{
         id: string;
         data: Array<{ x: string | number; y: number }>;
@@ -745,7 +759,11 @@ export default function ChartRenderer({
     }
 
     // For line charts without grouping, create a single line
-    if (chart.type === "line" && groupByFieldIndex === -1 && groupedSimple) {
+    if (
+      (chart.type === "line" || chart.type === "scatter") &&
+      groupByFieldIndex === -1 &&
+      groupedSimple
+    ) {
       const result: Array<{
         id: string;
         data: Array<{ x: string | number; y: number }>;
@@ -1389,17 +1407,13 @@ export default function ChartRenderer({
       return (
         <Box sx={chartContainerSx}>
           <ResponsiveScatterPlot
-            data={[
-              {
-                id: chart.name,
-                data: processedData.map((d) => ({ x: d.x, y: d.y })),
-              },
-            ]}
-            margin={{ top: 20, right: 20, bottom: 50, left: 60 }}
+            data={processedData}
+            margin={{ top: 20, right: 110, bottom: 50, left: 60 }}
             xScale={{ type: "linear" }}
             yScale={{ type: "linear" }}
             colors={chartColors}
             theme={chartTheme}
+            useMesh={true}
             axisBottom={{
               legend: chart.xAxis,
               legendPosition: "middle",
@@ -1410,6 +1424,18 @@ export default function ChartRenderer({
               legendPosition: "middle",
               legendOffset: -50,
             }}
+            legends={[
+              {
+                anchor: "bottom-right",
+                direction: "column",
+                translateX: 120,
+                translateY: 0,
+                itemWidth: 100,
+                itemHeight: 16,
+                itemsSpacing: 3,
+                symbolShape: "circle",
+              },
+            ]}
           />
         </Box>
       );
