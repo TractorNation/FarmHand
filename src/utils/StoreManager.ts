@@ -128,4 +128,9 @@ export const StoreKeys = {
   match: {
     field: (name: string) => `match::field::${name}`,
   },
+  analysis: {
+    byId: (id: number) => `analysis::${id}`,
+    list: "analyses::list",
+    pinned: (chartId: string) => `analysis::${chartId}::pinned`,
+  },
 };

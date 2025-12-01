@@ -4,6 +4,7 @@ import PauseIcon from "@mui/icons-material/PauseRounded";
 import ResetIcon from "@mui/icons-material/ReplayRounded";
 import useToggle from "../../hooks/useToggle";
 import { useEffect, useRef, useState } from "react";
+import { parseTime } from "../../utils/GeneralUtils";
 
 /**
  * Props for the timer input
@@ -12,20 +13,6 @@ interface TimerInputProps {
   value?: string;
   onChange?: (value: string) => void;
 }
-
-const parseTime = (timeString: string | undefined): number => {
-  if (!timeString || typeof timeString !== "string") {
-    return 0;
-  }
-  if (timeString.includes(":")) {
-    const parts = timeString.split(":");
-    const minutes = parseInt(parts[0], 10) || 0;
-    const seconds = parseFloat(parts[1]) || 0;
-    return Math.round((minutes * 60 + seconds) * 10);
-  }
-  const seconds = parseFloat(timeString) || 0;
-  return Math.round(seconds * 10);
-};
 
 export default function TimerInput(props: TimerInputProps) {
   const [playing, togglePlaying] = useToggle(false);

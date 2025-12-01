@@ -29,6 +29,7 @@ import QrCodeIcon from "@mui/icons-material/QrCodeRounded";
 import DashboardIcon from "@mui/icons-material/DashboardRounded";
 import UpdateIcon from "@mui/icons-material/SystemUpdateRounded";
 import ArchiveIcon from "@mui/icons-material/ArchiveRounded";
+import AnalysisIcon from "@mui/icons-material/AutoGraphRounded";
 import React, { Suspense, useEffect, useRef, useState } from "react";
 import {
   HashRouter,
@@ -39,6 +40,7 @@ import {
 } from "react-router";
 import { ThemeProvider, alpha, useTheme } from "@mui/material/styles";
 import SchemaProvider from "./context/SchemaContext";
+import AnalysisProvider from "./context/AnalysisContext";
 import Schemas from "./pages/Schemas";
 import SchemaEditor from "./pages/SchemaEditor";
 import LeadScoutDashboard from "./pages/Dashboard";
@@ -47,7 +49,8 @@ import { useSettings } from "./context/SettingsContext";
 import { themeRegistry, type ThemeRegistryKey } from "./config/themes";
 import Archive from "./pages/Archive";
 import Help from "./pages/Help";
-
+import Analyses from "./pages/Analyses";
+import AnalysisViewer from "./pages/AnalysisViewer";
 const Home = React.lazy(() => import("./pages/Home"));
 const Settings = React.lazy(() => import("./pages/Settings"));
 const Scout = React.lazy(() => import("./pages/Scout"));
@@ -87,6 +90,11 @@ const pages = [
     title: "Lead Scouter Dashboard",
     icon: <DashboardIcon />,
     path: "/dashboard",
+  },
+  {
+    title: "Analysis",
+    icon: <AnalysisIcon />,
+    path: "/analyses",
   },
   {
     title: "Archive",
@@ -217,7 +225,7 @@ function Layout({ children }: { children: React.ReactNode }) {
         sx={{
           width: "100%",
           height: "env(safe-area-inset-top, 0px)",
-          backgroundColor: theme.palette.primary.dark
+          backgroundColor: theme.palette.primary.dark,
         }}
       />
       <Slide appear={false} direction="down" in={!hideHeader}>
@@ -529,30 +537,34 @@ export default function App() {
       <CssBaseline />
       <ScoutDataProvider>
         <SchemaProvider schema={schema}>
-          <HashRouter>
-            <Layout>
-              <Suspense
-                fallback={
-                  <Typography sx={{ p: 3 }}>Loading page...</Typography>
-                }
-              >
-                <Routes>
-                  <Route path="/" element={<Home />} />
-                  <Route path="/scout" element={<Scout />} />
-                  <Route path="/qr" element={<QRPage />} />
-                  <Route path="/schemas" element={<Schemas />} />
-                  <Route
-                    path="/schemas/:schemaName"
-                    element={<SchemaEditor />}
-                  />
-                  <Route path="/dashboard" element={<LeadScoutDashboard />} />
-                  <Route path="/archive" element={<Archive />} />
-                  <Route path="/settings" element={<Settings />} />
-                  <Route path="/help" element={<Help />} />
-                </Routes>
-              </Suspense>
-            </Layout>
-          </HashRouter>
+          <AnalysisProvider>
+            <HashRouter>
+              <Layout>
+                <Suspense
+                  fallback={
+                    <Typography sx={{ p: 3 }}>Loading page...</Typography>
+                  }
+                >
+                  <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/scout" element={<Scout />} />
+                    <Route path="/qr" element={<QRPage />} />
+                    <Route path="/schemas" element={<Schemas />} />
+                    <Route
+                      path="/schemas/:schemaName"
+                      element={<SchemaEditor />}
+                    />
+                    <Route path="/dashboard" element={<LeadScoutDashboard />} />
+                    <Route path="/analyses" element={<Analyses />} />
+                    <Route path="/analyses/:id" element={<AnalysisViewer />} />
+                    <Route path="/archive" element={<Archive />} />
+                    <Route path="/settings" element={<Settings />} />
+                    <Route path="/help" element={<Help />} />
+                  </Routes>
+                </Suspense>
+              </Layout>
+            </HashRouter>
+          </AnalysisProvider>
         </SchemaProvider>
       </ScoutDataProvider>
     </ThemeProvider>

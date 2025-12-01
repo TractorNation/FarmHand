@@ -9,6 +9,9 @@ import {
   Typography,
   useTheme,
   LinearProgress,
+  Grid,
+  Card,
+  CardContent,
 } from "@mui/material";
 import DashboardIcon from "@mui/icons-material/DashboardRounded";
 import ExpandIcon from "@mui/icons-material/ExpandMoreRounded";
@@ -22,15 +25,29 @@ import { useAsyncFetch } from "../hooks/useAsyncFetch";
 import { useSchema } from "../context/SchemaContext";
 import { createSchemaHash } from "../utils/GeneralUtils";
 import { fetchQrCodes, validateQR, decodeQR } from "../utils/QrUtils";
+import StoreManager, { StoreKeys } from "../utils/StoreManager";
+import { useAnalysis } from "../context/AnalysisContext";
+import ChartRenderer from "../ui/ChartRenderer";
+import { getSchemaFromHash } from "../utils/SchemaUtils";
+
+interface PinnedChart {
+  chartId: string;
+  chart: Chart;
+  analysis: Analysis;
+  filteredData: any[];
+  schema: Schema | null;
+}
 
 export default function LeadScoutDashboard() {
   const theme = useTheme();
   const { settings } = useSettings();
   const { availableSchemas } = useSchema();
+  const { analyses } = useAnalysis();
   const [qrCodes] = useAsyncFetch(fetchQrCodes);
   const [receivedMatches, setReceivedMatches] = useState<
     Map<number, Array<{ deviceID: number }>>
   >(new Map());
+  const [pinnedCharts, setPinnedCharts] = useState<PinnedChart[]>([]);
 
   useEffect(() => {
     const processQrCodes = async () => {
@@ -121,6 +138,128 @@ export default function LeadScoutDashboard() {
 
     return { complete, incomplete, completionRate };
   }, [allMatchNumbers, receivedMatches, EXPECTED_DEVICES_COUNT]);
+
+  // Load and process pinned charts from store
+  useEffect(() => {
+    const loadPinnedCharts = async () => {
+      if (!qrCodes || availableSchemas.length === 0 || analyses.length === 0) {
+        setPinnedCharts([]);
+        return;
+      }
+
+      const pinned: PinnedChart[] = [];
+
+      // Get all pinned chart IDs from store
+      for (const analysis of analyses) {
+        for (const chart of analysis.charts || []) {
+          try {
+            const pinnedData = await StoreManager.get(
+              StoreKeys.analysis.pinned(chart.id)
+            );
+            if (pinnedData) {
+              const parsed = JSON.parse(pinnedData);
+              if (
+                parsed.pinned &&
+                parsed.chartId === chart.id &&
+                parsed.analysisId === analysis.id
+              ) {
+                // Get schema for this analysis
+                const schema = await getSchemaFromHash(
+                  analysis.schemaHash,
+                  availableSchemas
+                );
+
+                if (!schema) continue;
+
+                // Process QR codes data the same way AnalysisViewer does
+                const allFields = schema.sections.flatMap(
+                  (section) => section.fields
+                );
+                const matchNumberIndex = allFields.findIndex(
+                  (field) => field.name === "Match Number"
+                );
+                const teamNumberIndex = allFields.findIndex(
+                  (field) => field.name === "Team Number"
+                );
+
+                const decoded = await Promise.all(
+                  qrCodes
+                    .filter((qr) => !qr.archived)
+                    .map(async (qr) => {
+                      try {
+                        const decoded = await decodeQR(qr.data);
+                        // Only include QR codes that match the analysis schema
+                        if (decoded.schemaHash !== analysis.schemaHash) {
+                          return null;
+                        }
+                        return { qr, decoded };
+                      } catch {
+                        return null;
+                      }
+                    })
+                );
+
+                const filtered = decoded.filter((item) => {
+                  if (!item || !item.decoded || !item.decoded.data)
+                    return false;
+
+                  // Apply team filter (only if teams are explicitly selected)
+                  if (analysis.selectedTeams.length > 0) {
+                    if (teamNumberIndex === -1) {
+                      return false;
+                    }
+                    const teamField = item.decoded.data[teamNumberIndex];
+                    if (teamField === undefined || teamField === null)
+                      return false;
+                    const teamNum = Number(teamField);
+                    if (
+                      isNaN(teamNum) ||
+                      !analysis.selectedTeams.includes(teamNum)
+                    ) {
+                      return false;
+                    }
+                  }
+
+                  // Apply match filter (only if matches are explicitly selected)
+                  if (analysis.selectedMatches.length > 0) {
+                    if (matchNumberIndex === -1) {
+                      return false;
+                    }
+                    const matchField = item.decoded.data[matchNumberIndex];
+                    if (matchField === undefined || matchField === null)
+                      return false;
+                    const matchNum = Number(matchField);
+                    if (
+                      isNaN(matchNum) ||
+                      !analysis.selectedMatches.includes(matchNum)
+                    ) {
+                      return false;
+                    }
+                  }
+
+                  return true;
+                });
+
+                pinned.push({
+                  chartId: chart.id,
+                  chart,
+                  analysis,
+                  filteredData: filtered,
+                  schema,
+                });
+              }
+            }
+          } catch (error) {
+            console.error(`Failed to load pinned chart ${chart.id}:`, error);
+          }
+        }
+      }
+
+      setPinnedCharts(pinned);
+    };
+
+    loadPinnedCharts();
+  }, [analyses, qrCodes, availableSchemas]);
 
   return (
     <Box sx={{ p: 3 }}>
@@ -273,6 +412,55 @@ export default function LeadScoutDashboard() {
           </Paper>
         </Stack>
       </Box>
+
+      {/* Pinned Charts Section */}
+      {pinnedCharts.length > 0 && (
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h5" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
+            s Pinned Charts
+          </Typography>
+          <Grid container>
+            {pinnedCharts.map((pinnedChart) => (
+              <Grid size={{ xs: 12, sm: 12, md: 6, lg: 6 }} spacing={2}>
+                <Card
+                  elevation={0}
+                  sx={{
+                    border: `2px solid ${theme.palette.divider}`,
+                    borderRadius: 3,
+                    overflow: "visible",
+                    m: 1,
+                  }}
+                >
+                  <CardContent sx={{ overflow: "visible" }}>
+                    <Typography
+                      variant="subtitle1"
+                      sx={{ mb: 1, fontWeight: 600 }}
+                    >
+                      {pinnedChart.chart.name} - {pinnedChart.schema?.name}
+                    </Typography>
+                    <Box
+                      sx={{
+                        width: "100%",
+                        height: 350,
+                        overflow: "visible",
+                        position: "relative",
+                      }}
+                    >
+                      {pinnedChart.schema && (
+                        <ChartRenderer
+                          chart={pinnedChart.chart}
+                          data={pinnedChart.filteredData}
+                          schema={pinnedChart.schema}
+                        />
+                      )}
+                    </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
+      )}
 
       {/* Received Matches List */}
       <Box sx={{ mb: 4 }}>
