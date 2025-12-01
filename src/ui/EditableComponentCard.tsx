@@ -637,8 +637,11 @@ export default function EditableComponentCard(props: ComponentCardProps) {
         open={renameDialogOpen}
         initialName={newFieldName}
         onClose={closeRenameDialog}
-        onRename={(newName) => setNewFieldName(newName)}
-        title="Rename Section"
+        onRename={(newName) => {
+          handleFieldChange("name", newName);
+          closeRenameDialog();
+        }}
+        title="Rename Field"
       />
     </>
   );
