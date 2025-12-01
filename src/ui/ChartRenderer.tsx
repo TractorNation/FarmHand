@@ -164,6 +164,22 @@ export default function ChartRenderer({
 
     if (xFieldIndex === -1) return [];
 
+    // Check if Y-axis field is a range slider early (needed for proper data handling)
+    let isRangeSliderField = false;
+    if (schema && yFieldIndex !== -1 && yFieldType === "slider") {
+      let absoluteIndex = 0;
+      for (const section of schema.sections) {
+        for (const field of section.fields) {
+          if (absoluteIndex === yFieldIndex && field.type === "slider") {
+            isRangeSliderField = field.props?.selectsRange === true;
+            break;
+          }
+          absoluteIndex++;
+        }
+        if (isRangeSliderField) break;
+      }
+    }
+
     // For line charts, we need to determine what field to group by for multiple lines
     // Typically: X-axis = Match Number, group by Team Number to create one line per team
     let groupByFieldIndex = -1;
@@ -219,10 +235,13 @@ export default function ChartRenderer({
     }
 
     // Group data - for line charts with grouping, use nested map; otherwise simple map
-    // Note: arrays can contain strings for text/dropdown fields, but will be converted to numbers where needed
-    let groupedByLine: Map<string, Map<string, (number | string)[]>> | null =
+    // Note: arrays can contain strings for text/dropdown fields, numbers, or arrays (for range sliders)
+    let groupedByLine: Map<
+      string,
+      Map<string, (number | string | number[])[]>
+    > | null = null;
+    let groupedSimple: Map<string, (number | string | number[])[]> | null =
       null;
-    let groupedSimple: Map<string, (number | string)[]> | null = null;
 
     if (chart.type === "line" && groupByFieldIndex !== -1) {
       groupedByLine = new Map<string, Map<string, (number | string)[]>>();
@@ -243,12 +262,36 @@ export default function ChartRenderer({
       }
 
       // Convert Y value based on field type
-      let yValue: number | string = 1; // Default for count when no y-axis
+      let yValue: number | string | number[] = 1; // Default for count when no y-axis
       if (yFieldIndex !== -1) {
         const rawYValue = item.decoded.data[yFieldIndex];
         if (rawYValue !== undefined && rawYValue !== null) {
-          // Handle different field types
-          if (yFieldType === "timer") {
+          // Handle range slider arrays first - preserve the array structure
+          if (isRangeSliderField) {
+            // Preserve array structure for range sliders
+            if (Array.isArray(rawYValue)) {
+              // Already an array, use as-is
+              yValue = rawYValue;
+            } else if (typeof rawYValue === "string") {
+              // Try parsing string representation
+              try {
+                const parsed = JSON.parse(rawYValue);
+                if (Array.isArray(parsed) && parsed.length === 2) {
+                  yValue = [Number(parsed[0]), Number(parsed[1])];
+                }
+              } catch {
+                // Try comma-separated format
+                const parts = rawYValue.split(",").map((s) => s.trim());
+                if (parts.length === 2) {
+                  const min = Number(parts[0]);
+                  const max = Number(parts[1]);
+                  if (!isNaN(min) && !isNaN(max)) {
+                    yValue = [min, max];
+                  }
+                }
+              }
+            }
+          } else if (yFieldType === "timer") {
             // Convert timer string to seconds
             const seconds = parseTime(String(rawYValue));
             if (seconds !== null) {
@@ -519,47 +562,131 @@ export default function ChartRenderer({
       return result;
     }
 
-    // Handle boxplot differently - it needs flat array of individual data points
-    // Format: [{ group: "123", value: 1 }, { group: "123", value: 2 }, ...]
+    // Handle boxplot - always uses flat format: [{ group: "123", value: 1 }, { group: "123", value: 2 }, ...]
+    // For range sliders, expand [min, max] into individual data points
     if (chart.type === "boxplot") {
       if (!groupedSimple) return [];
+
+      // Check if Y-axis field is a range slider and get step value if available
+      let isRangeSlider = false;
+      let sliderStep = 1; // Default step
+      if (schema && yFieldIndex !== -1) {
+        let absoluteIndex = 0;
+        for (const section of schema.sections) {
+          for (const field of section.fields) {
+            if (absoluteIndex === yFieldIndex && field.type === "slider") {
+              isRangeSlider = field.props?.selectsRange === true;
+              sliderStep = field.props?.step || 1;
+              break;
+            }
+            absoluteIndex++;
+          }
+          if (isRangeSlider) break;
+        }
+      }
+
       const result: Array<{ group: string; value: number }> = [];
       let allValues: number[] = []; // Collect all values for min/max calculation
 
-      groupedSimple.forEach((values: (number | string)[], key: string) => {
-        // Filter out invalid values and keep all raw values
-        values.forEach((v: number | string) => {
-          let num: number;
+      groupedSimple.forEach(
+        (values: (number | string | number[])[], key: string) => {
+          values.forEach((v: number | string | number[]) => {
+            if (isRangeSlider) {
+              console.log("range slider found");
+              console.log("range slider", v);
+              // Parse range slider value: could be array [min, max] or string representation
+              let rangeArray: [number, number] | null = null;
 
-          // Convert based on field type
-          if (yFieldType === "timer") {
-            const seconds = parseTime(String(v));
-            if (seconds === null) return;
-            num = seconds;
-          } else if (yFieldType === "grid") {
-            const cellCount = parseGridToNumber(String(v));
-            if (cellCount === null) return;
-            num = cellCount;
-          } else if (yFieldType === "checkbox") {
-            num = Boolean(v) ? 1 : 0;
-          } else {
-            num = typeof v === "number" ? v : Number(v);
-          }
+              if (Array.isArray(v)) {
+                console.log("range slider value is an array");
+                // Already an array
+                if (
+                  v.length === 2 &&
+                  typeof v[0] === "number" &&
+                  typeof v[1] === "number"
+                ) {
+                  rangeArray = [v[0], v[1]];
+                }
+              } else if (typeof v === "string") {
+                console.log("range slider value is not an array");
+                // Try parsing string like "[5,10]" or "5,10"
+                try {
+                  const parsed = JSON.parse(v);
+                  if (Array.isArray(parsed) && parsed.length === 2) {
+                    rangeArray = [Number(parsed[0]), Number(parsed[1])];
+                  }
+                } catch {
+                  console.log(
+                    "failed to parse as string, using commas to separate vlaues"
+                  );
+                  // Try comma-separated format
+                  const parts = v.split(",").map((s) => s.trim());
+                  if (parts.length === 2) {
+                    const min = Number(parts[0]);
+                    const max = Number(parts[1]);
+                    if (!isNaN(min) && !isNaN(max)) {
+                      rangeArray = [min, max];
+                      console.log("range slider min and max are valie");
+                    }
+                  }
+                }
+              }
 
-          if (
-            !isNaN(num) &&
-            isFinite(num) &&
-            num !== null &&
-            num !== undefined
-          ) {
-            result.push({
-              group: String(key),
-              value: num,
-            });
-            allValues.push(num);
-          }
-        });
-      });
+              if (rangeArray) {
+                const [minVal, maxVal] = rangeArray;
+                // Ensure min <= max
+                const actualMin = Math.min(minVal, maxVal);
+                const actualMax = Math.max(minVal, maxVal);
+
+                // Expand range into individual data points
+                // Include both min and max, and all values in between based on step
+                for (
+                  let currentValue = actualMin;
+                  currentValue <= actualMax;
+                  currentValue += sliderStep
+                ) {
+                  result.push({
+                    group: String(key),
+                    value: currentValue,
+                  });
+                  allValues.push(currentValue);
+                }
+              }
+            } else {
+              // Normal numeric field handling
+              let num: number;
+
+              // Convert based on field type
+              if (yFieldType === "timer") {
+                const seconds = parseTime(String(v));
+                if (seconds === null) return;
+                num = seconds;
+              } else if (yFieldType === "grid") {
+                const cellCount = parseGridToNumber(String(v));
+                if (cellCount === null) return;
+                num = cellCount;
+              } else if (yFieldType === "checkbox") {
+                num = Boolean(v) ? 1 : 0;
+              } else {
+                num = typeof v === "number" ? v : Number(v);
+              }
+
+              if (
+                !isNaN(num) &&
+                isFinite(num) &&
+                num !== null &&
+                num !== undefined
+              ) {
+                result.push({
+                  group: String(key),
+                  value: num,
+                });
+                allValues.push(num);
+              }
+            }
+          });
+        }
+      );
 
       // Sort by median value if sortMode is specified
       // For flat array format, we need to group by group first, calculate median, then sort
@@ -784,52 +911,54 @@ export default function ChartRenderer({
       (result as any).__teamKeys = sortedTeamNumbers;
     } else {
       // Standard processing for numeric Y-axis or other chart types
-      groupedSimple.forEach((values: (number | string)[], key: string) => {
-        let aggregatedValue = 0;
+      groupedSimple.forEach(
+        (values: (number | string | number[])[], key: string) => {
+          let aggregatedValue = 0;
 
-        // Handle string/categorical values (text, dropdown)
-        if (yFieldType === "text" || yFieldType === "dropdown") {
-          // For categorical data, count is the most meaningful aggregation
-          aggregatedValue = values.length;
-        } else {
-          // For numeric values, use specified aggregation
-          const numericValues = values
-            .map((v) => (typeof v === "number" ? v : Number(v)))
-            .filter((v) => !isNaN(v));
-
-          if (numericValues.length === 0) {
-            aggregatedValue = 0;
+          // Handle string/categorical values (text, dropdown)
+          if (yFieldType === "text" || yFieldType === "dropdown") {
+            // For categorical data, count is the most meaningful aggregation
+            aggregatedValue = values.length;
           } else {
-            switch (chart.aggregation) {
-              case "sum":
-                aggregatedValue = numericValues.reduce((a, b) => a + b, 0);
-                break;
-              case "average":
-                aggregatedValue =
-                  numericValues.reduce((a, b) => a + b, 0) /
-                  numericValues.length;
-                break;
-              case "count":
-                aggregatedValue = values.length;
-                break;
-              case "min":
-                aggregatedValue = Math.min(...numericValues);
-                break;
-              case "max":
-                aggregatedValue = Math.max(...numericValues);
-                break;
+            // For numeric values, use specified aggregation
+            const numericValues = values
+              .map((v) => (typeof v === "number" ? v : Number(v)))
+              .filter((v) => !isNaN(v));
+
+            if (numericValues.length === 0) {
+              aggregatedValue = 0;
+            } else {
+              switch (chart.aggregation) {
+                case "sum":
+                  aggregatedValue = numericValues.reduce((a, b) => a + b, 0);
+                  break;
+                case "average":
+                  aggregatedValue =
+                    numericValues.reduce((a, b) => a + b, 0) /
+                    numericValues.length;
+                  break;
+                case "count":
+                  aggregatedValue = values.length;
+                  break;
+                case "min":
+                  aggregatedValue = Math.min(...numericValues);
+                  break;
+                case "max":
+                  aggregatedValue = Math.max(...numericValues);
+                  break;
+              }
             }
           }
-        }
 
-        result.push({
-          id: key,
-          label: key,
-          value: aggregatedValue,
-          x: key,
-          y: aggregatedValue,
-        });
-      });
+          result.push({
+            id: key,
+            label: key,
+            value: aggregatedValue,
+            x: key,
+            y: aggregatedValue,
+          });
+        }
+      );
     }
 
     // Special handling for pie charts with text/dropdown Y-axis: create slices with team subgroups
