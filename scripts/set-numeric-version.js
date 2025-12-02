@@ -15,20 +15,37 @@ if (!version) {
   process.exit(1);
 }
 
-// Extract numeric-only version (strip prerelease identifiers)
-// e.g., "0.2.0-beta.1" -> "0.2.0"
-const numericVersion = version.replace(/-[^0-9].*$/, '');
+// Extract parts from version like "0.2026.3-beta"
+const versionParts = version.split("-")[0].split("."); // Remove prerelease, split by dots
+const major = versionParts[0];
+const minor = versionParts[1];
+const patch = versionParts[2] || "0";
+
+let numericVersion;
+
+// Check if minor version is > 255 (our year-based versioning)
+if (parseInt(minor) > 255) {
+  // Transform: "0.2026.3" -> "0.26.3"
+  // Use last 2 digits of year
+  const yearLastTwo = minor.slice(-2); // "2026" -> "26"
+  numericVersion = `${major}.${yearLastTwo}.${patch}`;
+} else {
+  // Standard semver, just strip prerelease
+  numericVersion = `${major}.${minor}.${patch}`;
+}
 
 console.log(`Setting numeric version: ${numericVersion} (from ${version})`);
 
 // Update tauri.conf.json
 const tauriConfPath = join(rootDir, "src-tauri", "tauri.conf.json");
 const tauriConf = JSON.parse(readFileSync(tauriConfPath, "utf-8"));
-const originalVersion = tauriConf.version;
+const originalTauriVersion = tauriConf.version;
 
 tauriConf.version = numericVersion;
 writeFileSync(tauriConfPath, JSON.stringify(tauriConf, null, 2) + "\n");
-console.log(`Updated tauri.conf.json: ${originalVersion} -> ${numericVersion}`);
+console.log(
+  `Updated tauri.conf.json: ${originalTauriVersion} -> ${numericVersion}`
+);
 
 // Update Cargo.toml
 const cargoTomlPath = join(rootDir, "src-tauri", "Cargo.toml");
@@ -47,14 +64,21 @@ if (cargoVersionMatch) {
   );
 }
 
-// Save original version to a temp file so we can restore it later
+// Save original versions to a temp file so we can restore them later
 const tempFile = join(rootDir, ".version-backup.json");
 writeFileSync(
   tempFile,
-  JSON.stringify({
-    tauriConf: originalVersion,
-    cargoToml: cargoVersionMatch ? cargoVersionMatch[1] : originalVersion,
-  })
+  JSON.stringify(
+    {
+      tauriConf: originalTauriVersion,
+      cargoToml: cargoVersionMatch
+        ? cargoVersionMatch[1]
+        : originalTauriVersion,
+    },
+    null,
+    2
+  )
 );
 
 console.log("Original versions saved for restoration");
+console.log(`Windows-compatible version: ${numericVersion}`);

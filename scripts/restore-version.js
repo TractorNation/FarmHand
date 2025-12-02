@@ -30,11 +30,16 @@ console.log(`Restored tauri.conf.json: ${currentTauriVersion} -> ${backup.tauriC
 // Restore Cargo.toml
 const cargoTomlPath = join(rootDir, 'src-tauri', 'Cargo.toml');
 let cargoToml = readFileSync(cargoTomlPath, 'utf-8');
-cargoToml = cargoToml.replace(/^version\s*=\s*"[^"]+"/m, `version = "${backup.cargoToml}"`);
+const currentCargoMatch = cargoToml.match(/^version\s*=\s*"([^"]+)"/m);
+const currentCargoVersion = currentCargoMatch ? currentCargoMatch[1] : 'unknown';
+
+cargoToml = cargoToml.replace(
+  /^version\s*=\s*"[^"]+"/m, 
+  `version = "${backup.cargoToml}"`
+);
 writeFileSync(cargoTomlPath, cargoToml);
-console.log(`Restored Cargo.toml version: ${backup.cargoToml}`);
+console.log(`Restored Cargo.toml: ${currentCargoVersion} -> ${backup.cargoToml}`);
 
 // Clean up backup file
 unlinkSync(backupFile);
 console.log('Version restoration complete');
-
