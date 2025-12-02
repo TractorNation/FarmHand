@@ -13,6 +13,7 @@ import {
   CardContent,
   Button,
 } from "@mui/material";
+import { alpha } from "@mui/material/styles";
 import DashboardIcon from "@mui/icons-material/DashboardRounded";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScannerRounded";
 import ExpandIcon from "@mui/icons-material/ExpandMoreRounded";
@@ -683,17 +684,10 @@ export default function LeadScoutDashboard() {
                         "&:before": {
                           display: "none",
                         },
-                        "&.Mui-expanded": {
-                          margin: 0,
-                        },
                       }}
                     >
                       <AccordionSummary
-                        expandIcon={
-                          <ExpandIcon
-                            sx={{ color: theme.typography.body1.color }}
-                          />
-                        }
+                        expandIcon={<ExpandIcon sx={{mx: 1}}/>}
                         sx={{
                           backgroundColor: backgroundColor,
                           borderRadius: 3,
@@ -713,7 +707,7 @@ export default function LeadScoutDashboard() {
                             sx={{
                               width: 40,
                               height: 40,
-                              borderRadius: 2,
+                              borderRadius: 3,
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
@@ -735,7 +729,7 @@ export default function LeadScoutDashboard() {
                               <Stack
                                 direction="row"
                                 spacing={0.5}
-                                sx={{ mt: 0.5, flexWrap: "wrap", gap: 0.5 }}
+                                sx={{ mt: 0.5, flexWrap: "wrap", gap: 1 }}
                               >
                                 {missingDeviceIDs
                                   .sort((a, b) => a - b)
@@ -784,10 +778,15 @@ export default function LeadScoutDashboard() {
                       </AccordionSummary>
                       <AccordionDetails
                         sx={{
-                          borderTop: `2px solid ${borderColor}`,
+                          // borderTop: `2px solid ${
+                          //   isComplete
+                          //     ? theme.palette.success.main
+                          //     : isMissing
+                          //     ? theme.palette.error.main
+                          //     : theme.palette.warning.main
+                          // }`,
                           backgroundColor: theme.palette.background.paper,
-                          borderBottomLeftRadius: 3,
-                          borderBottomRightRadius: 3,
+                          borderRadius: 3,
                           p: 3,
                         }}
                       >
