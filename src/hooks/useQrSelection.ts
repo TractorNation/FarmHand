@@ -48,6 +48,20 @@ export function useQrSelection(qrCodes?: QrCode[]) {
     }
   };
 
+  const selectAllCodes = (useHash: boolean) => {
+    if (!qrCodes) return;
+
+    if (useHash) {
+      setSelectedCodes(
+        qrCodes
+          ? [...qrCodes.filter((c) => c.data.includes(selectedHash || ""))]
+          : []
+      );
+    } else {
+      setSelectedCodes(qrCodes);
+    }
+  };
+
   const resetSelection = () => {
     setSelectedCodes([]);
     setSelectedHash(null);
@@ -70,5 +84,6 @@ export function useQrSelection(qrCodes?: QrCode[]) {
     updateSelectedCodes,
     resetSelection,
     noCodesSelected,
+    selectAllCodes,
   };
 }

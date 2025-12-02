@@ -195,22 +195,42 @@ export default function QRPage() {
                 onTeamNumberFilterChange={qrManager.setTeamNumberFilter}
               />
 
-              <Button
-                variant={qrManager.selecting ? "outlined" : "contained"}
-                color="secondary"
-                onClick={qrManager.toggleSelectionMode}
-                sx={{
-                  borderRadius: 2,
-                  ...(qrManager.selecting && {
-                    borderWidth: 2,
-                    "&:hover": {
+              <Stack direction={"row"} spacing={2}>
+                {qrManager.selecting && (
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    onClick={() => qrManager.selectAllCodes(false)}
+                    sx={{
+                      borderRadius: 2,
+                      ...(qrManager.selecting && {
+                        borderWidth: 2,
+                        "&:hover": {
+                          borderWidth: 2,
+                        },
+                      }),
+                    }}
+                  >
+                    Select all
+                  </Button>
+                )}
+                <Button
+                  variant={qrManager.selecting ? "outlined" : "contained"}
+                  color="secondary"
+                  onClick={qrManager.toggleSelectionMode}
+                  sx={{
+                    borderRadius: 2,
+                    ...(qrManager.selecting && {
                       borderWidth: 2,
-                    },
-                  }),
-                }}
-              >
-                {qrManager.selecting ? "Cancel" : "Select"}
-              </Button>
+                      "&:hover": {
+                        borderWidth: 2,
+                      },
+                    }),
+                  }}
+                >
+                  {qrManager.selecting ? "Cancel" : "Select"}
+                </Button>
+              </Stack>
             </Stack>
 
             <QrGrid
