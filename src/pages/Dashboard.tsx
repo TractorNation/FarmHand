@@ -40,7 +40,7 @@ interface PinnedChart {
 export default function LeadScoutDashboard() {
   const theme = useTheme();
   const { settings } = useSettings();
-  const { availableSchemas } = useSchema();
+  const { availableSchemas, schema, hash: currentSchemaHash } = useSchema();
   const { analyses } = useAnalysis();
   const [qrCodes] = useAsyncFetch(fetchQrCodes);
   const [receivedMatches, setReceivedMatches] = useState<
@@ -50,17 +50,29 @@ export default function LeadScoutDashboard() {
 
   useEffect(() => {
     const processQrCodes = async () => {
-      if (!qrCodes || availableSchemas.length === 0) return;
+      // Only process if we have a current schema
+      if (!qrCodes || !schema || !currentSchemaHash) {
+        setReceivedMatches(new Map());
+        return;
+      }
 
       const nonArchivedQrCodes = qrCodes.filter((qr) => !qr.archived);
 
       const matchesMap = new Map<number, Array<{ deviceID: number }>>();
-      const schemaHashMap = new Map<string, Schema>();
 
-      // Pre-calculate schema hashes for faster lookups
-      for (const s of availableSchemas) {
-        const hash = await createSchemaHash(s.schema);
-        schemaHashMap.set(hash, s.schema);
+      // Get all fields from the current schema
+      const allFields = schema.sections.flatMap(
+        (section) => section.fields
+      );
+
+      const matchNumberIndex = allFields.findIndex(
+        (field) => field.name === "Match Number"
+      );
+
+      // If current schema doesn't have a match number field, return empty
+      if (matchNumberIndex === -1) {
+        setReceivedMatches(new Map());
+        return;
       }
 
       for (const qr of nonArchivedQrCodes) {
@@ -68,20 +80,12 @@ export default function LeadScoutDashboard() {
           if (!validateQR(qr.data)) continue;
           const decoded = await decodeQR(qr.data);
           if (decoded && decoded.schemaHash) {
+            // Only process QR codes that match the current schema
+            if (decoded.schemaHash !== currentSchemaHash) continue;
+            
             // Exclude data from the host device (ID 0)
             if (decoded.deviceId === 0) continue;
-            const schema = schemaHashMap.get(decoded.schemaHash);
-            if (!schema) continue;
 
-            const allFields = schema.sections.flatMap(
-              (section) => section.fields
-            );
-
-            const matchNumberIndex = allFields.findIndex(
-              (field) => field.name === "Match Number"
-            );
-
-            if (matchNumberIndex === -1) continue;
             const matchNumberValue = decoded.data[matchNumberIndex];
             if (matchNumberValue === null || matchNumberValue === undefined)
               continue;
@@ -106,7 +110,7 @@ export default function LeadScoutDashboard() {
     };
 
     processQrCodes();
-  }, [qrCodes, availableSchemas]);
+  }, [qrCodes, schema, currentSchemaHash]);
 
   // Define the expected number of devices
   const EXPECTED_DEVICES_COUNT =
@@ -387,7 +391,7 @@ export default function LeadScoutDashboard() {
                   variant="h3"
                   sx={{ fontWeight: 600, color: theme.palette.error.main }}
                 >
-                  {stats.incomplete}
+                  {stats.missing}
                 </Typography>
                 <Typography variant="body1" color="text.secondary">
                   Missing Matches
