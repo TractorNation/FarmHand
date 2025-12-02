@@ -128,12 +128,13 @@ export default StoreManager;
 
 export const StoreKeys = {
   settings: {
-    LAST_SCHEMA_NAME: "setings::LAST_SCHEMA_NAME",
+    LAST_SCHEMA_NAME: "settings::LAST_SCHEMA_NAME",
     DEVICE_ID: "settings::DEVICE_ID",
     THEME: "settings::THEME",
     EXPECTED_DEVICES_COUNT: "settings::EXPECTED_DEVICES_COUNT",
     LEAD_SCOUT_ONLY: "settings::LEAD_SCOUT_ONLY",
-    COLOR_THEME: "settings::COLOR_THEME"
+    AUTOSAVE_ON_COMPLETE: "settings::AUTOSAVE_ON_COMPLETE",
+    COLOR_THEME: "settings::COLOR_THEME",
   },
   code: {
     archived: (name: string) => `code::${name}::archived`,

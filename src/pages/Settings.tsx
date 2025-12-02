@@ -188,6 +188,15 @@ export default function Settings() {
           options: availableSchemas.map((s) => s.name),
           onChange: (value: string) => handleChange("LAST_SCHEMA_NAME", value),
         },
+        {
+          type: "switch",
+          label: "Save match on form submission",
+          description:
+            'If checked, matches will automatically be saved to match history when the "complete scout" button is pressed',
+          checked: editingSettings.AUTOSAVE_ON_COMPLETE ?? true,
+          onChange: (checked: boolean) =>
+            handleChange("AUTOSAVE_ON_COMPLETE", checked),
+        },
       ],
     },
     {

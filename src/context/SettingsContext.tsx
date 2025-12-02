@@ -12,6 +12,7 @@ export const defaultSettings: Settings = {
   LAST_SCHEMA_NAME: "2025 Reefscape",
   THEME: "system",
   DEVICE_ID: 1,
+  AUTOSAVE_ON_COMPLETE: true,
   EXPECTED_DEVICES_COUNT: 6,
   LEAD_SCOUT_ONLY: false,
   COLOR_THEME: "TractorTheme",

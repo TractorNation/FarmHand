@@ -88,9 +88,11 @@ export default function ShareDialog(props: ShareDialogProps) {
   const [generatedQrCode, setGeneratedQrCode] = useState<QrCode | null>(null);
   const [loading, setLoading] = useState(false);
   const [currentQrCode, setCurrentQrCode] = useState<QrCode | null>(null);
-  
+
   // Track pending scanned state changes (will be applied on navigation or dialog close)
-  const [pendingScannedChanges, setPendingScannedChanges] = useState<Map<string, boolean>>(new Map());
+  const [pendingScannedChanges, setPendingScannedChanges] = useState<
+    Map<string, boolean>
+  >(new Map());
 
   // Dialogs for match mode actions
   const [deletePopupOpen, openDeletePopup, closeDeletePopup] = useDialog();
@@ -113,7 +115,7 @@ export default function ShareDialog(props: ShareDialogProps) {
         if (!prev || prev.name !== qrCodeData.name) {
           return qrCodeData;
         }
-        
+
         // If it's the same QR code, only update if there's no pending change for it
         // This preserves any pending scanned state changes
         const hasPendingChange = pendingScannedChanges.has(qrCodeData.name);
@@ -121,7 +123,7 @@ export default function ShareDialog(props: ShareDialogProps) {
           // Keep current state with pending change applied
           return prev;
         }
-        
+
         // No pending changes, update normally
         return {
           ...prev,
@@ -194,24 +196,25 @@ export default function ShareDialog(props: ShareDialogProps) {
   }, [currentQrCode, navigationQrCodesSync]);
 
   const canNavigatePrevious = currentIndex > 0;
-  const canNavigateNext = currentIndex >= 0 && currentIndex < navigationQrCodesSync.length - 1;
+  const canNavigateNext =
+    currentIndex >= 0 && currentIndex < navigationQrCodesSync.length - 1;
 
   const handleNavigatePrevious = async () => {
     if (!canNavigatePrevious || !onChangeQrCode) return;
-    
+
     // Apply pending changes silently (no refresh) before navigating
     await applyPendingScannedChanges(false);
-    
+
     const prevQr = navigationQrCodesSync[currentIndex - 1];
     onChangeQrCode(prevQr);
   };
 
   const handleNavigateNext = async () => {
     if (!canNavigateNext || !onChangeQrCode) return;
-    
+
     // Apply pending changes silently (no refresh) before navigating
     await applyPendingScannedChanges(false);
-    
+
     const nextQr = navigationQrCodesSync[currentIndex + 1];
     onChangeQrCode(nextQr);
   };
@@ -219,17 +222,17 @@ export default function ShareDialog(props: ShareDialogProps) {
   // Apply pending scanned state changes
   const applyPendingScannedChanges = async (shouldRefresh: boolean = true) => {
     if (pendingScannedChanges.size === 0) return;
-    
+
     try {
       const changes = Array.from(pendingScannedChanges.entries());
-      
+
       // Apply all pending changes
       await Promise.all(
         changes.map(async ([qrName, scannedState]) => {
           // Find the QR code in allQrCodes
           const qrCode = allQrCodes.find((qr) => qr.name === qrName);
           if (!qrCode) return;
-          
+
           if (scannedState) {
             await markQrCodeAsScanned(qrCode);
           } else {
@@ -237,10 +240,10 @@ export default function ShareDialog(props: ShareDialogProps) {
           }
         })
       );
-      
+
       // Clear pending changes
       setPendingScannedChanges(new Map());
-      
+
       // Only trigger refresh if requested (to avoid flashes during navigation)
       if (shouldRefresh) {
         onScanned?.();
@@ -263,28 +266,29 @@ export default function ShareDialog(props: ShareDialogProps) {
 
   const handleToggleScanned = () => {
     if (!currentQrCode) return;
-    
+
     const currentScanned = getEffectiveScannedState(currentQrCode);
     const newScannedState = !currentScanned;
-    
+
     // Update pending changes map (no persistence yet)
     setPendingScannedChanges((prev) => {
       const newMap = new Map(prev);
       newMap.set(currentQrCode.name, newScannedState);
       return newMap;
     });
-    
+
     // Update local UI state immediately (visual only, no persistence)
     const updatedQrCode = {
       ...currentQrCode,
       scanned: newScannedState,
     };
-    
+
     setCurrentQrCode(updatedQrCode);
   };
 
   const displayQrCode = mode === "match" ? currentQrCode : generatedQrCode;
-  const title = mode === "schema" ? schema?.name || "" : displayQrCode?.name || "";
+  const title =
+    mode === "schema" ? schema?.name || "" : displayQrCode?.name || "";
   const description =
     mode === "schema"
       ? "Scan this code to import the schema on another device"
@@ -414,7 +418,11 @@ export default function ShareDialog(props: ShareDialogProps) {
                 >
                   <ArrowBackIcon />
                 </IconButton>
-                <Typography variant="body2" color="text.secondary" sx={{ minWidth: "80px", textAlign: "center" }}>
+                <Typography
+                  variant="body2"
+                  color="text.secondary"
+                  sx={{ minWidth: "80px", textAlign: "center" }}
+                >
                   {currentIndex >= 0 && navigationQrCodesSync.length > 0
                     ? `${currentIndex + 1} / ${navigationQrCodesSync.length}`
                     : ""}
@@ -555,7 +563,9 @@ export default function ShareDialog(props: ShareDialogProps) {
                       }
                       sx={{ width: "100%", borderRadius: 2 }}
                     >
-                      {effectiveScannedState ? "Mark as Unscanned" : "Mark as Scanned"}
+                      {effectiveScannedState
+                        ? "Mark as Unscanned"
+                        : "Mark as Scanned"}
                     </Button>
                   )}
                   {!forQrPage && (
@@ -563,9 +573,11 @@ export default function ShareDialog(props: ShareDialogProps) {
                       color="primary"
                       variant="contained"
                       sx={{ width: "100%", borderRadius: 2 }}
-                      onClick={() => onSave && displayQrCode && onSave(displayQrCode)}
+                      onClick={() =>
+                        onSave && displayQrCode && onSave(displayQrCode)
+                      }
                     >
-                      Save to Match History
+                      Complete Scout
                     </Button>
                   )}
                   {forQrPage && !isArchived && (
@@ -603,21 +615,23 @@ export default function ShareDialog(props: ShareDialogProps) {
                   )}
                 </>
               )}
-              <Button
-                variant="outlined"
-                color="secondary"
-                onClick={handleDialogClose}
-                sx={{
-                  width: "100%",
-                  borderRadius: 2,
-                  borderWidth: 2,
-                  "&:hover": {
+              {forQrPage && (
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  onClick={handleDialogClose}
+                  sx={{
+                    width: "100%",
+                    borderRadius: 2,
                     borderWidth: 2,
-                  },
-                }}
-              >
-                Close
-              </Button>
+                    "&:hover": {
+                      borderWidth: 2,
+                    },
+                  }}
+                >
+                  Close
+                </Button>
+              )}
             </Stack>
           </Stack>
         </DialogContent>
@@ -760,7 +774,6 @@ export default function ShareDialog(props: ShareDialogProps) {
           Form data copied to clipboard
         </Alert>
       </Snackbar>
-
     </>
   );
 }

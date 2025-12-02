@@ -81,6 +81,7 @@ interface Settings {
   THEME: string;
   DEVICE_ID: number;
   EXPECTED_DEVICES_COUNT: number;
+  AUTOSAVE_ON_COMPLETE: boolean;
   LEAD_SCOUT_ONLY: boolean;
   COLOR_THEME: string;
 }
