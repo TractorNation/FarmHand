@@ -280,6 +280,7 @@ export default function QrScannerDialogue({
       onClose={onClose}
       fullWidth
       maxWidth={isLandscape ? "md" : "sm"}
+      disableEscapeKeyDown={false}
       slotProps={{
         paper: {
           elevation: 24,

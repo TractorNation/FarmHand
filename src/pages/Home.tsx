@@ -95,12 +95,9 @@ export default function Home() {
         sx={{
           p: 3,
           mb: 4,
-          borderRadius: theme.shape.borderRadius,
-          backgroundColor: alpha(
-            theme.palette.info.main,
-            theme.palette.mode === "light" ? 0.08 : 0.22
-          ),
-          border: `1px solid ${alpha(theme.palette.info.main, 0.35)}`,
+          borderRadius: 3,
+          border: `2px solid ${theme.palette.info.main}40`,
+          background: `linear-gradient(135deg, ${theme.palette.info.main}10 0%, ${theme.palette.info.main}05 100%)`,
         }}
       >
         <Stack
@@ -108,7 +105,20 @@ export default function Home() {
           spacing={2}
           alignItems="center"
         >
-          <HelpIcon sx={{ fontSize: 32, color: theme.palette.info.main }} />
+          <Box
+            sx={{
+              width: 48,
+              height: 48,
+              borderRadius: 2,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: `${theme.palette.info.main}20`,
+              color: theme.palette.info.main,
+            }}
+          >
+            <HelpIcon sx={{ fontSize: 28 }} />
+          </Box>
           <Box sx={{ flexGrow: 1 }}>
             <Typography variant="h6" gutterBottom>
               New here? Let's get you started!
@@ -125,7 +135,7 @@ export default function Home() {
               navigate("/help");
             }}
             sx={{
-              borderRadius: theme.shape.borderRadius,
+              borderRadius: 2,
               px: 3,
             }}
           >
@@ -140,12 +150,9 @@ export default function Home() {
         sx={{
           p: 3,
           mb: 4,
-          borderRadius: theme.shape.borderRadius,
-          backgroundColor: alpha(
-            theme.palette.secondary.main,
-            theme.palette.mode === "light" ? 0.08 : 0.2
-          ),
-          border: `1px solid ${alpha(theme.palette.secondary.main, 0.35)}`,
+          borderRadius: 3,
+          border: `2px solid ${theme.palette.secondary.main}40`,
+          background: `linear-gradient(135deg, ${theme.palette.secondary.main}10 0%, ${theme.palette.secondary.main}05 100%)`,
         }}
       >
         <Stack
@@ -153,9 +160,20 @@ export default function Home() {
           spacing={2}
           alignItems="center"
         >
-          <InfoIcon
-            sx={{ fontSize: 32, color: theme.palette.secondary.main }}
-          />
+          <Box
+            sx={{
+              width: 48,
+              height: 48,
+              borderRadius: 2,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: `${theme.palette.secondary.main}20`,
+              color: theme.palette.secondary.main,
+            }}
+          >
+            <InfoIcon sx={{ fontSize: 28 }} />
+          </Box>
           <Box sx={{ flexGrow: 1 }}>
             <Typography variant="h6" gutterBottom>
               Want to learn more about FarmHand?
@@ -172,7 +190,7 @@ export default function Home() {
             target="_blank"
             rel="noopener noreferrer"
             sx={{
-              borderRadius: theme.shape.borderRadius,
+              borderRadius: 2,
               px: 3,
             }}
           >
