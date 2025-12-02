@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep A Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2026.3-beta]
+
+### Added
+
+- Fully featured data analysis tool
+- Button to reset settings to defaults
+
+### Fixed
+
+- Fields renaming improperly
+- Number fields not working as expected
+
+### Changed
+
+- Small feature updates to Dashboard page
+- Updated match completion dialog
+- Updated qr share dialog with "Mark as scanned" button and arrows to quickly see the next match code
+
 ## [0.2.0-beta.1]
 
 ### Added
@@ -39,7 +57,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - No validity check for new inputs
 - Inconsistent dialog styling
 
-### Changed 
+### Changed
+
 - Schemas page is now accessed through settings
 
 ## [0.1.0-beta]

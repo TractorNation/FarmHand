@@ -568,7 +568,7 @@ export default function Settings() {
                   Version
                 </Typography>
                 <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  FarmHand v0.2.0-beta.1
+                  FarmHand v0.2026.3-beta
                 </Typography>
               </Box>
               <Divider sx={{ borderColor: theme.palette.surface.outline }} />
