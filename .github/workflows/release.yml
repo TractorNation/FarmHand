@@ -48,6 +48,18 @@ jobs:
           # e.g., "0.2.0-beta" -> "0.2.0"
           VERSION_NUMERIC=$(echo "$VERSION" | sed -E 's/-[^0-9].*$//')
           echo "version_numeric=$VERSION_NUMERIC" >> $GITHUB_OUTPUT
+          # For Windows MSI compatibility, we need to transform the version if the minor part is > 255
+          # e.g., "0.2026.3-beta" -> "0.2.2603"
+          MAJOR=$(echo "$VERSION" | cut -d. -f1)
+          MINOR=$(echo "$VERSION" | cut -d. -f2)
+          if [ "$MINOR" -gt 255 ]; then
+            YEAR_PART=$(echo "$MINOR" | cut -c3-4)
+            PATCH=$(echo "$VERSION" | cut -d. -f3 | cut -d- -f1)
+            VERSION_NUMERIC="${MAJOR}.2.${YEAR_PART}$(printf "%02d" ${PATCH})"
+          else
+            VERSION_NUMERIC=$(echo "$VERSION" | sed -E 's/-[^0-9].*$//')
+          fi
+          echo "version_numeric=${VERSION_NUMERIC}" >> $GITHUB_OUTPUT
 
           if [[ "$VERSION" == *"-"* ]] || [[ "$VERSION" == *"beta"* ]] || [[ "$VERSION" == *"alpha"* ]]; then
             echo "is_prerelease=true" >> $GITHUB_OUTPUT
