@@ -14,6 +14,11 @@ import {
   Slide,
   useMediaQuery,
   Alert,
+  Dialog,
+  DialogTitle,
+  IconButton,
+  DialogContent,
+  DialogActions,
 } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import DropdownInput from "../ui/components/DropdownInput";
@@ -26,6 +31,7 @@ import SecurityIcon from "@mui/icons-material/SecurityRounded";
 import InfoIcon from "@mui/icons-material/InfoRounded";
 import SaveIcon from "@mui/icons-material/SaveRounded";
 import WarningIcon from "@mui/icons-material/WarningRounded";
+import CloseIcon from "@mui/icons-material/CloseRounded";
 import { useState, useEffect, useRef } from "react";
 import PageHeader from "../ui/PageHeader";
 import { useSettings } from "../context/SettingsContext";
@@ -54,6 +60,8 @@ export default function Settings() {
   const [originalSettings, setOriginalSettings] = useState<Settings>(settings);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [warningDialogOpen, openWarningDialog, closeWarningDialog] =
+    useDialog();
+  const [licenseDialogOpen, openLicenseDialog, closeLicenseDialog] =
     useDialog();
   const isLandscape = useMediaQuery("(orientation: landscape)");
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -579,17 +587,18 @@ export default function Settings() {
                   color="text.secondary"
                   gutterBottom
                 >
-                  Licenses
+                  License
                 </Typography>
                 <Button
                   variant="outlined"
                   color="info"
+                  onClick={openLicenseDialog}
                   sx={{
                     borderRadius: theme.shape.borderRadius,
                     borderWidth: 2,
                   }}
                 >
-                  View Open Source Licenses
+                  View Open Source License
                 </Button>
               </Box>
             </Stack>
@@ -615,6 +624,41 @@ export default function Settings() {
         onClose={closeUnsavedChangesDialog}
         onDiscard={handleDiscardChanges}
       />
+
+      <Dialog open={licenseDialogOpen} onClose={closeLicenseDialog}>
+        <DialogTitle>
+          <IconButton onClick={closeLicenseDialog}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          MIT License Copyright (c) 2025 FRC team 3655, the Tractor Technicians. Permission is
+          hereby granted, free of charge, to any person obtaining a copy of this
+          software and associated documentation files (the "Software"), to deal
+          in the Software without restriction, including without limitation the
+          rights to use, copy, modify, merge, publish, distribute, sublicense,
+          and/or sell copies of the Software, and to permit persons to whom the
+          Software is furnished to do so, subject to the following conditions:
+          The above copyright notice and this permission notice shall be
+          included in all copies or substantial portions of the Software. THE
+          SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+          IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+          MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+          IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+          CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+          TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+          SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        </DialogContent>
+        <DialogActions>
+          <Button
+            variant="outlined"
+            color="secondary"
+            onClick={closeLicenseDialog}
+          >
+            Close
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Snackbar
         open={snackbarOpen}
