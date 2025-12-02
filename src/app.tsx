@@ -18,6 +18,7 @@ import {
   Tooltip,
   CssBaseline,
   Slide,
+  Button,
 } from "@mui/material";
 import useDrawer from "./hooks/useDrawer";
 import MenuIcon from "@mui/icons-material/MenuRounded";
@@ -51,6 +52,7 @@ import Archive from "./pages/Archive";
 import Help from "./pages/Help";
 import Analyses from "./pages/Analyses";
 import AnalysisViewer from "./pages/AnalysisViewer";
+import { getLatestGitHubVersion } from "./utils/GeneralUtils";
 const Home = React.lazy(() => import("./pages/Home"));
 const Settings = React.lazy(() => import("./pages/Settings"));
 const Scout = React.lazy(() => import("./pages/Scout"));
@@ -58,20 +60,24 @@ const QRPage = React.lazy(() => import("./pages/QR"));
 
 const CURRENT_VERSION: string = "0.2.0-beta.1";
 
-// TODO: make this actually get data somewhere
 const checkForUpdates = async (): Promise<{
   available: boolean;
   version: string;
 }> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const latestVersion: string = "0.2.0-beta.1"; // This would come from github releases or something
-      resolve({
-        available: latestVersion !== CURRENT_VERSION,
-        version: latestVersion,
-      });
-    }, 1000);
-  });
+  const latestVersion = await getLatestGitHubVersion();
+
+  if (!latestVersion) {
+    // If we can't fetch from GitHub, assume no update
+    return {
+      available: false,
+      version: CURRENT_VERSION,
+    };
+  }
+
+  return {
+    available: latestVersion !== CURRENT_VERSION,
+    version: latestVersion,
+  };
 };
 
 const pages = [
@@ -144,7 +150,7 @@ function Layout({ children }: { children: React.ReactNode }) {
       setUpdateAvailable(result.available);
       setLatestVersion(result.version);
     });
-  }, []);
+  }, [latestVersion]);
 
   useEffect(() => {
     const scrollThreshold = 10;
@@ -263,27 +269,6 @@ function Layout({ children }: { children: React.ReactNode }) {
               FarmHand
             </Typography>
             <Stack direction="row" spacing={1} alignItems="center">
-              {updateAvailable && (
-                <Tooltip title={`Update available: v${latestVersion}`}>
-                  <Chip
-                    icon={<UpdateIcon />}
-                    label="Update"
-                    color="warning"
-                    size="small"
-                    sx={{
-                      fontWeight: 600,
-                      fontFamily: theme.typography.body2?.fontFamily,
-                      cursor: "pointer",
-                      "&:hover": {
-                        backgroundColor: alpha(
-                          theme.palette.warning.main,
-                          theme.palette.mode === "light" ? 0.18 : 0.32
-                        ),
-                      },
-                    }}
-                  />
-                </Tooltip>
-              )}
               <Chip
                 label={`Device ID: ${settings.DEVICE_ID}`}
                 size="small"
@@ -354,18 +339,29 @@ function Layout({ children }: { children: React.ReactNode }) {
                 Version {CURRENT_VERSION}
               </Typography>
               {updateAvailable && (
-                <Chip
-                  icon={<UpdateIcon sx={{ fontSize: 14 }} />}
-                  label="Update"
-                  color="warning"
-                  size="small"
-                  sx={{
-                    height: 20,
-                    fontSize: "0.7rem",
-                    fontWeight: 600,
-                    fontFamily: theme.typography.body1,
-                  }}
-                />
+                <Tooltip title={`Update available: v${latestVersion}`}>
+                  <Button
+                    startIcon={<UpdateIcon />}
+                    color="warning"
+                    size="small"
+                    href="https://github.com/Team3655/FarmHand/releases"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    sx={{
+                      fontWeight: 600,
+                      fontFamily: theme.typography.body2?.fontFamily,
+                      cursor: "pointer",
+                      "&:hover": {
+                        backgroundColor: alpha(
+                          theme.palette.warning.main,
+                          theme.palette.mode === "light" ? 0.18 : 0.32
+                        ),
+                      },
+                    }}
+                  >
+                    Update
+                  </Button>
+                </Tooltip>
               )}
             </Stack>
           </Box>

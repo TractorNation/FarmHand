@@ -4,21 +4,16 @@ import { save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
 import { getSchemaFromHash } from "./SchemaUtils";
 import changelog from "../../CHANGELOG.md?raw";
+import StoreManager, { StoreKeys } from "./StoreManager";
 
-export function isFieldInvalid(
-  required: boolean,
-  type: string,
-  defaultValue: any,
-  value: any
-) {
-  return (
-    required &&
-    (value === "" ||
-      (type === "checkbox" && value === false) ||
-      (type === "number" && (value === undefined || value === null)) ||
-      (type === "grid" && (value as string).split(":")[1] === "[]") ||
-      value === defaultValue)
-  );
+const GITHUB_OWNER = "Team3655";
+const GITHUB_REPO = "FarmHand";
+const CACHE_DURATION = 3600000;
+
+interface GitHubRelease {
+  tag_name: string;
+  prerelease: boolean;
+  draft: boolean;
 }
 
 const typeMap: { [key: string]: string } = {
@@ -45,6 +40,22 @@ const propMap: { [key: string]: string } = {
   cols: "C",
   cellLabel: "L",
 };
+
+export function isFieldInvalid(
+  required: boolean,
+  type: string,
+  defaultValue: any,
+  value: any
+) {
+  return (
+    required &&
+    (value === "" ||
+      (type === "checkbox" && value === false) ||
+      (type === "number" && (value === undefined || value === null)) ||
+      (type === "grid" && (value as string).split(":")[1] === "[]") ||
+      value === defaultValue)
+  );
+}
 
 export function EmbedDataInSvg(code: QrCode) {
   let svgToSave = code.image;
@@ -477,4 +488,50 @@ export function indexToCoordinate(index: number, cols: number): string {
   const row = Math.floor(index / cols);
   const col = index % cols;
   return `${row},${col}`;
+}
+
+export async function getLatestGitHubVersion(): Promise<string | null> {
+  const now = Date.now();
+  const cachedVersion = await StoreManager.get(StoreKeys.app.CACHED_VERSION);
+  const lastCheck = await StoreManager.get(StoreKeys.app.LAST_VERSION_CHECK);
+
+  if (cachedVersion && now - Number(lastCheck) < CACHE_DURATION) {
+    console.log("Using cached version", cachedVersion);
+    return cachedVersion;
+  }
+
+  try {
+    const response = await fetch(
+      `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/releases`,
+      {
+        headers: {
+          Accept: "application/vnd.github.v3+json",
+        },
+      }
+    );
+
+    if (!response.ok) {
+      console.error("Failed to fetch releases from GitHub");
+      return null;
+    }
+
+    const releases: GitHubRelease[] = await response.json();
+
+    // Filter out drafts and get the first release (latest)
+    const latestRelease = releases.find((release) => !release.draft);
+
+    if (!latestRelease) {
+      console.error("No releases found");
+      return null;
+    }
+
+    // Remove 'v' prefix if present (e.g., "v0.2.0-beta.1" -> "0.2.0-beta.1")
+    const version = latestRelease.tag_name.replace(/^v/, "");
+    StoreManager.set(StoreKeys.app.CACHED_VERSION, version);
+    StoreManager.set(StoreKeys.app.LAST_VERSION_CHECK, now.toString());
+    return version;
+  } catch (error) {
+    console.error("Error checking for updates:", error);
+    return null;
+  }
 }

@@ -127,6 +127,10 @@ const StoreManager = {
 export default StoreManager;
 
 export const StoreKeys = {
+  app: {
+    CACHED_VERSION: "app::CACHED_VERSION",
+    LAST_VERSION_CHECK: "app::LAST_VERSION_CHECK",
+  },
   settings: {
     LAST_SCHEMA_NAME: "settings::LAST_SCHEMA_NAME",
     DEVICE_ID: "settings::DEVICE_ID",
