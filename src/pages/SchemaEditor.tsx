@@ -33,10 +33,6 @@ import {
   Slide,
   Snackbar,
   useTheme,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Alert,
 } from "@mui/material";
 import EditableComponentCard from "../ui/EditableComponentCard";
@@ -60,6 +56,7 @@ import UnsavedChangesDialog from "../ui/dialog/UnsavedChangesDialog";
 import { saveSchema } from "../utils/SchemaUtils";
 import ShareDialog from "../ui/dialog/ShareDialog";
 import RenameDialog from "../ui/dialog/RenameDialog";
+import WarningDialog from "../ui/dialog/WarningDialog";
 
 function DroppableSection({
   section,
@@ -956,7 +953,11 @@ export default function SchemaEditor() {
             anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
             autoHideDuration={1200}
           >
-            <Alert onClose={() => setSnackbarOpen(false)} severity="success" variant="filled">
+            <Alert
+              onClose={() => setSnackbarOpen(false)}
+              severity="success"
+              variant="filled"
+            >
               Successfully saved schema
             </Alert>
           </Snackbar>
@@ -991,29 +992,18 @@ export default function SchemaEditor() {
         />
       )}
 
-      <Dialog open={warningDialogOpen}>
-        <DialogTitle>
-          <WarningIcon sx={{ mr: 1 }} color="warning" /> Warning
-        </DialogTitle>
-        <DialogContent>
-          Changing a schema could result in inaccurate data for the rest of your
+      <WarningDialog
+        open={warningDialogOpen}
+        message="          Changing a schema could result in inaccurate data for the rest of your
           team. If you are actively using this schema, make sure to share it
           with ALL other devices being used. If you are not your teams lead
-          scouter, check with them before making any changes.
-        </DialogContent>
-        <DialogActions>
-          <Button variant="text" color="primary" onClick={closeWarningDialog}>
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            color="warning"
-            onClick={handleSaveSchema}
-          >
-            Continue Save
-          </Button>
-        </DialogActions>
-      </Dialog>
+          scouter, check with them before making any changes."
+        title="Warning"
+        onClose={closeWarningDialog}
+        onConfirm={handleSaveSchema}
+        confirmText="Continue Save"
+        cancelText="Cancel"
+      />
     </>
   );
 }

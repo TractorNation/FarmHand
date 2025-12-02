@@ -47,8 +47,16 @@ export default function Scout() {
   const [resetKey, setResetKey] = useState<Key>(0);
   const [showErrorPopup, openErrorPopup, closeErrorPopup] = useDialog();
   const [showResetPopup, openResetPopup, closeResetPopup] = useDialog();
-  const [showUnsavedResetWarning, openUnsavedResetWarning, closeUnsavedResetWarning] = useDialog();
-  const [showCompleteScoutDialog, openCompleteScoutDialog, closeCompleteScoutDialog] = useDialog();
+  const [
+    showUnsavedResetWarning,
+    openUnsavedResetWarning,
+    closeUnsavedResetWarning,
+  ] = useDialog();
+  const [
+    showCompleteScoutDialog,
+    openCompleteScoutDialog,
+    closeCompleteScoutDialog,
+  ] = useDialog();
   const [showSuccessSnackbar, setShowSuccessSnackbar] = useState(false);
   const qrCodeData = useRef<QrCode | null>(null);
   const [expandedSectionIndex, setExpandedSectionIndex] = useState<
@@ -83,15 +91,15 @@ export default function Scout() {
   const handleCompleteScout = async () => {
     // Mark as saved (autosave is handled in CompleteScoutDialog)
     isSavedRef.current = true;
-    
+
     // Close dialog
     closeCompleteScoutDialog();
-    
+
     // Show success snackbar if autosave is enabled
     if (settings.AUTOSAVE_ON_COMPLETE) {
       setShowSuccessSnackbar(true);
     }
-    
+
     // Reset form
     await clearMatchData();
     clearErrors();
