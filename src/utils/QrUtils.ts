@@ -18,7 +18,7 @@ import {
   readDir,
   readTextFile,
 } from "@tauri-apps/plugin-fs";
-import StoreManager from "./StoreManager";
+import StoreManager, { StoreKeys } from "./StoreManager";
 
 export type QrType = "match" | "schema" | "theme" | "settings";
 export type EncodedQr = string;
@@ -241,6 +241,8 @@ export async function saveQrCode(code: QrCode) {
 }
 
 export async function deleteQrCode(code: QrCode) {
+  StoreManager.remove(StoreKeys.code.archived(code.name));
+  StoreManager.remove(StoreKeys.code.scanned(code.name));
   const filePath = await resolve(
     await appLocalDataDir(),
     "saved-matches",
