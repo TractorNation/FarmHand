@@ -11,13 +11,16 @@ import {
   Grid,
   Card,
   CardContent,
+  Button,
 } from "@mui/material";
 import DashboardIcon from "@mui/icons-material/DashboardRounded";
+import QrCodeScannerIcon from "@mui/icons-material/QrCodeScannerRounded";
 import ExpandIcon from "@mui/icons-material/ExpandMoreRounded";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutlineRounded";
 import CheckCircleIcon from "@mui/icons-material/CheckCircleRounded";
 import WarningIcon from "@mui/icons-material/WarningRounded";
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router";
 import PageHeader from "../ui/PageHeader";
 import { useSettings, defaultSettings } from "../context/SettingsContext";
 import { useAsyncFetch } from "../hooks/useAsyncFetch";
@@ -44,6 +47,7 @@ interface PinnedChart {
 
 export default function LeadScoutDashboard() {
   const theme = useTheme();
+  const navigate = useNavigate();
   const { settings } = useSettings();
   const { availableSchemas, schema, hash: currentSchemaHash } = useSchema();
   const { analyses } = useAnalysis();
@@ -896,14 +900,34 @@ export default function LeadScoutDashboard() {
                                         }
                                       })()}
                                     </Box>
-                                    <Chip
-                                      label={
-                                        isReceived ? "Received" : "Missing"
-                                      }
-                                      color={isReceived ? "success" : "error"}
-                                      size="small"
-                                      sx={{ fontWeight: 600 }}
-                                    />
+                                    <Stack direction="row" spacing={1}>
+                                      <Chip
+                                        label={
+                                          isReceived ? "Received" : "Missing"
+                                        }
+                                        color={isReceived ? "success" : "error"}
+                                        size="small"
+                                        sx={{ fontWeight: 600 }}
+                                      />
+                                      {!isReceived && (
+                                        <Button
+                                          variant="outlined"
+                                          size="small"
+                                          color="primary"
+                                          onClick={() =>
+                                            navigate("/qr", {
+                                              state: { openScanner: true },
+                                            })
+                                          }
+                                          sx={{
+                                            fontWeight: 600,
+                                            borderRadius: 1.5,
+                                          }}
+                                        >
+                                          <QrCodeScannerIcon />
+                                        </Button>
+                                      )}
+                                    </Stack>
                                   </Stack>
                                 </Paper>
                               );

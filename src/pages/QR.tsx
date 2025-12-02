@@ -24,7 +24,8 @@ import ArchiveIcon from "@mui/icons-material/ArchiveRounded";
 import { exportQrCodesToCsv, exportQrCodesToJson } from "../utils/GeneralUtils";
 import { archiveQrCode, fetchQrCodes } from "../utils/QrUtils";
 import QrCodeIcon from "@mui/icons-material/QrCodeRounded";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
+import { useLocation } from "react-router";
 import QrPageFab from "../ui/qr/QrFab";
 import QrGrid from "../ui/qr/QrGrid";
 import { useTheme } from "@mui/material/styles";
@@ -33,9 +34,21 @@ import SortFilterMenu from "../ui/SortFilterMenu";
 
 export default function QRPage() {
   const theme = useTheme();
+  const location = useLocation();
   const { availableSchemas } = useSchema();
   const [allQrCodes, loading, error, refetch] = useAsyncFetch(fetchQrCodes);
   const [scannerOpen, openScanner, closeScanner] = useDialog();
+  const hasOpenedFromNavigation = useRef(false);
+
+  // Open scanner if navigated with openScanner state (only once)
+  useEffect(() => {
+    if (location.state?.openScanner && !hasOpenedFromNavigation.current) {
+      hasOpenedFromNavigation.current = true;
+      openScanner();
+      // Clear the state to prevent reopening on re-renders
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, openScanner]);
   const [qrDialogOpen, openQrDialog, closeQrDialog] = useDialog();
   const [exportDialogOpen, openExportDialog, closeExportDialog] = useDialog();
   const [archiveDialogOpen, openArchiveDialog, closeArchiveDialog] =
