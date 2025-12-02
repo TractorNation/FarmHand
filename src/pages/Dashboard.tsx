@@ -16,6 +16,7 @@ import {
 import DashboardIcon from "@mui/icons-material/DashboardRounded";
 import QrCodeScannerIcon from "@mui/icons-material/QrCodeScannerRounded";
 import ExpandIcon from "@mui/icons-material/ExpandMoreRounded";
+import PinIcon from "@mui/icons-material/PushPinRounded";
 import ErrorOutlineIcon from "@mui/icons-material/ErrorOutlineRounded";
 import CheckCircleIcon from "@mui/icons-material/CheckCircleRounded";
 import WarningIcon from "@mui/icons-material/WarningRounded";
@@ -403,7 +404,7 @@ export default function LeadScoutDashboard() {
 
       {/* Statistics Cards */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h5" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
+        <Typography variant="h4" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
           Overview
         </Typography>
         <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
@@ -530,10 +531,10 @@ export default function LeadScoutDashboard() {
       </Box>
 
       {/* Pinned Charts Section */}
-      {pinnedCharts.length > 0 && (
+      {pinnedCharts.length > 0 ? (
         <Box sx={{ mb: 4 }}>
-          <Typography variant="h5" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
-            s Pinned Charts
+          <Typography variant="h4" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
+            <PinIcon /> Pinned Charts
           </Typography>
           <Grid container>
             {pinnedCharts.map((pinnedChart) => (
@@ -576,11 +577,20 @@ export default function LeadScoutDashboard() {
             ))}
           </Grid>
         </Box>
+      ) : (
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h4" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
+            <PinIcon /> No Pinned charts yet
+          </Typography>
+          <Typography variant="subtitle2">
+            Pin charts from the analysis page to see them here
+          </Typography>
+        </Box>
       )}
 
       {/* Received Matches List */}
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h5" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
+        <Typography variant="h4" gutterBottom sx={{ mb: 2, fontWeight: 500 }}>
           Match Details
         </Typography>
         <Paper
@@ -686,7 +696,7 @@ export default function LeadScoutDashboard() {
                       }}
                     >
                       <AccordionSummary
-                        expandIcon={<ExpandIcon sx={{mx: 1}}/>}
+                        expandIcon={<ExpandIcon sx={{ mx: 1 }} />}
                         sx={{
                           backgroundColor: backgroundColor,
                           borderRadius: 3,
