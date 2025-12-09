@@ -133,6 +133,7 @@ export default function SchemaEditor() {
       },
       onActivation: (event) => {
         event.event.preventDefault();
+        event.event.stopPropagation();
       },
     }),
     useSensor(TouchSensor, {
@@ -142,6 +143,7 @@ export default function SchemaEditor() {
       },
       onActivation: (event) => {
         event.event.preventDefault();
+        event.event.stopPropagation();
       },
     })
   );

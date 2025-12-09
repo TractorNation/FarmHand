@@ -505,6 +505,7 @@ export default function EditableComponentCard(props: ComponentCardProps) {
                   "&:hover": {
                     opacity: 0.7,
                   },
+                  touchAction: "none",
                 }}
               >
                 <DragIcon />
