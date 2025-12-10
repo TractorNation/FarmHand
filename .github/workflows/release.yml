@@ -6,6 +6,10 @@ name: Build and Release
 #   - ANDROID_KEY_ALIAS: Alias of the key in the keystore (e.g., "farmhand")
 #   - ANDROID_KEYSTORE_BASE64: Base64-encoded content of the .jks keystore file
 
+# MacOS:
+# - APPLE_CERTIFICATE_BASE64: Base64-encoded content of the Apple Developer certificate
+# - APPLE_CERTIFICATE_PASSWORD: Password for the Apple Developer certificate
+
 on:
   workflow_dispatch:
     inputs:
@@ -86,15 +90,15 @@ jobs:
             runs-on: windows-latest
             target: x86_64-pc-windows-msvc
             artifact-name: windows-x64
-          # In the future i can add these
-          # - platform: macos
-          #   runs-on: macos-latest
-          #   target: x86_64-apple-darwin
-          #   artifact-name: macos-intel-x64
-          # - platform: macos-arm
-          #   runs-on: macos-latest
-          #   target: aarch64-apple-darwin
-          #   artifact-name: macos-arm64
+          - platform: macos
+            runs-on: macos-latest
+            target: x86_64-apple-darwin
+            artifact-name: macos-intel-x64
+          - platform: macos
+            runs-on: macos-latest
+            target: aarch64-apple-darwin
+            artifact-name: macos-arm64
+          # In the future i can add linux maybe
           # - platform: linux
           #   runs-on: ubuntu-latest
           #   target: x86_64-unknown-linux-gnu
@@ -277,6 +281,87 @@ jobs:
           }
         shell: pwsh
         id: windows_artifacts
+    
+      - name: Setup Rust (macOS)
+        if: matrix.platform == 'macos'
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Setup Apple signing (iOS/macOS)
+        if: matrix.platform == 'macos'
+        env:
+          APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          # Create temp directory
+          CERT_PATH=$RUNNER_TEMP/build_certificate.p12
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          
+          # Decode certificate
+          echo -n "$APPLE_CERTIFICATE_BASE64" | base64 --decode -o $CERT_PATH
+          
+          # Create temporary keychain
+          security create-keychain -p "" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "" $KEYCHAIN_PATH
+          
+          # Import certificate
+          security import $CERT_PATH -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
+          
+          # Allow codesign to access keychain
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "" $KEYCHAIN_PATH
+
+      - name: Build macOS
+        if: matrix.platform == 'macos'
+        run: npm run tauri build -- --target ${{ matrix.target }}
+
+      - name: Prepare macOS artifacts
+        if: matrix.platform == 'macos'
+        run: |
+          VERSION="${{ needs.prepare.outputs.version }}"
+          ARCH=$(echo "${{ matrix.artifact-name }}" | sed 's/macos-//')
+          
+          # Find the bundle
+          BUNDLE_PATH="src-tauri/target/${{ matrix.target }}/release/bundle"
+          
+          # Create artifacts directory
+          mkdir -p macos-artifacts
+          
+          # Look for DMG (preferred)
+          if [ -d "$BUNDLE_PATH/dmg" ]; then
+            DMG=$(find "$BUNDLE_PATH/dmg" -name "*.dmg" -type f | head -n 1)
+            if [ -n "$DMG" ]; then
+              NEW_NAME="farmhand-v${VERSION}-${ARCH}.dmg"
+              cp "$DMG" "macos-artifacts/$NEW_NAME"
+              echo "Created: $NEW_NAME"
+            fi
+          fi
+          
+          # Look for app bundle (fallback)
+          if [ -d "$BUNDLE_PATH/macos" ]; then
+            APP=$(find "$BUNDLE_PATH/macos" -name "*.app" -type d | head -n 1)
+            if [ -n "$APP" ]; then
+              # Create a tarball of the app
+              NEW_NAME="farmhand-v${VERSION}-${ARCH}.app.tar.gz"
+              tar -czf "macos-artifacts/$NEW_NAME" -C "$(dirname "$APP")" "$(basename "$APP")"
+              echo "Created: $NEW_NAME"
+            fi
+          fi
+          
+          # Verify we created something
+          if [ -z "$(ls -A macos-artifacts)" ]; then
+            echo "Error: No macOS artifacts created"
+            echo "Bundle path contents:"
+            ls -R "$BUNDLE_PATH" || echo "Bundle path not found"
+            exit 1
+          fi
+          
+          echo "Final artifacts:"
+          ls -lh macos-artifacts/
+        shell: bash
+        id: macos_artifacts
 
       # Upload artifacts (not releases yet)
       - name: Upload Android APK artifact
@@ -294,6 +379,15 @@ jobs:
         with:
           name: ${{ matrix.artifact-name }}
           path: windows-artifacts/**
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Upload macOS artifacts
+        if: matrix.platform == 'macos'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: macos-artifacts/**
           retention-days: 1
           if-no-files-found: error
 

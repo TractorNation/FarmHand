@@ -1,7 +1,7 @@
 [package]
 name = "farmhand"
 version = "0.2026.3-beta.2"
-description = "A Tauri App"
+description = "A FIRST Robotics Competition scouting application."
 authors = ["you"]
 edition = "2021"
 
@@ -30,3 +30,6 @@ tauri-plugin-clipboard-manager = "2"
 md5 = "0.8.0"
 flate2 = "1.1.5"
 tauri-plugin-dialog = "2"
+
+[package.metadata.bundle]
+identifier = "com.tractortechs.farmhand"

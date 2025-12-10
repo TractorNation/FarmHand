@@ -7,6 +7,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+
 node_modules
 dist
 dist-ssr
@@ -31,3 +32,7 @@ src-tauri/gen/android/keystore.properties
 
 # Version backup file (temporary, used during Windows builds)
 .version-backup.json
+
+# Build directories
+/src-tauri/target
+/src-tauri/gen

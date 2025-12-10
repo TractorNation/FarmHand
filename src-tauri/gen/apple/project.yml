@@ -51,8 +51,8 @@ targets:
           - UIInterfaceOrientationPortraitUpsideDown
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
-        CFBundleShortVersionString: 0.1.0
-        CFBundleVersion: "0.1.0"
+        CFBundleShortVersionString: 0.2026.3
+        CFBundleVersion: "0.2026.3.1"
     entitlements:
       path: farmhand_iOS/farmhand_iOS.entitlements
     scheme:
