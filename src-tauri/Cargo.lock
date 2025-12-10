@@ -969,7 +969,7 @@ dependencies = [
 
 [[package]]
 name = "farmhand"
-version = "0.2026.3-beta.1"
+version = "0.2026.3-beta.2"
 dependencies = [
  "base64 0.22.1",
  "flate2",

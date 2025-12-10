@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Unable to drag fields in schema editor when on mobile device
+
+### Added
+
+- Builds for macOS !!
+
+## [0.2026.3-beta.1]
+
+### Fixed
+
 - UI with complete scout dialog on mobile
 - Back arrow button on the analysis viewing page
 
