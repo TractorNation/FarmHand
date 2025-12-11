@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Real app icon 
 - Builds for macOS !!
 
 ## [0.2026.3-beta.1]
