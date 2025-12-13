@@ -35,4 +35,3 @@ src-tauri/gen/android/keystore.properties
 
 # Build directories
 /src-tauri/target
-/src-tauri/gen
