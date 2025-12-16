@@ -12,6 +12,7 @@ import {
   DialogContent,
   DialogActions,
   Alert,
+  useMediaQuery,
 } from "@mui/material";
 import { useSchema } from "../context/SchemaContext";
 import { useAsyncFetch } from "../hooks/useAsyncFetch";
@@ -33,6 +34,7 @@ import PageHeader from "../ui/PageHeader";
 import SortFilterMenu from "../ui/SortFilterMenu";
 
 export default function QRPage() {
+  const isLandscape = useMediaQuery("(orientation: landscape)");
   const theme = useTheme();
   const location = useLocation();
   const { availableSchemas } = useSchema();
@@ -180,7 +182,7 @@ export default function QRPage() {
             />
 
             {/* Action Bar */}
-            <Stack direction="row" justifyContent="space-between" mb={3}>
+            <Stack direction="row" justifyContent="space-between" mb={3} spacing={2}>
               <SortFilterMenu
                 sortMode={qrManager.sortMode}
                 sortDirection={qrManager.sortDirection}
@@ -195,7 +197,7 @@ export default function QRPage() {
                 onTeamNumberFilterChange={qrManager.setTeamNumberFilter}
               />
 
-              <Stack direction={"row"} spacing={2}>
+              <Stack direction={isLandscape ? "row" : "column"} spacing={2}>
                 {qrManager.selecting && (
                   <Button
                     variant="outlined"
