@@ -31,7 +31,7 @@ export default function PageHeader(props: PageHeaderProps) {
       }}
     >
       <Stack
-        direction={isLandscape ? "row" : "column"}
+        direction={"column"}
         alignItems="center"
         justifyContent={"space-between"}
         spacing={2}
@@ -70,11 +70,12 @@ export default function PageHeader(props: PageHeaderProps) {
           >
             {icon}
           </Box>
-          <Box>
+          <Box width={"calc(100vw - 150px)"}>
             <Typography
               variant="h4"
               sx={{
                 fontWeight: 600,
+                overflowWrap: "break-word",
                 ...(isWindowsXPTheme && {
                   fontFamily: '"Trebuchet MS", "Tahoma", sans-serif',
                   fontSize: "1.15rem",
