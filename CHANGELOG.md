@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep A Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2026.3-beta.3]
+
+### Fixed
+
+- Many mobile device UI issues
+- Lead scout mode not doing anything
+- App icon for iOS/macOS devices
+
 ## [0.2026.3-beta.2]
 
 ### Fixed
@@ -13,7 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Real app icon 
+- Real app icon
 - Builds for macOS !!
 
 ## [0.2026.3-beta.1]

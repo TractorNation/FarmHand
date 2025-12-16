@@ -1,7 +1,7 @@
 {
   "name": "farmhand",
   "private": true,
-  "version": "0.2026.3-beta.2",
+  "version": "0.2026.3-beta.3",
   "type": "module",
   "scripts": {
     "dev": "vite",
