@@ -643,7 +643,7 @@ export default function ShareDialog(props: ShareDialogProps) {
           <Dialog
             open={deletePopupOpen}
             onClose={closeDeletePopup}
-            slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 400 } } }}
+            slotProps={{ paper: { sx: { borderRadius: 3, minwidth: 'fit-content' } } }}
           >
             <DialogTitle
               sx={{
@@ -677,7 +677,7 @@ export default function ShareDialog(props: ShareDialogProps) {
           <Dialog
             open={archivePopupOpen}
             onClose={closeArchivePopup}
-            slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 400 } } }}
+            slotProps={{ paper: { sx: { borderRadius: 3, minwidth: 'fit-content' } } }}
           >
             <DialogTitle
               sx={{
@@ -710,7 +710,7 @@ export default function ShareDialog(props: ShareDialogProps) {
           <Dialog
             open={unarchivePopupOpen}
             onClose={closeUnarchivePopup}
-            slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 400 } } }}
+            slotProps={{ paper: { sx: { borderRadius: 3, minwidth: 'fit-content' } } }}
           >
             <DialogTitle
               sx={{

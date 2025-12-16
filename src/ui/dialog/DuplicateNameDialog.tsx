@@ -23,7 +23,7 @@ export default function DuplicateNameDialog({
     <Dialog
       open={open}
       onClose={onClose}
-      slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 400 } } }}
+      slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 'fit-content' } } }}
     >
       <DialogTitle
         sx={{

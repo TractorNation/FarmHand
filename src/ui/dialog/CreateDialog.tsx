@@ -38,7 +38,7 @@ export default function CreateDialog(props: CreateDialogProps) {
     <Dialog
       open={open}
       onClose={onClose}
-      slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 400 } } }}
+      slotProps={{ paper: { sx: { borderRadius: 3, minWidth: "fit-content" } } }}
     >
       <DialogTitle
         sx={{ fontWeight: 600, display: "flex", alignItems: "center", gap: 1 }}

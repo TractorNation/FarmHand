@@ -37,7 +37,7 @@ export default function RenameDialog(props: RenameDialogProps) {
     <Dialog
       open={open}
       onClose={onClose}
-      slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 400 } } }}
+      slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 'fit-content' } } }}
     >
       <DialogTitle
         sx={{
@@ -70,7 +70,7 @@ export default function RenameDialog(props: RenameDialogProps) {
           variant="contained"
           sx={{ borderRadius: 2 }}
         >
-          Rename
+          Confirm
         </Button>
       </DialogActions>
     </Dialog>

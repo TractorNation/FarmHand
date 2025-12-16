@@ -241,7 +241,7 @@ export default function Scout() {
       <Dialog
         open={showResetPopup}
         onClose={closeResetPopup}
-        slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 400 } } }}
+        slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 'fit-content' } } }}
       >
         <DialogTitle
           sx={{
@@ -276,7 +276,7 @@ export default function Scout() {
           paper: {
             sx: {
               borderRadius: 3,
-              minWidth: 400,
+              minWidth: 'fit-content',
             },
           },
         }}

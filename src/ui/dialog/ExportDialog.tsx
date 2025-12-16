@@ -36,7 +36,7 @@ export default function ExportDialog(props: ExportDialogProps) {
         paper: {
           sx: {
             borderRadius: 3,
-            minWidth: 400,
+            minWidth: 'fit-content',
           },
         },
       }}
