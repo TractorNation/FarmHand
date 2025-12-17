@@ -80,6 +80,7 @@ interface Settings {
   LAST_SCHEMA_NAME: string;
   THEME: string;
   DEVICE_ID: number;
+  TBA_API_KEY: string;
   EXPECTED_DEVICES_COUNT: number;
   AUTOSAVE_ON_COMPLETE: boolean;
   LEAD_SCOUT_ONLY: boolean;

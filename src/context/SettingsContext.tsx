@@ -11,6 +11,7 @@ import StoreManager, { StoreKeys } from "../utils/StoreManager";
 export const defaultSettings: Settings = {
   LAST_SCHEMA_NAME: "2025 Reefscape",
   THEME: "system",
+  TBA_API_KEY: "",
   DEVICE_ID: 1,
   AUTOSAVE_ON_COMPLETE: true,
   EXPECTED_DEVICES_COUNT: 6,

@@ -26,7 +26,7 @@ import SettingsIcon from "@mui/icons-material/SettingsRounded";
 import SchemaIcon from "@mui/icons-material/DescriptionRounded";
 import PaletteIcon from "@mui/icons-material/PaletteRounded";
 import StorageIcon from "@mui/icons-material/StorageRounded";
-import NotificationsIcon from "@mui/icons-material/NotificationsRounded";
+import ApiIcon from "@mui/icons-material/ApiRounded";
 import SecurityIcon from "@mui/icons-material/SecurityRounded";
 import InfoIcon from "@mui/icons-material/InfoRounded";
 import SaveIcon from "@mui/icons-material/SaveRounded";
@@ -65,7 +65,6 @@ export default function Settings() {
     useDialog();
   const isLandscape = useMediaQuery("(orientation: landscape)");
   const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [notifications, setNotifications] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
   const previousSettingsRef = useRef<Settings>(settings);
 
@@ -236,7 +235,7 @@ export default function Settings() {
       id: "device",
       title: "Device",
       icon: <StorageIcon />,
-      color: theme.palette.info.main,
+      color: theme.palette.warning.main,
       settings: [
         {
           type: "switch",
@@ -272,17 +271,17 @@ export default function Settings() {
       ].filter(Boolean),
     },
     {
-      id: "notifications",
-      title: "Notifications",
-      icon: <NotificationsIcon />,
-      color: theme.palette.warning.main,
+      id: "api",
+      title: "TBA Integration",
+      icon: <ApiIcon />,
+      color: theme.palette.info.main,
       settings: [
         {
-          type: "switch",
-          label: "Enable Notifications",
-          description: "Show alerts for important events",
-          checked: notifications,
-          onChange: (checked: boolean) => setNotifications(checked),
+          type: "text",
+          label: "Blue Alliance API Key",
+          description: "Your personal API key from The Blue Alliance",
+          value: editingSettings.TBA_API_KEY,
+          onChange: (value: string) => handleChange("TBA_API_KEY", value),
         },
       ],
     },
@@ -523,6 +522,51 @@ export default function Settings() {
                 </Box>
               </>
             )}
+            {section.id === "api" && (
+              <>
+                <Divider sx={{ borderColor: theme.palette.surface.outline }} />
+                <Box sx={{ p: 3 }}>
+                  <Stack
+                    direction={isLandscape ? "row" : "column"}
+                    alignItems="center"
+                    justifyContent="space-between"
+                    spacing={2}
+                  >
+                    <Box sx={{ flexGrow: 1 }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                        Select event and pull match schedule
+                      </Typography>
+                      <Typography variant="body1" color="text.secondary">
+                        Save match schedule for selected event. This is only
+                        necessary if your scouting form has the "Pull from Blue
+                        Alliance" option checked under the "Team number" field
+                      </Typography>
+                    </Box>
+                    <Stack sx={{ flexShrink: 0 }} direction={"column"} spacing={2}>
+                      <DropdownInput
+                        label="Event"
+                        options={["One", "Two", "Three"]}
+                        value={"One"}
+                        onChange={() => {
+                          /* Set event to pull */
+                        }}
+                      />
+                      <Button
+                        disabled={false}
+                        variant="contained"
+                        color="info"
+                        onClick={() => {
+                          /* Pull data for event using api key*/
+                        }}
+                        sx={{ borderRadius: 2 }}
+                      >
+                        Pull Data
+                      </Button>
+                    </Stack>
+                  </Stack>
+                </Box>
+              </>
+            )}
           </Card>
         ))}
 
@@ -580,7 +624,7 @@ export default function Settings() {
                   Developed by
                 </Typography>
                 <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  FRC Team 3655, The Tractor Technicians
+                  Henry Mullin - FRC Team 3655, The Tractor Technicians
                 </Typography>
               </Box>
               <Divider sx={{ borderColor: theme.palette.surface.outline }} />
