@@ -135,6 +135,7 @@ export const StoreKeys = {
     LAST_SCHEMA_NAME: "settings::LAST_SCHEMA_NAME",
     DEVICE_ID: "settings::DEVICE_ID",
     THEME: "settings::THEME",
+    TBA_API_KEY: "settings::TBA_API_KEY",
     EXPECTED_DEVICES_COUNT: "settings::EXPECTED_DEVICES_COUNT",
     LEAD_SCOUT_ONLY: "settings::LEAD_SCOUT_ONLY",
     AUTOSAVE_ON_COMPLETE: "settings::AUTOSAVE_ON_COMPLETE",
