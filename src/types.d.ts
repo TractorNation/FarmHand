@@ -54,6 +54,7 @@ interface ComponentProps {
   cols?: number;
   cellLabel?: string;
   onChange?: (value: any) => void;
+  pullFromTBA?: boolean; // Whether to pull data from TBA API
 }
 
 /** Data about a specific qr code */
@@ -75,12 +76,58 @@ interface SchemaMetaData {
   type: "default" | "generated";
 }
 
+/** Represents an event with its name and unique id */
+type TbaEvent = {
+  key: string;
+  name: string;
+  short_name?: string;
+  start_date: string;
+  end_date: string;
+};
+
+/** Represents a team from TBA */
+interface TbaTeam {
+  key: string;
+  team_number: number;
+  nickname?: string;
+}
+
+/** Represents match data from TBA API */
+interface TbaMatch {
+  key: string;
+  comp_level: string;
+  match_number: number;
+  alliances: {
+    red: {
+      team_keys: string[];
+    };
+    blue: {
+      team_keys: string[];
+    };
+  };
+}
+
+/** Combined event data with both matches and teams */
+interface EventData {
+  matches: TbaMatch[];
+  teams: TbaTeam[];
+  team_keys: string[]; // All unique team keys at the event
+}
+
+/** Processed match data for easy access */
+interface ProcessedMatchData {
+  matchNumbers: string[];
+  teamNumbersByMatch: Map<string, string[]>;
+  allTeamNumbers: string[];
+}
+
 /**Stores all the settings and data about them */
 interface Settings {
   LAST_SCHEMA_NAME: string;
   THEME: string;
   DEVICE_ID: number;
   TBA_API_KEY: string;
+  TBA_EVENT_KEY: string;
   EXPECTED_DEVICES_COUNT: number;
   AUTOSAVE_ON_COMPLETE: boolean;
   LEAD_SCOUT_ONLY: boolean;

@@ -1,4 +1,4 @@
-use crate::core::{qr, schema, util};
+use crate::core::{api::{self, EventData, TbaEvent}, qr, schema, util};
 use tauri::Error;
 
 #[tauri::command]
@@ -39,4 +39,18 @@ pub fn save_schema(schema: String, file_path: String) -> Result<(), Error> {
 #[tauri::command]
 pub fn delete_schema(path: String) -> Result<(), Error> {
     schema::delete(&path)
+}
+
+#[tauri::command]
+pub async fn pull_tba_event_data(
+    app_handle: tauri::AppHandle,
+    api_key: String,
+    event_key: String,
+) -> Result<EventData, Error> {
+    api::fetch_and_save_matches(app_handle, &api_key, &event_key).await
+}
+
+#[tauri::command]
+pub async fn get_tba_events(api_key: String) -> Result<Vec<TbaEvent>, Error> {
+    api::fetch_upcoming_events(&api_key).await
 }
