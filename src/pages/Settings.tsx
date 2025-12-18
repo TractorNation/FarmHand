@@ -19,6 +19,7 @@ import {
   IconButton,
   DialogContent,
   DialogActions,
+  CircularProgress,
 } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
 import DropdownInput from "../ui/components/DropdownInput";
@@ -26,7 +27,7 @@ import SettingsIcon from "@mui/icons-material/SettingsRounded";
 import SchemaIcon from "@mui/icons-material/DescriptionRounded";
 import PaletteIcon from "@mui/icons-material/PaletteRounded";
 import StorageIcon from "@mui/icons-material/StorageRounded";
-import NotificationsIcon from "@mui/icons-material/NotificationsRounded";
+import ApiIcon from "@mui/icons-material/ApiRounded";
 import SecurityIcon from "@mui/icons-material/SecurityRounded";
 import InfoIcon from "@mui/icons-material/InfoRounded";
 import SaveIcon from "@mui/icons-material/SaveRounded";
@@ -42,6 +43,9 @@ import UnsavedChangesDialog from "../ui/dialog/UnsavedChangesDialog";
 import NumberInput from "../ui/components/NumberInput";
 import TextInput from "../ui/components/TextInput";
 import WarningDialog from "../ui/dialog/WarningDialog";
+import { invoke } from "@tauri-apps/api/core";
+import { useScoutData } from "../context/ScoutDataContext";
+import AutocompleteInput from "../ui/components/AutocompleteInput";
 
 export default function Settings() {
   const { schemaName, availableSchemas } = useSchema();
@@ -64,10 +68,18 @@ export default function Settings() {
   const [licenseDialogOpen, openLicenseDialog, closeLicenseDialog] =
     useDialog();
   const isLandscape = useMediaQuery("(orientation: landscape)");
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [notifications, setNotifications] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [tbaEvents, setTbaEvents] = useState<TbaEvent[]>([]);
+  const [isFetchingEvents, setIsFetchingEvents] = useState(false);
+  const [isPullingData, setIsPullingData] = useState(false);
+  const [snackbarState, setSnackbarState] = useState({
+    open: false,
+    message: "",
+    severity: "success" as "success" | "error",
+  });
   const previousSettingsRef = useRef<Settings>(settings);
+  const hasAttemptedFetch = useRef(false);
+  const { loadTbaMatchData } = useScoutData();
 
   const [
     unsavedChangesDialogOpen,
@@ -105,6 +117,38 @@ export default function Settings() {
       JSON.stringify(editingSettings) !== JSON.stringify(originalSettings);
     setHasUnsavedChanges(hasChanges);
   }, [editingSettings, originalSettings]);
+
+  // Fetch TBA events when API key is available
+  useEffect(() => {
+    const fetchEvents = async () => {
+      if (
+        settings.TBA_API_KEY &&
+        !hasAttemptedFetch.current &&
+        !isFetchingEvents
+      ) {
+        hasAttemptedFetch.current = true;
+        setIsFetchingEvents(true);
+        try {
+          const events = await invoke<TbaEvent[]>("get_tba_events", {
+            apiKey: settings.TBA_API_KEY,
+          });
+          setTbaEvents(events);
+        } catch (error) {
+          console.error("Failed to fetch TBA events:", error);
+          setSnackbarState({
+            open: true,
+            message:
+              "Failed to fetch events. Please check your internet connection and API key.",
+            severity: "error",
+          });
+        } finally {
+          setIsFetchingEvents(false);
+        }
+      }
+    };
+
+    fetchEvents();
+  }, [settings.TBA_API_KEY, isFetchingEvents]);
 
   const selectedTheme =
     themeRegistry[
@@ -152,7 +196,68 @@ export default function Settings() {
     }
     setEditingSettings(validatedSettings);
     setOriginalSettings(validatedSettings);
-    setSnackbarOpen(true);
+    setSnackbarState({
+      open: true,
+      message: "Successfully saved settings",
+      severity: "success",
+    });
+  };
+
+  const handlePullTbaData = async () => {
+    if (!editingSettings.TBA_EVENT_KEY || !settings.TBA_API_KEY) {
+      setSnackbarState({
+        open: true,
+        message: "API Key and Event must be selected.",
+        severity: "error",
+      });
+
+      return;
+    }
+
+    setIsPullingData(true);
+
+    try {
+      // Pull the event data
+      const eventData = await invoke<EventData>("pull_tba_event_data", {
+        apiKey: settings.TBA_API_KEY,
+        eventKey: editingSettings.TBA_EVENT_KEY,
+      });
+
+      // Save to store
+      const { default: StoreManager } = await import("../utils/StoreManager");
+      await StoreManager.setTbaEventData(eventData);
+
+      // Also save the event key
+      await StoreManager.set(
+        "settings::TBA_EVENT_KEY",
+        editingSettings.TBA_EVENT_KEY
+      );
+
+      await loadTbaMatchData();
+
+      // Build success message
+      let message = `Successfully pulled data for ${editingSettings.TBA_EVENT_KEY}:\n`;
+      message += `- ${eventData.team_keys.length} teams\n`;
+
+      if (eventData.matches.length > 0) {
+        message += `- ${eventData.matches.length} actual matches\n`;
+      }
+      message += `- Match numbers 1-100+ available\n`;
+
+      setSnackbarState({
+        open: true,
+        message,
+        severity: "success",
+      });
+    } catch (error) {
+      setSnackbarState({
+        open: true,
+        message: `Failed to pull data: ${error}`,
+        severity: "error",
+      });
+    } finally {
+      setIsPullingData(false);
+    }
   };
 
   const handleLeadScoutToggle = (checked: boolean) => {
@@ -236,7 +341,7 @@ export default function Settings() {
       id: "device",
       title: "Device",
       icon: <StorageIcon />,
-      color: theme.palette.info.main,
+      color: theme.palette.warning.main,
       settings: [
         {
           type: "switch",
@@ -272,17 +377,17 @@ export default function Settings() {
       ].filter(Boolean),
     },
     {
-      id: "notifications",
-      title: "Notifications",
-      icon: <NotificationsIcon />,
-      color: theme.palette.warning.main,
+      id: "api",
+      title: "TBA Integration",
+      icon: <ApiIcon />,
+      color: theme.palette.info.main,
       settings: [
         {
-          type: "switch",
-          label: "Enable Notifications",
-          description: "Show alerts for important events",
-          checked: notifications,
-          onChange: (checked: boolean) => setNotifications(checked),
+          type: "text",
+          label: "Blue Alliance API Key",
+          description: "Your personal API key from The Blue Alliance",
+          value: editingSettings.TBA_API_KEY,
+          onChange: (value: string) => handleChange("TBA_API_KEY", value),
         },
       ],
     },
@@ -523,6 +628,76 @@ export default function Settings() {
                 </Box>
               </>
             )}
+            {section.id === "api" && (
+              <>
+                <Divider sx={{ borderColor: theme.palette.surface.outline }} />
+                <Box sx={{ p: 3 }}>
+                  <Stack
+                    direction={isLandscape ? "row" : "column"}
+                    alignItems="center"
+                    justifyContent="space-between"
+                    spacing={2}
+                  >
+                    <Box sx={{ flexGrow: 1 }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                        Select event and pull match schedule
+                      </Typography>
+                      <Typography variant="body1" color="text.secondary">
+                        Save match schedule for selected event. This is only
+                        necessary if your scouting form has the "Pull from Blue
+                        Alliance" option checked under the "Team number" field
+                      </Typography>
+                    </Box>
+                    <Stack
+                      sx={{
+                        flexShrink: 0,
+                        minWidth: isLandscape ? "250px" : "75%",
+                      }}
+                      direction={"column"}
+                      spacing={2}
+                    >
+                      <AutocompleteInput
+                        label="Event"
+                        options={tbaEvents.map((e) => e.key)}
+                        disabled={
+                          settings.TBA_API_KEY === "" || isFetchingEvents
+                        }
+                        value={editingSettings.TBA_EVENT_KEY.toString()}
+                        onChange={(value) =>
+                          handleChange("TBA_EVENT_KEY", value)
+                        }
+                        loading={isFetchingEvents}
+                        placeholder={
+                          isFetchingEvents
+                            ? "Loading events..."
+                            : tbaEvents.length === 0
+                            ? "No upcoming events found"
+                            : "Select an event to pull the match schedule from"
+                        }
+                      />
+                      <Button
+                        disabled={
+                          settings.TBA_API_KEY === "" ||
+                          !editingSettings.TBA_EVENT_KEY ||
+                          isPullingData
+                        }
+                        variant="contained"
+                        color="info"
+                        onClick={handlePullTbaData}
+                        sx={{ borderRadius: 2 }}
+                        startIcon={
+                          isPullingData ? (
+                            <CircularProgress size={20} />
+                          ) : undefined
+                        }
+                      >
+                        {isPullingData ? "Pulling Data..." : "Pull Data"}
+                      </Button>
+                    </Stack>
+                  </Stack>
+                </Box>
+              </>
+            )}
           </Card>
         ))}
 
@@ -580,7 +755,7 @@ export default function Settings() {
                   Developed by
                 </Typography>
                 <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  FRC Team 3655, The Tractor Technicians
+                  Henry Mullin - FRC Team 3655, The Tractor Technicians
                 </Typography>
               </Box>
               <Divider sx={{ borderColor: theme.palette.surface.outline }} />
@@ -665,18 +840,18 @@ export default function Settings() {
       </Dialog>
 
       <Snackbar
-        open={snackbarOpen}
-        onClose={() => setSnackbarOpen(false)}
+        open={snackbarState.open}
+        onClose={() => setSnackbarState({ ...snackbarState, open: false })}
         slots={{ transition: Slide }}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-        autoHideDuration={1200}
+        autoHideDuration={4000}
       >
         <Alert
-          onClose={() => setSnackbarOpen(false)}
-          severity="success"
+          onClose={() => setSnackbarState({ ...snackbarState, open: false })}
+          severity={snackbarState.severity}
           variant="filled"
         >
-          Successfully saved settings
+          {snackbarState.message}
         </Alert>
       </Snackbar>
     </Box>

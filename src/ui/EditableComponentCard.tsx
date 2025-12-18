@@ -612,6 +612,19 @@ export default function EditableComponentCard(props: ComponentCardProps) {
               }
               label="Double Wide?"
             />
+            {isProtected && (editedComponent.name === "Match Number" || editedComponent.name === "Team Number") && (
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={editedComponent.props?.pullFromTBA || false}
+                    onChange={(e) =>
+                      handleFieldChange("pullFromTBA", e.target.checked)
+                    }
+                  />
+                }
+                label="Pull from The Blue Alliance?"
+              />
+            )}
             {renderTypeSpecificProps()}
           </Stack>
         </AccordionDetails>

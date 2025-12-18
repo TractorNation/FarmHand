@@ -122,6 +122,24 @@ const StoreManager = {
     const value = await this.get(StoreKeys.code.scanned(name));
     return value === "true";
   },
+
+  async getTbaEventData(): Promise<EventData | null> {
+    try {
+      const data = await this.get(StoreKeys.tba.EVENT_DATA);
+      return data ? JSON.parse(data) : null;
+    } catch (e) {
+      console.error("Failed to get TBA event data", e);
+      return null;
+    }
+  },
+
+  async setTbaEventData(eventData: EventData) {
+    await this.set(StoreKeys.tba.EVENT_DATA, JSON.stringify(eventData));
+  },
+
+  async clearTbaEventData() {
+    await this.remove(StoreKeys.tba.EVENT_DATA);
+  },
 };
 
 export default StoreManager;
@@ -135,6 +153,8 @@ export const StoreKeys = {
     LAST_SCHEMA_NAME: "settings::LAST_SCHEMA_NAME",
     DEVICE_ID: "settings::DEVICE_ID",
     THEME: "settings::THEME",
+    TBA_API_KEY: "settings::TBA_API_KEY",
+    TBA_EVENT_KEY: "settings::TBA_EVENT_KEY",
     EXPECTED_DEVICES_COUNT: "settings::EXPECTED_DEVICES_COUNT",
     LEAD_SCOUT_ONLY: "settings::LEAD_SCOUT_ONLY",
     AUTOSAVE_ON_COMPLETE: "settings::AUTOSAVE_ON_COMPLETE",
@@ -151,5 +171,9 @@ export const StoreKeys = {
     byId: (id: number) => `analysis::${id}`,
     list: "analyses::list",
     pinned: (chartId: string) => `analysis::${chartId}::pinned`,
+  },
+  tba: {
+    EVENT_DATA: "tba::EVENT_DATA",
+    EVENT_KEY: "tba::EVENT_KEY",
   },
 };
