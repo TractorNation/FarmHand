@@ -46,6 +46,15 @@ import WarningDialog from "../ui/dialog/WarningDialog";
 import { invoke } from "@tauri-apps/api/core";
 import { useScoutData } from "../context/ScoutDataContext";
 import AutocompleteInput from "../ui/components/AutocompleteInput";
+import StoreManager, { StoreKeys } from "../utils/StoreManager";
+
+// Type definition for TBA data response from Rust backend
+interface TbaDataResponse {
+  data: EventData | null;
+  is_cached: boolean;
+  message: string;
+  success: boolean;
+}
 
 export default function Settings() {
   const { schemaName, availableSchemas } = useSchema();
@@ -75,7 +84,7 @@ export default function Settings() {
   const [snackbarState, setSnackbarState] = useState({
     open: false,
     message: "",
-    severity: "success" as "success" | "error",
+    severity: "success" as "success" | "error" | "info",
   });
   const previousSettingsRef = useRef<Settings>(settings);
   const hasAttemptedFetch = useRef(false);
@@ -121,6 +130,15 @@ export default function Settings() {
   // Fetch TBA events when API key is available
   useEffect(() => {
     const fetchEvents = async () => {
+      try {
+        const cachedEvents = await StoreManager.getCachedEvents();
+        if (cachedEvents && cachedEvents.length > 0) {
+          setTbaEvents(cachedEvents);
+        }
+      } catch (e) {
+        console.error("Failed to load cached events", e);
+      }
+
       if (
         settings.TBA_API_KEY &&
         !hasAttemptedFetch.current &&
@@ -128,19 +146,40 @@ export default function Settings() {
       ) {
         hasAttemptedFetch.current = true;
         setIsFetchingEvents(true);
+
         try {
           const events = await invoke<TbaEvent[]>("get_tba_events", {
             apiKey: settings.TBA_API_KEY,
           });
+
+          if (events.length === 0) {
+            setSnackbarState({
+              open: true,
+              message: "No scheduled and upcoming events for this year",
+              severity: "info",
+            });
+          }
+
           setTbaEvents(events);
+
+          await StoreManager.setCachedEvents(events);
         } catch (error) {
-          console.error("Failed to fetch TBA events:", error);
-          setSnackbarState({
-            open: true,
-            message:
-              "Failed to fetch events. Please check your internet connection and API key.",
-            severity: "error",
-          });
+          const cachedEvents = await StoreManager.getCachedEvents();
+          if (cachedEvents && cachedEvents.length > 0) {
+            setTbaEvents(cachedEvents);
+            setSnackbarState({
+              open: true,
+              message: `Using ${cachedEvents.length} Cached events. Connect to internet for updates`,
+              severity: "info",
+            });
+          } else {
+            setSnackbarState({
+              open: true,
+              message:
+                "Failed to fetch events. Please check your internet connection and/or API key",
+              severity: "error",
+            });
+          }
         } finally {
           setIsFetchingEvents(false);
         }
@@ -217,44 +256,54 @@ export default function Settings() {
     setIsPullingData(true);
 
     try {
-      // Pull the event data
-      const eventData = await invoke<EventData>("pull_tba_event_data", {
+      // Pull the event data - now returns TbaDataResponse
+      const response = await invoke<TbaDataResponse>("pull_tba_event_data", {
         apiKey: settings.TBA_API_KEY,
         eventKey: editingSettings.TBA_EVENT_KEY,
       });
 
+      if (!response.success || !response.data) {
+        // Operation failed - show error message
+        setSnackbarState({
+          open: true,
+          message: response.message,
+          severity: "error",
+        });
+        return;
+      }
+
+      // Successfully retrieved data (either fresh or cached)
+      const eventData = response.data;
+
       // Save to store
-      const { default: StoreManager } = await import("../utils/StoreManager");
       await StoreManager.setTbaEventData(eventData);
 
       // Also save the event key
       await StoreManager.set(
-        "settings::TBA_EVENT_KEY",
+        StoreKeys.settings.TBA_EVENT_KEY,
         editingSettings.TBA_EVENT_KEY
       );
 
+      // Reload TBA match data in the scout context
       await loadTbaMatchData();
 
-      // Build success message
-      let message = `Successfully pulled data for ${editingSettings.TBA_EVENT_KEY}:\n`;
-      message += `- ${eventData.team_keys.length} teams\n`;
-
-      if (eventData.matches.length > 0) {
-        message += `- ${eventData.matches.length} actual matches\n`;
-      }
-      message += `- Match numbers 1-100+ available\n`;
+      // Show appropriate success message based on whether data is cached
+      const severity = response.is_cached ? "info" : "success";
+      const prefix = response.is_cached ? "📦 Offline Mode - " : "✅ Online - ";
 
       setSnackbarState({
         open: true,
-        message,
-        severity: "success",
+        message: `${prefix}${response.message}`,
+        severity,
       });
     } catch (error) {
+      // Unexpected error occurred
       setSnackbarState({
         open: true,
-        message: `Failed to pull data: ${error}`,
+        message: `Unexpected error: ${error}. Please try again or contact support.`,
         severity: "error",
       });
+      console.error("Error in handlePullTbaData:", error);
     } finally {
       setIsPullingData(false);
     }
@@ -660,7 +709,8 @@ export default function Settings() {
                         label="Event"
                         options={tbaEvents.map((e) => e.key)}
                         disabled={
-                          settings.TBA_API_KEY === "" || isFetchingEvents
+                          !settings.TBA_API_KEY ||
+                          (isFetchingEvents && tbaEvents.length == 0)
                         }
                         value={editingSettings.TBA_EVENT_KEY.toString()}
                         onChange={(value) =>
