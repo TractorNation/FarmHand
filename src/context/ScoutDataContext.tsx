@@ -43,6 +43,7 @@ export default function ScoutDataProvider(props: ScoutDataProviderProps) {
   const [tbaMatchData, setTbaMatchData] = useState<ProcessedMatchData | null>(
     null
   );
+  const [currentEventKey, setCurrentEventKey] = useState<string>("");
 
   const { children } = props;
 
@@ -72,30 +73,33 @@ export default function ScoutDataProvider(props: ScoutDataProviderProps) {
       const eventData = await StoreManager.getTbaEventData();
       const eventKey = await StoreManager.get(StoreKeys.settings.TBA_EVENT_KEY);
 
-      if (eventData) {
-        console.log("📊 Loaded event data:", {
-          matches: eventData.matches.length,
-          teams: eventData.teams.length,
-          teamKeys: eventData.team_keys.length,
-          eventKey,
-        });
-
-        const processed = processEventData(eventData, eventKey || "");
+      if (eventData && eventKey) {
+        const processed = processEventData(eventData, eventKey);
         setTbaMatchData(processed);
-
-        console.log("✅ Processed data:", {
-          matchNumbers: processed.matchNumbers.length,
-          allTeamNumbers: processed.allTeamNumbers.length,
-        });
+      } else if (eventKey && !eventData) {
+        setTbaMatchData(null);
       } else {
-        console.log("ℹ️ No TBA event data found in storage");
         setTbaMatchData(null);
       }
     } catch (error) {
-      console.error("Failed to load TBA event data:", error);
       setTbaMatchData(null);
     }
   }, []);
+
+  // Watch for event key changes and reload data accordingly
+  useEffect(() => {
+    const checkEventKey = async () => {
+      const eventKey = await StoreManager.get(StoreKeys.settings.TBA_EVENT_KEY);
+      if (eventKey && eventKey !== currentEventKey) {
+        setCurrentEventKey(eventKey);
+        await loadTbaMatchData();
+      }
+    };
+
+    // Check periodically for event key changes (e.g., from settings)
+    const interval = setInterval(checkEventKey, 2000);
+    return () => clearInterval(interval);
+  }, [currentEventKey, loadTbaMatchData]);
 
   const processEventData = (
     eventData: EventData,

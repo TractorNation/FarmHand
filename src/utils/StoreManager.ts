@@ -140,6 +140,23 @@ const StoreManager = {
   async clearTbaEventData() {
     await this.remove(StoreKeys.tba.EVENT_DATA);
   },
+
+  async getCachedEvents() {
+    try {
+      const data = await this.get(StoreKeys.tba.CACHED_EVENTS);
+      return data ? JSON.parse(data) : null;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  async setCachedEvents(events: TbaEvent[]) {
+    await this.set(StoreKeys.tba.CACHED_EVENTS, JSON.stringify(events));
+  },
+
+  async clearCachedEvents() {
+    await this.remove(StoreKeys.tba.CACHED_EVENTS);
+  },
 };
 
 export default StoreManager;
@@ -175,5 +192,6 @@ export const StoreKeys = {
   tba: {
     EVENT_DATA: "tba::EVENT_DATA",
     EVENT_KEY: "tba::EVENT_KEY",
+    CACHED_EVENTS: "tba::CACHED_EVENTS",
   },
 };
