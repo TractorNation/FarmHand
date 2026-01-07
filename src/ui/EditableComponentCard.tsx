@@ -193,6 +193,7 @@ export default function EditableComponentCard(props: ComponentCardProps) {
 
   const renderTypeSpecificProps = () => {
     switch (editedComponent.type.toLowerCase()) {
+      case "radio":
       case "dropdown":
         return (
           <TextField
@@ -579,6 +580,7 @@ export default function EditableComponentCard(props: ComponentCardProps) {
                 "Checkbox",
                 "Counter",
                 "Dropdown",
+                "Radio",
                 "Text",
                 "Number",
                 "Slider",

@@ -13,6 +13,7 @@ import SliderInput from "./SliderInput";
 import NumberInput from "./NumberInput";
 import TimerInput from "./TimerInput";
 import AutocompleteInput from "./AutocompleteInput";
+import RadioButtonInput from "./RadioButtonInput";
 
 /* Props for the dynamic component
  */
@@ -66,6 +67,7 @@ export default function DynamicComponent(props: DynamicComponentProps) {
       case "text":
         emptyStateValue = component.props?.default ?? "";
         break;
+      case "radio":
       case "dropdown":
         emptyStateValue = component.props?.default ?? "Select an option...";
         break;
@@ -261,7 +263,15 @@ export default function DynamicComponent(props: DynamicComponentProps) {
             allowUnset
           />
         );
-
+      case "radio":
+        return (
+          <RadioButtonInput
+            value={value}
+            options={component.props?.options!}
+            onChange={handleChange}
+            label={component.props?.label}
+          />
+        );
       case "checkbox":
         return <CheckboxInput value={Boolean(value)} onChange={handleChange} />;
 
