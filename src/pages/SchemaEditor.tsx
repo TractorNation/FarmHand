@@ -236,7 +236,7 @@ export default function SchemaEditor() {
       for (const field of section.fields) {
         if (!field.type) return false;
         if (
-          (field.type === "dropdown" || field.type === "radio") &&
+          (field.type === "dropdown" || field.type === "multiplechoice") &&
           !field.props?.options
         )
           return false;
