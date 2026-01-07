@@ -84,7 +84,7 @@ export default function EditableComponentCard(props: ComponentCardProps) {
       // Dropdown
       const initialDropdownValue = component.props?.options?.join(",") || "";
       setDropdownInputValue(initialDropdownValue);
-      if (component.type.toLowerCase() === "dropdown") {
+      if (component.type.toLowerCase() === "dropdown" || component.type.toLowerCase() === "radio") {
         validateDropdown(initialDropdownValue);
       }
 
@@ -102,7 +102,7 @@ export default function EditableComponentCard(props: ComponentCardProps) {
       }
       setRawDefaultValue(initialDefaultValue);
       lastSyncedComponentId.current = component.id;
-    } else if (component.type.toLowerCase() === "dropdown") {
+    } else if (component.type.toLowerCase() === "dropdown" || component.type.toLowerCase() === "radio") {
       validateDropdown(dropdownInputValue);
     }
   }, [component]);
