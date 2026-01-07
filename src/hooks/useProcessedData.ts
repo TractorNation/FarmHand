@@ -233,7 +233,7 @@ export default function useProcessedData(
           } else if (yFieldType === "checkbox") {
             // Convert boolean to number (0 or 1) for numeric charts
             yValue = Boolean(rawYValue) ? 1 : 0;
-          } else if (yFieldType === "text" || yFieldType === "dropdown" || yFieldType === "radio") 
+          } else if (yFieldType === "text" || yFieldType === "dropdown" || yFieldType === "multiplechoice") 
           {
             // For categorical fields, use the string value as-is
             // They'll be counted/aggregated in the grouping logic
@@ -412,7 +412,7 @@ export default function useProcessedData(
           let aggregatedValue = 0;
 
           // Handle string/categorical values (text, dropdown, radio)
-          if (yFieldType === "text" || yFieldType === "dropdown" || yFieldType === "radio") {
+          if (yFieldType === "text" || yFieldType === "dropdown" || yFieldType === "multiplechoice") {
             // For categorical data, count is the most meaningful aggregation
             aggregatedValue = yValues.length;
           } else {
@@ -688,7 +688,7 @@ export default function useProcessedData(
         let aggregatedValue = 0;
 
         // Handle string/categorical values (text, dropdown, radio)
-        if (yFieldType === "text" || yFieldType === "dropdown" || yFieldType === "radio") {
+        if (yFieldType === "text" || yFieldType === "dropdown" || yFieldType === "multiplechoice") {
           // For categorical data, count is the most meaningful aggregation
           aggregatedValue = values.length;
         } else {
@@ -758,7 +758,7 @@ export default function useProcessedData(
     // Special handling for bar charts with text/dropdown Y-axis: group by text values, subgroup by team number
     if (
       chart.type === "bar" &&
-      (yFieldType === "text" || yFieldType === "dropdown" || yFieldType === "radio")
+      (yFieldType === "text" || yFieldType === "dropdown" || yFieldType === "multiplechoice")
     ) {
       // Find Team Number field index for subgrouping
       let teamNumberIndex = -1;
@@ -848,7 +848,7 @@ export default function useProcessedData(
           let aggregatedValue = 0;
 
           // Handle string/categorical values (text, dropdown, radio)
-          if (yFieldType === "text" || yFieldType === "dropdown" || yFieldType === "radio") {
+          if (yFieldType === "text" || yFieldType === "dropdown" || yFieldType === "multiplechoice") {
             // For categorical data, count is the most meaningful aggregation
             aggregatedValue = values.length;
           } else {
@@ -896,7 +896,7 @@ export default function useProcessedData(
     // Special handling for pie charts with text/dropdown Y-axis: create slices with team subgroups
     if (
       chart.type === "pie" &&
-      (yFieldType === "text" || yFieldType === "dropdown" || yFieldType === "radio")
+      (yFieldType === "text" || yFieldType === "dropdown" || yFieldType === "multiplechoice")
     ) {
       // Find Team Number field index for subgrouping
       let teamNumberIndex = -1;

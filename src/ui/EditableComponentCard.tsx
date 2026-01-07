@@ -84,7 +84,7 @@ export default function EditableComponentCard(props: ComponentCardProps) {
       // Dropdown
       const initialDropdownValue = component.props?.options?.join(",") || "";
       setDropdownInputValue(initialDropdownValue);
-      if (component.type.toLowerCase() === "dropdown" || component.type.toLowerCase() === "radio") {
+      if (component.type.toLowerCase() === "dropdown" || component.type.toLowerCase() === "multiplechoice") {
         validateDropdown(initialDropdownValue);
       }
 
@@ -102,7 +102,7 @@ export default function EditableComponentCard(props: ComponentCardProps) {
       }
       setRawDefaultValue(initialDefaultValue);
       lastSyncedComponentId.current = component.id;
-    } else if (component.type.toLowerCase() === "dropdown" || component.type.toLowerCase() === "radio") {
+    } else if (component.type.toLowerCase() === "dropdown" || component.type.toLowerCase() === "multiplechoice") {
       validateDropdown(dropdownInputValue);
     }
   }, [component]);
@@ -193,7 +193,7 @@ export default function EditableComponentCard(props: ComponentCardProps) {
 
   const renderTypeSpecificProps = () => {
     switch (editedComponent.type.toLowerCase()) {
-      case "radio":
+      case "multiplechoice":
       case "dropdown":
         return (
           <TextField
@@ -569,18 +569,22 @@ export default function EditableComponentCard(props: ComponentCardProps) {
             <DropdownInput
               label="Type"
               value={
-                editedComponent.type.charAt(0).toUpperCase() +
-                editedComponent.type.slice(1)
+                editedComponent.type === "multiplechoice"
+                  ? "Multiple Choice"
+                  : editedComponent.type.charAt(0).toUpperCase() +
+                    editedComponent.type.slice(1)
               }
               disabled={isProtected}
-              onChange={(value) =>
-                handleFieldChange("type", value.toLowerCase())
-              }
+              onChange={(value) => {
+                const type =
+                  value === "Multiple Choice" ? "multiplechoice" : value.toLowerCase();
+                handleFieldChange("type", type);
+              }}
               options={[
                 "Checkbox",
                 "Counter",
                 "Dropdown",
-                "Radio",
+                "Multiple Choice",
                 "Text",
                 "Number",
                 "Slider",
