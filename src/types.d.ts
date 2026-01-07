@@ -21,7 +21,7 @@ type ComponentType =
   | "checkbox"
   | "counter"
   | "dropdown"
-  | "radio"
+  | "multiplechoice"
   | "text"
   | "number"
   | "slider"
