@@ -182,8 +182,17 @@ export default function QRPage() {
             />
 
             {/* Action Bar */}
-            <Stack direction="row" justifyContent="space-between" mb={3} spacing={2}>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              mb={3}
+              spacing={2}
+            >
               <SortFilterMenu
+                dateRangeEnd={qrManager.dateRangeEnd}
+                dateRangeStart={qrManager.dateRangeStart}
+                onDateRangeStartChange={qrManager.setDateRangeStart}
+                onDateRangeEndChange={qrManager.setDateRangeEnd}
                 sortMode={qrManager.sortMode}
                 sortDirection={qrManager.sortDirection}
                 activeFilters={qrManager.filters}
@@ -250,7 +259,6 @@ export default function QRPage() {
               sortMode={qrManager.sortMode}
               sortDirection={qrManager.sortDirection}
             />
-
           </Box>
         </>
       )}

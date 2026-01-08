@@ -142,6 +142,7 @@ type FilterOption =
   | "day"
   | "week"
   | "month"
+  | "date range"
   | "unscanned"
   | "none";
 

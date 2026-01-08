@@ -35,6 +35,10 @@ interface SortFilterButtonsProps {
   teamNumberFilter: string;
   onMatchNumberFilterChange: (value: string) => void;
   onTeamNumberFilterChange: (value: string) => void;
+  dateRangeStart: Date | null;
+  dateRangeEnd: Date | null;
+  onDateRangeStartChange: (date: Date | null) => void;
+  onDateRangeEndChange: (date: Date | null) => void;
 }
 
 export default function SortFilterButtons({
@@ -49,6 +53,10 @@ export default function SortFilterButtons({
   teamNumberFilter,
   onMatchNumberFilterChange,
   onTeamNumberFilterChange,
+  dateRangeStart,
+  dateRangeEnd,
+  onDateRangeStartChange,
+  onDateRangeEndChange,
 }: SortFilterButtonsProps) {
   const [sortAnchor, setSortAnchor] = useState<null | HTMLElement>(null);
   const [filterAnchor, setFilterAnchor] = useState<null | HTMLElement>(null);
@@ -82,6 +90,7 @@ export default function SortFilterButtons({
     { value: "day", label: "Today" },
     { value: "week", label: "This Week" },
     { value: "month", label: "This Month" },
+    { value: "date range", label: "Date Range" },
   ];
 
   return (
@@ -195,31 +204,33 @@ export default function SortFilterButtons({
               onClick={(e) => e.stopPropagation()}
               fullWidth
               type="number"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon fontSize="small" />
-                  </InputAdornment>
-                ),
-                endAdornment: matchNumberFilter && (
-                  <InputAdornment position="end">
-                    <Box
-                      component="span"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onMatchNumberFilterChange("");
-                      }}
-                      sx={{
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        "&:hover": { opacity: 0.7 },
-                      }}
-                    >
-                      <ClearIcon fontSize="small" />
-                    </Box>
-                  </InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                  endAdornment: matchNumberFilter && (
+                    <InputAdornment position="end">
+                      <Box
+                        component="span"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onMatchNumberFilterChange("");
+                        }}
+                        sx={{
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          "&:hover": { opacity: 0.7 },
+                        }}
+                      >
+                        <ClearIcon fontSize="small" />
+                      </Box>
+                    </InputAdornment>
+                  ),
+                },
               }}
               sx={{
                 "& .MuiOutlinedInput-root": {
@@ -251,31 +262,33 @@ export default function SortFilterButtons({
               onClick={(e) => e.stopPropagation()}
               fullWidth
               type="number"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon fontSize="small" />
-                  </InputAdornment>
-                ),
-                endAdornment: teamNumberFilter && (
-                  <InputAdornment position="end">
-                    <Box
-                      component="span"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onTeamNumberFilterChange("");
-                      }}
-                      sx={{
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        "&:hover": { opacity: 0.7 },
-                      }}
-                    >
-                      <ClearIcon fontSize="small" />
-                    </Box>
-                  </InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon fontSize="small" />
+                    </InputAdornment>
+                  ),
+                  endAdornment: teamNumberFilter && (
+                    <InputAdornment position="end">
+                      <Box
+                        component="span"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onTeamNumberFilterChange("");
+                        }}
+                        sx={{
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          "&:hover": { opacity: 0.7 },
+                        }}
+                      >
+                        <ClearIcon fontSize="small" />
+                      </Box>
+                    </InputAdornment>
+                  ),
+                },
               }}
               sx={{
                 "& .MuiOutlinedInput-root": {
@@ -288,8 +301,7 @@ export default function SortFilterButtons({
 
         <Divider />
 
-        {/* Time-based filters */}
-        {filterOptions.slice(2).map((option) => (
+        {filterOptions.slice(3, 6).map((option) => (
           <MenuItem
             key={option.value}
             onClick={() => onFilterToggle(option.value)}
@@ -302,6 +314,75 @@ export default function SortFilterButtons({
             <ListItemText primary={option.label} />
           </MenuItem>
         ))}
+        {/* Date Range Filter */}
+        <Box sx={{ px: 2, py: 1.5 }}>
+          <MenuItem
+            onClick={() => onFilterToggle("date range")}
+            sx={{ py: 1, px: 0, mb: 1 }}
+          >
+            <Checkbox
+              checked={activeFilters.includes("date range")}
+              sx={{ mr: 1, p: 0 }}
+            />
+            <ListItemText primary="Date Range" />
+          </MenuItem>
+          {activeFilters.includes("date range") && (
+            <Stack spacing={1.5}>
+              <TextField
+                size="small"
+                label="Start Date"
+                type="date"
+                value={
+                  dateRangeStart
+                    ? dateRangeStart.toISOString().split("T")[0]
+                    : ""
+                }
+                onChange={(e) =>
+                  onDateRangeStartChange(
+                    e.target.value ? new Date(e.target.value) : null
+                  )
+                }
+                onClick={(e) => e.stopPropagation()}
+                fullWidth
+                slotProps={{
+                  inputLabel: {
+                    shrink: true,
+                  },
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 1.5,
+                  },
+                }}
+              />
+              <TextField
+                size="small"
+                label="End Date"
+                type="date"
+                value={
+                  dateRangeEnd ? dateRangeEnd.toISOString().split("T")[0] : ""
+                }
+                onChange={(e) =>
+                  onDateRangeEndChange(
+                    e.target.value ? new Date(e.target.value) : null
+                  )
+                }
+                onClick={(e) => e.stopPropagation()}
+                fullWidth
+                slotProps={{
+                  inputLabel: {
+                    shrink: true,
+                  },
+                }}
+                sx={{
+                  "& .MuiOutlinedInput-root": {
+                    borderRadius: 1.5,
+                  },
+                }}
+              />
+            </Stack>
+          )}
+        </Box>
 
         {activeFilters.length > 0 && [
           <Divider sx={{ my: 1 }} />,
