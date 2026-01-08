@@ -136,6 +136,10 @@ export default function ArchivePage() {
             {/* Action Bar */}
             <Stack direction="row" justifyContent="space-between" mb={3}>
               <SortFilterMenu
+                dateRangeEnd={qrManager.dateRangeEnd}
+                dateRangeStart={qrManager.dateRangeStart}
+                onDateRangeStartChange={qrManager.setDateRangeStart}
+                onDateRangeEndChange={qrManager.setDateRangeEnd}
                 sortMode={qrManager.sortMode}
                 sortDirection={qrManager.sortDirection}
                 activeFilters={qrManager.filters}
