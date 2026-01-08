@@ -7,13 +7,11 @@ import {
   IconButton,
   useTheme,
   Card,
-  CardContent,
   Paper,
   Chip,
   Snackbar,
   Slide,
   Alert,
-  Divider,
 } from "@mui/material";
 import { useLocation, useNavigate } from "react-router";
 import AddIcon from "@mui/icons-material/AddRounded";
@@ -232,24 +230,10 @@ export default function Schemas() {
               <Stack
                 direction={"row"}
                 alignItems={"center"}
+                justifyContent={"space-between"}
                 spacing={2}
                 sx={{ mb: 1, width: "100%" }}
               >
-                <Box
-                  sx={{
-                    width: 48,
-                    height: 48,
-                    borderRadius: 2,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: `${theme.palette.primary.main}20`,
-                    color: theme.palette.primary.main,
-                    flexShrink: 0,
-                  }}
-                >
-                  <SchemaIcon />
-                </Box>
                 <Stack direction={"column"} sx={{ minWidth: 0 }}>
                   <Typography variant="h6" noWrap>
                     {s.name}
@@ -276,56 +260,42 @@ export default function Schemas() {
                     )}
                   </Stack>
                 </Stack>
-              </Stack>
-              {s.type === "generated" && (
-                <>
-                  <Divider orientation="horizontal" />
-                  <CardContent>
-                    <Stack direction={"column"} spacing={2}>
-                      <Stack direction={"row"} spacing={2}>
-                        <Button
+                <Stack direction={"row"} spacing={1}>
+                  <>
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSchemaToShare(s.schema);
+                        openShareDialog();
+                      }}
+                    >
+                      <ShareIcon />
+                    </IconButton>
+                    {!(s.type === "default") && (
+                      <Box>
+                        <IconButton
                           onClick={(e) => {
                             e.stopPropagation();
                             setSchemaToRename(s);
                             openSchemaRenameDialog();
                           }}
-                          variant="contained"
-                          color="secondary"
-                          startIcon={<EditIcon />}
-                          sx={{ height: "fit-content", width: "100%" }}
                         >
-                          Rename
-                        </Button>
-                        <Button
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
                           onClick={(e) => {
                             e.stopPropagation();
-                            setSchemaToShare(s.schema);
-                            openShareDialog();
+                            setSchemaToDelete(s);
+                            openDeleteSchemaDialog();
                           }}
-                          variant="contained"
-                          color="secondary"
-                          startIcon={<ShareIcon />}
-                          sx={{ width: "100%" }}
                         >
-                          Share
-                        </Button>
-                      </Stack>
-                      <Button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSchemaToDelete(s);
-                          openDeleteSchemaDialog();
-                        }}
-                        variant="contained"
-                        color="error"
-                        startIcon={<DeleteIcon />}
-                      >
-                        Delete
-                      </Button>
-                    </Stack>
-                  </CardContent>
-                </>
-              )}
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
+                    )}
+                  </>
+                </Stack>
+              </Stack>
             </Card>
           ))}
         </Stack>
