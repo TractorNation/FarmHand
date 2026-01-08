@@ -11,21 +11,15 @@ import {
 import PageHeader from "../ui/PageHeader";
 import AnalysisIcon from "@mui/icons-material/AutoGraphRounded";
 import BarChartIcon from "@mui/icons-material/BarChartRounded";
+import BoxPlotIcon from "@mui/icons-material/CandlestickChartRounded";
 import LineChartIcon from "@mui/icons-material/ShowChartRounded";
 import PieChartIcon from "@mui/icons-material/PieChartRounded";
 import ScatterPlotIcon from "@mui/icons-material/ScatterPlotRounded";
+import HeatmapIcon from "@mui/icons-material/GradientRounded";
 
 export default function Analyzer() {
   const theme = useTheme();
   const [speedDialOpen, setSpeedDialOpen] = useState(false);
-
-  // Placeholder chart types - these will be draggable later
-  const chartTypes = [
-    { id: "bar", label: "Bar Chart", icon: <BarChartIcon /> },
-    { id: "line", label: "Line Chart", icon: <LineChartIcon /> },
-    { id: "pie", label: "Pie Chart", icon: <PieChartIcon /> },
-    { id: "scatter", label: "Scatter Plot", icon: <ScatterPlotIcon /> },
-  ];
 
   const handleSpeedDialOpen = () => {
     setSpeedDialOpen(true);
@@ -39,8 +33,28 @@ export default function Analyzer() {
     handleSpeedDialClose();
   };
 
+  const chartTypes = [
+    { id: "bar", label: "Bar Chart", icon: <BarChartIcon /> },
+    { id: "line", label: "Line Chart", icon: <LineChartIcon /> },
+    { id: "pie", label: "Pie Chart", icon: <PieChartIcon /> },
+    { id: "scatter", label: "Scatter Plot", icon: <ScatterPlotIcon /> },
+    { id: "boxplot", label: "Box Plot", icon: <BoxPlotIcon /> },
+    {
+      id: "heatmap",
+      label: "Heatmap",
+      icon: <HeatmapIcon sx={{ transform: "rotate(90deg)" }} />,
+    },
+  ];
+
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", height: "100%", minHeight: 0 }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        height: "100%",
+        minHeight: 0,
+      }}
+    >
       <Box px={3} pt={2} sx={{ flexShrink: 0 }}>
         <PageHeader
           icon={<AnalysisIcon sx={{ fontSize: 28 }} />}
@@ -84,7 +98,7 @@ export default function Analyzer() {
           <SpeedDialAction
             key={chart.id}
             icon={chart.icon}
-            slotProps={{tooltip: {title: chart.label, open: true}}}
+            slotProps={{ tooltip: { title: chart.label, open: true } }}
             onClick={handleChartTypeClick}
           />
         ))}
