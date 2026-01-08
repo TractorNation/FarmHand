@@ -67,7 +67,7 @@ export default function DynamicComponent(props: DynamicComponentProps) {
       case "text":
         emptyStateValue = component.props?.default ?? "";
         break;
-      case "multiple choice":
+      case "multiplechoice":
       case "dropdown":
         emptyStateValue = component.props?.default ?? "Select an option...";
         break;
@@ -263,7 +263,7 @@ export default function DynamicComponent(props: DynamicComponentProps) {
             allowUnset
           />
         );
-      case "multiple choice":
+      case "multiplechoice":
         return (
           <RadioButtonInput
             value={value}
