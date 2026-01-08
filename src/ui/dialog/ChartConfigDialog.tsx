@@ -94,7 +94,11 @@ export default function ChartConfigDialog({
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>
-        {existingChart ? "Edit Chart" : `Add ${chartType} Chart`}
+        {existingChart
+          ? "Edit Chart"
+          : `Add ${
+              chartType?.charAt(0).toUpperCase()! + chartType?.slice(1)!
+            } Chart`}
       </DialogTitle>
       <DialogContent>
         <Stack spacing={3} sx={{ mt: 1 }}>
