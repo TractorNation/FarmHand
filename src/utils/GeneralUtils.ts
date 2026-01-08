@@ -6,7 +6,7 @@ import { getSchemaFromHash } from "./SchemaUtils";
 import changelog from "../../CHANGELOG.md?raw";
 import StoreManager, { StoreKeys } from "./StoreManager";
 
-const GITHUB_OWNER = "Team3655";
+const GITHUB_OWNER = "TractorNation";
 const GITHUB_REPO = "FarmHand";
 const CACHE_DURATION = 3600000;
 
