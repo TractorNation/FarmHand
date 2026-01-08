@@ -211,7 +211,7 @@ export default function QRPage() {
                   <Button
                     variant="outlined"
                     color="secondary"
-                    onClick={() => qrManager.selectAllCodes(false)}
+                    onClick={() => qrManager.selectAllCodes(true)}
                     sx={{
                       borderRadius: 2,
                       ...(qrManager.selecting && {

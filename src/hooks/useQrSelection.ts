@@ -53,7 +53,7 @@ export function useQrSelection(qrCodes?: QrCode[]) {
 
     if (useHash) {
       setSelectedCodes(
-        qrCodes
+        qrCodes && selectedHash
           ? [...qrCodes.filter((c) => c.data.includes(selectedHash || ""))]
           : []
       );
