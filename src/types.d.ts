@@ -184,3 +184,12 @@ interface Chart {
     | "stepBefore";
   colorScheme?: string; // For heatmap color scheme selection
 }
+
+/// To store QR codes in a "Folder"
+interface QrFolder {
+  id: string;
+  name: string;
+  createdAt: number;
+  qrCodes: string[];
+  archived: boolean;
+}
