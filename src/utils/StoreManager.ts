@@ -157,6 +157,42 @@ const StoreManager = {
   async clearCachedEvents() {
     await this.remove(StoreKeys.tba.CACHED_EVENTS);
   },
+
+  async getFolders(): Promise<QrFolder[]> {
+    const listData = await this.get(StoreKeys.folders.list);
+
+    if (!listData) return [];
+
+    const folderIds = JSON.parse(listData);
+
+    const folders = await Promise.all(
+      folderIds.map(async (id: string) => {
+        const data = await this.get(StoreKeys.folders.byId(id));
+        return data ? JSON.parse(data) : null;
+      })
+    );
+
+    return folders;
+  },
+
+  async saveFolder(folder: QrFolder) {
+    await this.set(StoreKeys.folders.byId(folder.id), JSON.stringify(folder));
+
+    const folders = await this.getFolders();
+    const ids = folders.map((f) => f.id);
+    if (!ids.includes(folder.id)) {
+      ids.push(folder.id);
+    }
+    await this.set(StoreKeys.folders.list, JSON.stringify(ids));
+  },
+
+  async deleteFolder(folderId: string) {
+    await this.remove(StoreKeys.folders.byId(folderId));
+
+    const folders = await this.getFolders();
+    const ids = folders.filter((f) => f.id !== folderId).map((f) => f.id);
+    await this.set(StoreKeys.folders.list, JSON.stringify(ids));
+  },
 };
 
 export default StoreManager;
@@ -180,6 +216,11 @@ export const StoreKeys = {
   code: {
     archived: (name: string) => `code::${name}::archived`,
     scanned: (name: string) => `code::${name}::scanned`,
+    putInFolder: (name: string) => `code::${name}::folder`,
+  },
+  folders: {
+    list: "folders::list",
+    byId: (id: string) => `folders::${id}`,
   },
   match: {
     field: (name: string) => `match::field::${name}`,

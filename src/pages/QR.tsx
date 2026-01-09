@@ -13,9 +13,12 @@ import {
   DialogActions,
   Alert,
   useMediaQuery,
+  IconButton,
 } from "@mui/material";
 import { useSchema } from "../context/SchemaContext";
 import { useAsyncFetch } from "../hooks/useAsyncFetch";
+import ArrowBackIcon from "@mui/icons-material/ArrowBackRounded";
+import FolderIcon from "@mui/icons-material/FolderRounded";
 import { useQrManager } from "../hooks/useQrManager";
 import useDialog from "../hooks/useDialog";
 import QrScannerDialog from "../ui/dialog/QrScannerDialog";
@@ -32,6 +35,8 @@ import QrGrid from "../ui/qr/QrGrid";
 import { useTheme } from "@mui/material/styles";
 import PageHeader from "../ui/PageHeader";
 import SortFilterMenu from "../ui/SortFilterMenu";
+import { useFolderManager } from "../hooks/useFolderManager";
+import CreateDialog from "../ui/dialog/CreateDialog";
 
 export default function QRPage() {
   const isLandscape = useMediaQuery("(orientation: landscape)");
@@ -51,21 +56,43 @@ export default function QRPage() {
       window.history.replaceState({}, document.title);
     }
   }, [location.state, openScanner]);
+
   const [qrDialogOpen, openQrDialog, closeQrDialog] = useDialog();
   const [exportDialogOpen, openExportDialog, closeExportDialog] = useDialog();
   const [archiveDialogOpen, openArchiveDialog, closeArchiveDialog] =
     useDialog();
+  const [folderDialogOpen, openFolderDialog, closeFolderDialog] = useDialog();
   const [activeQrCode, setActiveQrCode] = useState<QrCode | null>(null);
   const [success, setSuccess] = useState(false);
   const [filename, setFilename] = useState("");
+  const folderManager = useFolderManager({ showArchived: false });
 
   const unarchivedQrCodes = useMemo(
     () => allQrCodes?.filter((code) => !code.archived) ?? [],
     [allQrCodes]
   );
 
-  // Use the combined hook - all filter, sort, and selection logic in one place!
-  const qrManager = useQrManager({ qrCodes: unarchivedQrCodes });
+  // Filter QR codes based on current folder
+  const displayQrCodes = useMemo(() => {
+    if (!folderManager.currentFolder) {
+      // Root view: show codes NOT in any folder
+      return unarchivedQrCodes.filter((qr) => {
+        return !folderManager.folders.some((folder) =>
+          folder.qrCodes.includes(qr.name)
+        );
+      });
+    }
+
+    // Folder view: show only codes in this folder
+    const folderData = folderManager.currentFolderData;
+    if (!folderData) return [];
+
+    return unarchivedQrCodes.filter((qr) =>
+      folderData.qrCodes.includes(qr.name)
+    );
+  }, [folderManager.currentFolder, folderManager.folders, unarchivedQrCodes]);
+
+  const qrManager = useQrManager({ qrCodes: displayQrCodes });
 
   const executeExport = async (type: "csv" | "json") => {
     if (qrManager.selectedCodes.length === 0) return;
@@ -207,6 +234,15 @@ export default function QRPage() {
               />
 
               <Stack direction={isLandscape ? "row" : "column"} spacing={2}>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  startIcon={<FolderIcon />}
+                  onClick={openFolderDialog}
+                  sx={{ borderRadius: 2 }}
+                >
+                  New Folder
+                </Button>
                 {qrManager.selecting && (
                   <Button
                     variant="outlined"
@@ -247,6 +283,10 @@ export default function QRPage() {
             <QrGrid
               validQrCodes={qrManager.validQrCodes}
               invalidQrCodes={qrManager.invalidQrCodes}
+              folders={folderManager.currentFolder ? [] : folderManager.folders} // Only show at root
+              onClickFolder={(folderId) =>
+                folderManager.setCurrentFolder(folderId)
+              }
               selecting={qrManager.selecting}
               codeIsSelected={qrManager.codeIsSelected}
               onSelect={qrManager.updateSelectedCodes}
@@ -339,6 +379,30 @@ export default function QRPage() {
           Exported to {filename}
         </Alert>
       </Snackbar>
+
+      {/* Add CreateDialog for folder */}
+      <CreateDialog
+        open={folderDialogOpen}
+        onClose={closeFolderDialog}
+        onCreate={(name) => {
+          folderManager.createFolder(name);
+          closeFolderDialog();
+        }}
+        title="Create Folder"
+        label="Folder Name"
+        actionButtonText="Create"
+      />
+
+      {folderManager.currentFolder && (
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
+          <IconButton onClick={() => folderManager.setCurrentFolder(null)}>
+            <ArrowBackIcon />
+          </IconButton>
+          <Typography variant="h6">
+            {folderManager.currentFolderData?.name || "Folder"}
+          </Typography>
+        </Stack>
+      )}
     </>
   );
 }
