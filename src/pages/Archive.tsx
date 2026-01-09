@@ -220,7 +220,24 @@ export default function ArchivePage() {
                 </Button>
               </Stack>
             </Stack>
-
+            {folderManager.currentFolder && (
+              <Stack
+                direction="row"
+                spacing={1}
+                alignItems="center"
+                sx={{ mb: 2 }}
+              >
+                <IconButton
+                  onClick={() => folderManager.setCurrentFolder(null)}
+                >
+                  <ArrowBackIcon />
+                </IconButton>
+                <Typography variant="h6">
+                  {folderManager.currentFolderData?.name || "Folder"}
+                </Typography>
+              </Stack>
+            )}
+            
             <QrGrid
               validQrCodes={qrManager.filteredQrCodes}
               invalidQrCodes={[]}
@@ -241,22 +258,6 @@ export default function ArchivePage() {
               sortDirection={qrManager.sortDirection}
             />
           </Box>
-
-          {folderManager.currentFolder && (
-            <Stack
-              direction="row"
-              spacing={1}
-              alignItems="center"
-              sx={{ mb: 2 }}
-            >
-              <IconButton onClick={() => folderManager.setCurrentFolder(null)}>
-                <ArrowBackIcon />
-              </IconButton>
-              <Typography variant="h6">
-                {folderManager.currentFolderData?.name || "Folder"}
-              </Typography>
-            </Stack>
-          )}
 
           {/* Floating Action Buttons */}
           <Zoom in={qrManager.selecting} unmountOnExit>
