@@ -45,7 +45,7 @@ export default function QrGrid(props: QrGridProps) {
             <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={folder.id}>
               <FolderCard
                 folder={folder}
-                onClickFolder={onClickFolder!}
+                onClickFolder={onClickFolder}
                 selecting={selecting}
                 onSelect={() => {
                   /* Will add all codes in folder to selected codes */
