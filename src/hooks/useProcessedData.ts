@@ -834,11 +834,11 @@ export default function useProcessedData(
       const pieResult: any[] = [];
       valueTeamCounts.forEach((teamCounts, value) => {
         teamCounts.forEach((count, teamNumber) => {
-          const combinedLabel = `${value} - Team ${teamNumber}`;
+          const combinedLabel = `${count} - Team ${teamNumber}`;
           pieResult.push({
             id: combinedLabel,
             label: combinedLabel,
-            value: count,
+            value: value,
           });
         });
       });
