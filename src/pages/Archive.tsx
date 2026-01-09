@@ -259,22 +259,6 @@ export default function ArchivePage() {
             />
           </Box>
 
-          {folderManager.currentFolder && (
-            <Stack
-              direction="row"
-              spacing={1}
-              alignItems="center"
-              sx={{ mb: 2 }}
-            >
-              <IconButton onClick={() => folderManager.setCurrentFolder(null)}>
-                <ArrowBackIcon />
-              </IconButton>
-              <Typography variant="h6">
-                {folderManager.currentFolderData?.name || "Folder"}
-              </Typography>
-            </Stack>
-          )}
-
           {/* Floating Action Buttons */}
           <Zoom in={qrManager.selecting} unmountOnExit>
             <Stack
