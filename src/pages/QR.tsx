@@ -280,6 +280,24 @@ export default function QRPage() {
               </Stack>
             </Stack>
 
+            {folderManager.currentFolder && (
+              <Stack
+                direction="row"
+                spacing={1}
+                alignItems="center"
+                sx={{ mb: 2 }}
+              >
+                <IconButton
+                  onClick={() => folderManager.setCurrentFolder(null)}
+                >
+                  <ArrowBackIcon />
+                </IconButton>
+                <Typography variant="h6">
+                  {folderManager.currentFolderData?.name || "Folder"}
+                </Typography>
+              </Stack>
+            )}
+            
             <QrGrid
               validQrCodes={qrManager.validQrCodes}
               invalidQrCodes={qrManager.invalidQrCodes}
@@ -392,17 +410,6 @@ export default function QRPage() {
         label="Folder Name"
         actionButtonText="Create"
       />
-
-      {folderManager.currentFolder && (
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 2 }}>
-          <IconButton onClick={() => folderManager.setCurrentFolder(null)}>
-            <ArrowBackIcon />
-          </IconButton>
-          <Typography variant="h6">
-            {folderManager.currentFolderData?.name || "Folder"}
-          </Typography>
-        </Stack>
-      )}
     </>
   );
 }
