@@ -12,9 +12,12 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  IconButton,
 } from "@mui/material";
 import ShareDialog from "../ui/dialog/ShareDialog";
 import QrCodeIcon from "@mui/icons-material/QrCodeRounded";
+import ArrowBackIcon from "@mui/icons-material/ArrowBackRounded";
+import FolderIcon from "@mui/icons-material/FolderRounded";
 import ArchiveIcon from "@mui/icons-material/ArchiveRounded";
 import UnarchiveIcon from "@mui/icons-material/UnarchiveRounded";
 import DeleteIcon from "@mui/icons-material/DeleteRounded";
@@ -26,6 +29,8 @@ import useDialog from "../hooks/useDialog";
 import { useQrManager } from "../hooks/useQrManager";
 import { fetchQrCodes, unarchiveQrCode, deleteQrCode } from "../utils/QrUtils";
 import SortFilterMenu from "../ui/SortFilterMenu";
+import { useFolderManager } from "../hooks/useFolderManager";
+import CreateDialog from "../ui/dialog/CreateDialog";
 
 export default function ArchivePage() {
   const theme = useTheme();
@@ -33,6 +38,7 @@ export default function ArchivePage() {
   const [qrDialogOpen, openQrDialog, closeQrDialog] = useDialog();
   const [unarchiveDialogOpen, openUnarchiveDialog, closeUnarchiveDialog] =
     useDialog();
+  const [folderDialogOpen, openFolderDialog, closeFolderDialog] = useDialog();
   const [deleteDialogOpen, openDeleteDialog, closeDeleteDialog] = useDialog();
   const [activeQrCode, setActiveQrCode] = useState<QrCode | null>(null);
 
@@ -40,9 +46,24 @@ export default function ArchivePage() {
     () => allQrCodes?.filter((code) => code.archived) || [],
     [allQrCodes]
   );
+  const folderManager = useFolderManager({ showArchived: true });
 
-  const qrManager = useQrManager({ qrCodes: archivedQrCodes });
+  const displayQrCodes = useMemo(() => {
+    if (!folderManager.currentFolder) {
+      return archivedQrCodes.filter((qr) => {
+        return !folderManager.folders.some((folder) =>
+          folder.qrCodes.includes(qr.name)
+        );
+      });
+    }
 
+    const folderData = folderManager.currentFolderData;
+    if (!folderData) return [];
+
+    return archivedQrCodes.filter((qr) => folderData.qrCodes.includes(qr.name));
+  }, [folderManager.currentFolder, folderManager.folders, archivedQrCodes]);
+
+  const qrManager = useQrManager({ qrCodes: displayQrCodes });
   const handleMassUnarchive = async () => {
     await Promise.all(
       qrManager.selectedCodes.map(async (c) => await unarchiveQrCode(c))
@@ -154,6 +175,15 @@ export default function ArchivePage() {
               />
 
               <Stack direction={"row"} spacing={2}>
+                <Button
+                  variant="contained"
+                  color="secondary"
+                  startIcon={<FolderIcon />}
+                  onClick={openFolderDialog}
+                  sx={{ borderRadius: 2 }}
+                >
+                  New Folder
+                </Button>
                 {qrManager.selecting && (
                   <Button
                     variant="outlined"
@@ -194,6 +224,10 @@ export default function ArchivePage() {
             <QrGrid
               validQrCodes={qrManager.filteredQrCodes}
               invalidQrCodes={[]}
+              folders={folderManager.currentFolder ? [] : folderManager.folders}
+              onClickFolder={(folderId) =>
+                folderManager.setCurrentFolder(folderId)
+              }
               selecting={qrManager.selecting}
               codeIsSelected={qrManager.codeIsSelected}
               onSelect={qrManager.updateSelectedCodes}
@@ -207,6 +241,22 @@ export default function ArchivePage() {
               sortDirection={qrManager.sortDirection}
             />
           </Box>
+
+          {folderManager.currentFolder && (
+            <Stack
+              direction="row"
+              spacing={1}
+              alignItems="center"
+              sx={{ mb: 2 }}
+            >
+              <IconButton onClick={() => folderManager.setCurrentFolder(null)}>
+                <ArrowBackIcon />
+              </IconButton>
+              <Typography variant="h6">
+                {folderManager.currentFolderData?.name || "Folder"}
+              </Typography>
+            </Stack>
+          )}
 
           {/* Floating Action Buttons */}
           <Zoom in={qrManager.selecting} unmountOnExit>
@@ -297,6 +347,18 @@ export default function ArchivePage() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <CreateDialog
+        open={folderDialogOpen}
+        onClose={closeFolderDialog}
+        onCreate={(name) => {
+          folderManager.createFolder(name);
+          closeFolderDialog();
+        }}
+        title="Create Folder"
+        label="Folder Name"
+        actionButtonText="Create"
+      />
 
       {/* Delete Confirmation Dialog */}
       <Dialog

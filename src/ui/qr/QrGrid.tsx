@@ -1,6 +1,7 @@
-import { Box, Grid, Stack, Tooltip, Typography } from "@mui/material";
+import { Box, Divider, Grid, Stack, Tooltip, Typography } from "@mui/material";
 import HelpIcon from "@mui/icons-material/HelpRounded";
 import QrCard from "./QrCard";
+import FolderCard from "./FolderCard";
 
 interface QrGridProps {
   validQrCodes: QrCode[];
@@ -13,6 +14,8 @@ interface QrGridProps {
   filter: FilterOption[];
   sortMode: string;
   sortDirection: string;
+  folders?: QrFolder[];
+  onClickFolder?: (folderId: string) => void;
 }
 
 export default function QrGrid(props: QrGridProps) {
@@ -24,13 +27,34 @@ export default function QrGrid(props: QrGridProps) {
     onSelect,
     onClickQr,
     toggleSelectMode,
+    folders,
+    onClickFolder = () => {},
   } = props;
+
+  folders?.map((folder) => {
+    console.log("Folder in QrGrid:", folder);
+  });
 
   return (
     <Box>
       {/* Prevent clicks inside the grid from triggering the Box's onClick */}
       <Box onClick={(e) => e.stopPropagation()}>
         <Grid container spacing={2}>
+          {/* Render folders first */}
+          {folders?.map((folder) => (
+            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={folder.id}>
+              <FolderCard
+                folder={folder}
+                onClickFolder={onClickFolder}
+                selecting={selecting}
+                onSelect={() => {
+                  /* Will add all codes in folder to selected codes */
+                }}
+                isSelected={false}
+              />
+            </Grid>
+          ))}
+          <Divider />
           {validQrCodes.map((qr, i) => (
             <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={i}>
               <QrCard
