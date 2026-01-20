@@ -24,6 +24,12 @@ export const defaultSchemas: SchemaMetaData[] = [
     schema: Reefscape as Schema,
     type: "default",
   },
+  {
+    name: "2026 Pit Scouting",
+    path: "../config/schema/2025PitScouting.json",
+    schema: Reefscape as Schema,
+    type: "default",
+  }
 ];
 
 export async function getSchemaFromHash(
