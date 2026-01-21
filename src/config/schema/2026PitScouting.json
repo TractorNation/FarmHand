@@ -21,7 +21,7 @@
                     "type": "number",
                     "required": true,
                     "props": {
-                        "min": 0,
+                        "min": 1,
                         "max": 99999
                     }
                 },
@@ -181,7 +181,8 @@
                     "props": {
                         "rows": 1,
                         "cols": 5
-                    }
+                    },
+                    "doubleWidth": true
                 },
                 {
                     "id": 3001,
