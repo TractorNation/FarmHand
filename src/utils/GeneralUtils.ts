@@ -41,10 +41,11 @@ const propMap: { [key: string]: string } = {
   cellLabel: "L",
 };
 
+//Commented out code in isFieldInvalid related to throwing error for not changing default value
 export function isFieldInvalid(
   required: boolean,
   type: string,
-  defaultValue: any,
+  //defaultValue: any,
   value: any
 ) {
   return (
@@ -52,8 +53,9 @@ export function isFieldInvalid(
     (value === "" ||
       (type === "checkbox" && value === false) ||
       (type === "number" && (value === undefined || value === null)) ||
-      (type === "grid" && (value as string).split(":")[1] === "[]") ||
-      value === defaultValue)
+      (type === "grid" && (value as string).split(":")[1] === "[]")/* ||
+      value === defaultValue*/
+    )
   );
 }
 

@@ -1,4 +1,8 @@
-import { Slider } from "@mui/material";
+import {
+  Slider,
+  Typography,
+  Box
+} from "@mui/material";
 
 interface SliderInputProps {
   max: number;
@@ -25,14 +29,30 @@ export default function SliderInput(props: SliderInputProps) {
   }
 
   return (
-    <Slider
-      color="secondary"
-      value={displayValue}
-      onChange={handleChange}
-      min={min}
-      max={max}
-      step={step ?? 1}
-      valueLabelDisplay="auto"
-    />
+    <Box sx={{ alignSelf: 'stretch' }}>
+      <Slider
+        color="secondary"
+        value={displayValue}
+        onChange={handleChange}
+        min={min}
+        max={max}
+        step={step ?? 1}
+        valueLabelDisplay="on"
+      />
+      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+        >
+        {min}
+        </Typography>
+        <Typography
+          variant="body2"
+          color="text.secondary"
+        >
+        {max}
+        </Typography>
+      </Box>
+    </Box>
   );
 }

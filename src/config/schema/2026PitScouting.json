@@ -1,0 +1,244 @@
+{
+    "name": "2026 Pit Scouting",
+    "sections": [
+        {
+            "title": "Match Info",
+            "fields": [
+                {
+                    "id": 0,
+                    "name": "Match Number",
+                    "type": "number",
+                    "required": true,
+                    "props": {
+                        "min": 0,
+                        "max": 0,
+                        "default": 0
+                    }
+                },
+                {
+                    "id": 1,
+                    "name": "Team Number",
+                    "type": "number",
+                    "required": true,
+                    "props": {
+                        "min": 1,
+                        "max": 99999
+                    }
+                },
+                {
+                    "id": 2,
+                    "name": "Vibe Check",
+                    "type": "slider",
+                    "required": true,
+                    "props": {
+                        "min": 1,
+                        "selectsRange": false,
+                        "step": 1,
+                        "max": 5,
+                        "default": 3
+                    }
+                },
+                {
+                    "id": 3,
+                    "name": "Kit Bot? (If Yes, End Scout Report)",
+                    "type": "checkbox",
+                    "required": false,
+                    "props": {}
+                }
+            ]
+        },
+        {
+            "title": "Bot Spec",
+            "fields": [
+                {
+                    "id": 1000,
+                    "name": "Dimensions w/ Bumpers (L/W/H)",
+                    "type": "text",
+                    "required": false,
+                    "props": {}
+                },
+                {
+                    "id": 1001,
+                    "name": "Intake Source",
+                    "type": "dropdown",
+                    "required": false,
+                    "props": {
+                        "options": [
+                            "Floor Only",
+                            "Human Player Only",
+                            "Both"
+                        ]
+                    }
+                },
+                {
+                    "id": 1002,
+                    "name": "Max Fuel Capacity",
+                    "type": "number",
+                    "required": false,
+                    "props": {
+                        "min": 0,
+                        "max": 99
+                    }
+                },
+                {
+                    "id": 1003,
+                    "name": "Hopper Fill Time (s)",
+                    "type": "slider",
+                    "required": false,
+                    "props": {
+                        "step": 1,
+                        "min": 0,
+                        "max": 30
+                    }
+                },
+                {
+                    "id": 1004,
+                    "name": "Max Output Rate (s)",
+                    "type": "slider",
+                    "required": false,
+                    "props": {
+                        "min": 0,
+                        "max": 30,
+                        "step": 1,
+                        "selectsRange": false
+                    }
+                },
+                {
+                    "id": 1005,
+                    "name": "Max Scoring Range (ft)",
+                    "type": "dropdown",
+                    "required": false,
+                    "props": {
+                        "options": [
+                            "N/A (Can't Score)",
+                            "1-6 (Hub to Mid)",
+                            "7-12 (Tower)",
+                            "12-18 (Depot)",
+                            "19-Full (Outpost)"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "title": "Climbing",
+            "fields": [
+                {
+                    "id": 2000,
+                    "name": "Climb Level",
+                    "type": "grid",
+                    "required": false,
+                    "props": {
+                        "options": [
+                            "0",
+                            "1",
+                            "2",
+                            "3"
+                        ],
+                        "rows": 3,
+                        "cols": 1
+                    }
+                },
+                {
+                    "id": 2001,
+                    "name": "Climb Position",
+                    "type": "grid",
+                    "required": false,
+                    "props": {
+                        "rows": 1,
+                        "cols": 3
+                    }
+                },
+                {
+                    "id": 2002,
+                    "name": "Time to Climb (s)",
+                    "type": "slider",
+                    "required": false,
+                    "props": {
+                        "selectsRange": true,
+                        "min": 0,
+                        "max": 30,
+                        "step": 1
+                    }
+                },
+                {
+                    "id": 2003,
+                    "name": "Climb in Auto",
+                    "type": "checkbox",
+                    "required": false,
+                    "props": {}
+                }
+            ]
+        },
+        {
+            "title": "Auto",
+            "fields": [
+                {
+                    "id": 3000,
+                    "name": "Starting Position (Hub POV)",
+                    "type": "grid",
+                    "required": false,
+                    "props": {
+                        "rows": 1,
+                        "cols": 5
+                    },
+                    "doubleWidth": true
+                },
+                {
+                    "id": 3001,
+                    "name": "Expected Fuel Score",
+                    "type": "slider",
+                    "required": false,
+                    "props": {
+                        "step": 1,
+                        "selectsRange": true,
+                        "min": 0,
+                        "max": 50
+                    }
+                }
+            ]
+        },
+        {
+            "title": "Gameplay",
+            "fields": [
+                {
+                    "id": 4000,
+                    "name": "Dump/Transfer Fuel",
+                    "type": "dropdown",
+                    "required": false,
+                    "props": {
+                        "options": [
+                            "No",
+                            "Yes"
+                        ]
+                    }
+                },
+                {
+                    "id": 4001,
+                    "name": "Play Defense?",
+                    "type": "slider",
+                    "required": false,
+                    "props": {
+                        "step": 1,
+                        "min": 1,
+                        "max": 3,
+                        "default": 2
+                    }
+                },
+                {
+                    "id": 4002,
+                    "name": "AprilTag Usage?",
+                    "type": "dropdown",
+                    "required": false,
+                    "props": {
+                        "options": [
+                            "No",
+                            "Auto Only",
+                            "Yes"
+                        ]
+                    }
+                }
+            ]
+        }
+    ]
+}

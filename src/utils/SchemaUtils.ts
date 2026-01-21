@@ -9,21 +9,35 @@ import { createSchemaHash } from "./GeneralUtils";
 import { appLocalDataDir, resolve } from "@tauri-apps/api/path";
 import Reefscape from "../config/schema/2025Reefscape.json";
 import Decode from "../config/schema/2025Decode.json";
+import Pits from "../config/schema/2026PitScouting.json";
+import Rebuilt from "../config/schema/2026Rebuilt.json";
 import { invoke } from "@tauri-apps/api/core";
 
 export const defaultSchemas: SchemaMetaData[] = [
+  // {
+  //   name: "2025 Decode",
+  //   path: "../config/schema/2025Decode.json",
+  //   schema: Decode as Schema,
+  //   type: "default",
+  // },
+  // {
+  //   name: "2025 Reefscape",
+  //   path: "../config/schema/2025Reefscape.json",
+  //   schema: Reefscape as Schema,
+  //   type: "default",
+  // },
   {
-    name: "2025 Decode",
-    path: "../config/schema/2025Decode.json",
-    schema: Decode as Schema,
+    name: "2026 Pit Scouting",
+    path: "../config/schema/2026PitScouting.json",
+    schema: Pits as Schema,
     type: "default",
   },
-  {
-    name: "2025 Reefscape",
-    path: "../config/schema/2025Reefscape.json",
-    schema: Reefscape as Schema,
+   {
+    name: "2026 Rebuilt",
+    path: "../config/schema/2026Rebuilt.json",
+    schema: Rebuilt as Schema,
     type: "default",
-  },
+  }
 ];
 
 export async function getSchemaFromHash(
