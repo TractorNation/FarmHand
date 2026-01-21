@@ -1,0 +1,155 @@
+{
+    "name": "2026 Rebuilt",
+    "sections": [
+        {
+            "title": "Match Info",
+            "fields": [
+                {
+                    "id": 1,
+                    "name": "Match Number",
+                    "type": "number",
+                    "required": true,
+                    "props": {
+                        "min": 0,
+                        "max": 0,
+                        "default": 0
+                    }
+                },
+                {
+                    "id": 2,
+                    "name": "Team Number",
+                    "type": "number",
+                    "required": true,
+                    "props": {
+                        "min": 1,
+                        "max": 99999
+                    }
+                }
+            ]
+        },
+        {
+            "title": "Auto",
+            "fields": [
+                {
+                    "id": 3,
+                    "name": "Moved",
+                    "type": "checkbox",
+                    "required": false,
+                    "props": {}
+                },
+                {
+                    "id": 4,
+                    "name": "Fuel from Depot",
+                    "type": "checkbox",
+                    "required": false,
+                    "props": {}
+                },
+                {
+                    "id": 5,
+                    "name": "Fuel from Corral",
+                    "type": "checkbox",
+                    "required": false,
+                    "props": {}
+                },
+                {
+                    "id": 6,
+                    "name": "Fuel from Neutral",
+                    "type": "checkbox",
+                    "required": false,
+                    "props": {}
+                },
+                {
+                    "id": 7,
+                    "name": "Hang",
+                    "type": "checkbox",
+                    "required": false,
+                    "props": {}
+                },
+                {
+                    "id": 8,
+                    "name": "-",
+                    "type": "filler",
+                    "required": false,
+                    "props": {}
+                },
+                {
+                    "id": 9,
+                    "name": "Approx. Score",
+                    "type": "counter",
+                    "required": false,
+                    "props": {
+                        "min": 0,
+                        "max": 100
+                    },
+                    "doubleWidth": true
+                }
+            ]
+        },
+        {
+            "title": "Teleop",
+            "fields": [
+                {
+                    "id": 10,
+                    "name": "# of Cycles",
+                    "type": "counter",
+                    "required": false,
+                    "props": {
+                        "min": 0,
+                        "max": 20
+                    },
+                    "doubleWidth": true
+                },
+                {
+                    "id": 11,
+                    "name": "Fuel to Field",
+                    "type": "checkbox",
+                    "required": false,
+                    "props": {}
+                },
+                {
+                    "id": 12,
+                    "name": "Fuel to Corral",
+                    "type": "checkbox",
+                    "required": false,
+                    "props": {}
+                }
+            ]
+        },
+        {
+            "title": "Endgame",
+            "fields": [
+                {
+                    "id": 13,
+                    "name": "Red/Yellow Card?",
+                    "type": "checkbox",
+                    "required": false,
+                    "props": {
+                        "step": 1,
+                        "default": 0,
+                        "min": 0,
+                        "max": 3
+                    }
+                },
+                {
+                    "id": 14,
+                    "name": "Broke Down?",
+                    "type": "checkbox",
+                    "required": false,
+                    "props": {}
+                },
+                {
+                    "id": 15,
+                    "name": "Climb Level",
+                    "type": "dropdown",
+                    "required": false,
+                    "props": {
+                        "rows": 1,
+                        "options": [
+                            "No Attempt"
+                        ]
+                    }
+                }
+            ]
+        }
+    ]
+}
