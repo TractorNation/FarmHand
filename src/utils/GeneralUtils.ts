@@ -52,8 +52,7 @@ export function isFieldInvalid(
     (value === "" ||
       (type === "checkbox" && value === false) ||
       (type === "number" && (value === undefined || value === null)) ||
-      (type === "grid" && (value as string).split(":")[1] === "[]") ||
-      value === defaultValue)
+      (type === "grid" && (value as string).split(":")[1] === "[]"))
   );
 }
 

@@ -145,7 +145,11 @@
                     "props": {
                         "rows": 1,
                         "options": [
-                            "No Attempt"
+                            "No Attempt",
+                            "Failed",
+                            "Level 1",
+                            "Level 2",
+                            "Level 3"
                         ]
                     }
                 }
