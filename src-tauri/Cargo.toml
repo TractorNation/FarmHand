@@ -1,5 +1,5 @@
 [package]
-name = "farmhand"
+name = "Farmhand"
 version = "0.2026.3-beta.3"
 description = "A FIRST Robotics Competition scouting application."
 authors = ["you"]
