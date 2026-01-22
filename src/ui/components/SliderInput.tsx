@@ -37,7 +37,7 @@ export default function SliderInput(props: SliderInputProps) {
         min={min}
         max={max}
         step={step ?? 1}
-        valueLabelDisplay="on"
+        valueLabelDisplay="auto"
       />
       <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
         <Typography
