@@ -36,6 +36,7 @@ interface Component {
   type: ComponentType;
   required?: boolean;
   doubleWidth?: boolean;
+  note?: boolean;
   props?: ComponentProps;
 }
 

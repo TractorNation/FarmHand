@@ -11,6 +11,7 @@ import {
   TextField,
   Typography,
   useTheme,
+  Divider
 } from "@mui/material";
 import DropdownInput from "./components/DropdownInput";
 import { useEffect, useRef, useState } from "react";
@@ -34,6 +35,7 @@ interface ComponentCardProps {
   editable?: boolean;
 }
 
+
 export default function EditableComponentCard(props: ComponentCardProps) {
   const { component, onChange, editable, onDelete } = props;
   const [editedComponent, setEditedComponent] = useState(component);
@@ -51,6 +53,10 @@ export default function EditableComponentCard(props: ComponentCardProps) {
   const [defaultValueError, setDefaultValueError] = useState<string | null>(
     null
   );
+  //addition for notes
+  const [noteValue, setNoteValue] = useState("");
+  const [noteError, setNoteError] = useState<string | null>(null);
+ 
 
   const isProtected =
     component.name === "Match Number" || component.name === "Team Number";
@@ -157,7 +163,8 @@ export default function EditableComponentCard(props: ComponentCardProps) {
       field === "name" ||
       field === "type" ||
       field === "required" ||
-      field === "doubleWidth"
+      field === "doubleWidth" ||
+      field === "note"
     ) {
       newComponent = { ...editedComponent, [field]: value };
     } else {
@@ -190,6 +197,40 @@ export default function EditableComponentCard(props: ComponentCardProps) {
     setDropdownError(null);
     return true;
   };
+
+  const validateText = (value: string) => {
+    if (value.trim() === "") {
+      setNoteError("Field must not be empty.");
+      return false;
+    }
+    setNoteError(null)
+    return true
+    }
+
+  const renderCardMods = () => {
+    switch (editedComponent.note) {
+      case true:
+        return(
+          <TextField
+            value={noteValue}
+            onChange={(e) => {
+              const newValue = e.target.value;
+              setNoteValue(newValue);
+              const validNote = validateText(newValue)
+              const noteVal = newValue
+              if(validNote) {
+                handleFieldChange("noteVal", noteVal);
+              }
+            }}
+            multiline={false}
+            label="Note"
+            error={!!noteError}
+            helperText={dropdownError}
+            fullWidth
+          />
+        );
+    }
+  }
 
   const renderTypeSpecificProps = () => {
     switch (editedComponent.type.toLowerCase()) {
@@ -559,35 +600,40 @@ export default function EditableComponentCard(props: ComponentCardProps) {
           </Stack>
         </AccordionSummary>
         <AccordionDetails>
-          <Stack spacing={2}>
-            {isTypeUnselected && (
-              <Typography color="error" variant="subtitle2">
-                Please select a field type.
-              </Typography>
-            )}
-            <DropdownInput
-              label="Type"
-              value={
-                editedComponent.type.charAt(0).toUpperCase() +
-                editedComponent.type.slice(1)
-              }
-              disabled={isProtected}
-              onChange={(value) =>
-                handleFieldChange("type", value.toLowerCase())
-              }
-              options={[
-                "Checkbox",
-                "Counter",
-                "Dropdown",
-                "Text",
-                "Number",
-                "Slider",
-                "Timer",
-                "Grid",
-                "Filler",
-              ]}
-              allowUnset={false}
-            />
+          <Stack spacing={1}divider={<Divider orientation="vertical" flexItem />}>
+            <Stack spacing={2}>
+              {isTypeUnselected && (
+                <Typography color="error" variant="subtitle2">
+                  Please select a field type.
+                </Typography>
+              )}
+              <DropdownInput
+                label="Type"
+                value={
+                  editedComponent.type.charAt(0).toUpperCase() +
+                  editedComponent.type.slice(1)
+                }
+                disabled={isProtected}
+                onChange={(value) =>
+                  handleFieldChange("type", value.toLowerCase())
+                }
+                options={[
+                  "Checkbox",
+                  "Counter",
+                  "Dropdown",
+                  "Text",
+                  "Number",
+                  "Slider",
+                  "Timer",
+                  "Grid",
+                  "Filler",
+                ]}
+                allowUnset={false}
+              />
+              {renderTypeSpecificProps()}
+            </Stack>
+            <Divider />
+            <Stack spacing={0}>
             <FormControlLabel
               control={
                 <Switch
@@ -612,7 +658,20 @@ export default function EditableComponentCard(props: ComponentCardProps) {
               }
               label="Double Wide?"
             />
-            {renderTypeSpecificProps()}
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={editedComponent.note || false}
+                  disabled={isProtected}
+                  onChange={(e) =>
+                    handleFieldChange("note", e.target.checked)
+                  }
+                />
+              }
+              label="Note?"
+            />
+            {renderCardMods()}
+            </Stack>
           </Stack>
         </AccordionDetails>
       </Accordion>
