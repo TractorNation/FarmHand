@@ -41,11 +41,16 @@ const propMap: { [key: string]: string } = {
   cellLabel: "L",
 };
 
-//Commented out code in isFieldInvalid related to throwing error for not changing default value
+//Commented out code in isFieldInvalid related to throwing error for not changing default value. 
 export function isFieldInvalid(
   required: boolean,
   type: string,
-  //defaultValue: any,
+  /*
+  This 'defaultValue' has to stay for some reason, schemas break if this line isn't present.
+  Guess is that function needs to be able to accept value and apply it somewhere, if
+  it's not defined as an accepted value in the function then things fail I guess -JE
+  */
+  defaultValue: any, 
   value: any
 ) {
   return (
@@ -54,7 +59,7 @@ export function isFieldInvalid(
       (type === "checkbox" && value === false) ||
       (type === "number" && (value === undefined || value === null)) ||
       (type === "grid" && (value as string).split(":")[1] === "[]")/* ||
-      value === defaultValue*/
+      value === defaultValue */
     )
   );
 }
