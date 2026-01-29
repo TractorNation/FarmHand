@@ -140,11 +140,7 @@ export default function ScoutDataProvider(props: ScoutDataProviderProps) {
     const matchNumbers = Array.from({ length: maxMatches }, (_, i) =>
       (i + 1).toString()
     );
-
-    console.log(
-      `🎯 Generated ${matchNumbers.length} match numbers for event type`
-    );
-
+    
     return {
       matchNumbers,
       teamNumbersByMatch,
