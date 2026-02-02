@@ -2,7 +2,7 @@
 name = "Farmhand"
 version = "0.2026.3-beta.3"
 description = "A FIRST Robotics Competition scouting application."
-authors = ["you"]
+authors = ["Henry Mullin", "Jacob Evenson"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

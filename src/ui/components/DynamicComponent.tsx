@@ -112,7 +112,6 @@ export default function DynamicComponent(props: DynamicComponentProps) {
     const isInvalid = isFieldInvalid(
       component.required!,
       component.type,
-      emptyStateValue,
       initialDisplayValue
     );
 
@@ -154,7 +153,6 @@ export default function DynamicComponent(props: DynamicComponentProps) {
     const isInvalid = isFieldInvalid(
       component.required!,
       component.type,
-      component.props?.default!,
       newValue
     );
 
