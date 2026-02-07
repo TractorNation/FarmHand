@@ -5,7 +5,7 @@
             "title": "Match Info",
             "fields": [
                 {
-                    "id": 1,
+                    "id": 0,
                     "name": "Match Number",
                     "type": "number",
                     "required": true,
@@ -16,7 +16,32 @@
                     }
                 },
                 {
+                    "id": 1,
+                    "name": "Alliance",
+                    "type": "dropdown",
+                    "required": true,
+                    "props": {
+                        "options": [
+                            "Red",
+                            "Blue"
+                        ]
+                    }
+                },
+                {
                     "id": 2,
+                    "name": "Position",
+                    "type": "dropdown",
+                    "required": true,
+                    "props": {
+                        "options": [
+                            "1",
+                            "2",
+                            "3"
+                        ]
+                    }
+                },
+                {
+                    "id": 3,
                     "name": "Team Number",
                     "type": "number",
                     "required": true,
@@ -31,57 +56,49 @@
             "title": "Auto",
             "fields": [
                 {
-                    "id": 3,
+                    "id": 1000,
                     "name": "Moved",
                     "type": "checkbox",
                     "required": false,
                     "props": {}
                 },
                 {
-                    "id": 4,
+                    "id": 1001,
                     "name": "Fuel from Depot",
                     "type": "checkbox",
                     "required": false,
                     "props": {}
                 },
                 {
-                    "id": 5,
+                    "id": 1002,
                     "name": "Fuel from Corral",
                     "type": "checkbox",
                     "required": false,
                     "props": {}
                 },
                 {
-                    "id": 6,
+                    "id": 1003,
                     "name": "Fuel from Neutral",
                     "type": "checkbox",
                     "required": false,
                     "props": {}
                 },
                 {
-                    "id": 7,
-                    "name": "Hang",
-                    "type": "checkbox",
-                    "required": false,
-                    "props": {}
-                },
-                {
-                    "id": 8,
-                    "name": "-",
-                    "type": "filler",
-                    "required": false,
-                    "props": {}
-                },
-                {
-                    "id": 9,
+                    "id": 1004,
                     "name": "Approx. Score",
                     "type": "counter",
                     "required": false,
                     "props": {
-                        "min": 0,
-                        "max": 100
+                        "min": 0
                     },
                     "doubleWidth": true
+                },
+                {
+                    "id": 1005,
+                    "name": "Hang",
+                    "type": "checkbox",
+                    "required": false,
+                    "props": {}
                 }
             ]
         },
@@ -89,27 +106,35 @@
             "title": "Teleop",
             "fields": [
                 {
-                    "id": 10,
-                    "name": "# of Cycles",
-                    "type": "counter",
-                    "required": false,
-                    "props": {
-                        "min": 0,
-                        "max": 20
-                    },
-                    "doubleWidth": true
-                },
-                {
-                    "id": 11,
+                    "id": 2000,
                     "name": "Fuel to Field",
                     "type": "checkbox",
                     "required": false,
                     "props": {}
                 },
                 {
-                    "id": 12,
+                    "id": 2001,
                     "name": "Fuel to Corral",
                     "type": "checkbox",
+                    "required": false,
+                    "props": {}
+                },
+                {
+                    "id": 2002,
+                    "name": "Defense?",
+                    "type": "slider",
+                    "required": false,
+                    "props": {
+                        "step": 1,
+                        "default": 0,
+                        "min": 0,
+                        "max": 2
+                    }
+                },
+                {
+                    "id": 2003,
+                    "name": "Score",
+                    "type": "number",
                     "required": false,
                     "props": {}
                 }
@@ -119,29 +144,39 @@
             "title": "Endgame",
             "fields": [
                 {
-                    "id": 13,
-                    "name": "Red/Yellow Card?",
-                    "type": "checkbox",
+                    "id": 3000,
+                    "name": "Yellow Card",
+                    "type": "counter",
                     "required": false,
                     "props": {
                         "step": 1,
                         "default": 0,
                         "min": 0,
-                        "max": 3
+                        "max": 10
                     }
                 },
                 {
-                    "id": 14,
+                    "id": 3001,
+                    "name": "Red Card",
+                    "type": "counter",
+                    "required": false,
+                    "props": {
+                        "max": 10,
+                        "min": 0
+                    }
+                },
+                {
+                    "id": 3002,
                     "name": "Broke Down?",
                     "type": "checkbox",
                     "required": false,
                     "props": {}
                 },
                 {
-                    "id": 15,
+                    "id": 3003,
                     "name": "Climb Level",
                     "type": "dropdown",
-                    "required": false,
+                    "required": true,
                     "props": {
                         "rows": 1,
                         "options": [
@@ -152,6 +187,22 @@
                             "Level 3"
                         ]
                     }
+                },
+                {
+                    "id": 3004,
+                    "name": "Comments",
+                    "type": "text",
+                    "required": false,
+                    "props": {},
+                    "doubleWidth": true
+                },
+                {
+                    "id": 3005,
+                    "name": "Re-Scout?",
+                    "type": "checkbox",
+                    "required": false,
+                    "props": {},
+                    "doubleWidth": true
                 }
             ]
         }

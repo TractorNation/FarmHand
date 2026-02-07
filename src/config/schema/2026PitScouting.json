@@ -27,20 +27,7 @@
                 },
                 {
                     "id": 2,
-                    "name": "Vibe Check",
-                    "type": "slider",
-                    "required": true,
-                    "props": {
-                        "min": 1,
-                        "selectsRange": false,
-                        "step": 1,
-                        "max": 5,
-                        "default": 3
-                    }
-                },
-                {
-                    "id": 3,
-                    "name": "Kit Bot? (If Yes, End Scout Report)",
+                    "name": "Stock Kit Bot",
                     "type": "checkbox",
                     "required": false,
                     "props": {}
@@ -64,15 +51,15 @@
                     "required": false,
                     "props": {
                         "options": [
-                            "Floor Only",
-                            "Human Player Only",
-                            "Both"
+                            "Floor",
+                            "Corral",
+                            "Any"
                         ]
                     }
                 },
                 {
                     "id": 1002,
-                    "name": "Max Fuel Capacity",
+                    "name": "Hopper Capacity",
                     "type": "number",
                     "required": false,
                     "props": {
@@ -88,24 +75,24 @@
                     "props": {
                         "step": 1,
                         "min": 0,
-                        "max": 30
+                        "max": 60
                     }
                 },
                 {
                     "id": 1004,
-                    "name": "Max Output Rate (s)",
+                    "name": "Volley Time (s)",
                     "type": "slider",
                     "required": false,
                     "props": {
                         "min": 0,
-                        "max": 30,
+                        "max": 60,
                         "step": 1,
                         "selectsRange": false
                     }
                 },
                 {
                     "id": 1005,
-                    "name": "Max Scoring Range (ft)",
+                    "name": "Scoring Range (ft)",
                     "type": "dropdown",
                     "required": false,
                     "props": {
@@ -113,7 +100,7 @@
                             "N/A (Can't Score)",
                             "1-6 (Hub to Mid)",
                             "7-12 (Tower)",
-                            "12-18 (Depot)",
+                            "13-18 (Depot)",
                             "19-Full (Outpost)"
                         ]
                     }
@@ -121,60 +108,10 @@
             ]
         },
         {
-            "title": "Climbing",
-            "fields": [
-                {
-                    "id": 2000,
-                    "name": "Climb Level",
-                    "type": "grid",
-                    "required": false,
-                    "props": {
-                        "options": [
-                            "0",
-                            "1",
-                            "2",
-                            "3"
-                        ],
-                        "rows": 3,
-                        "cols": 1
-                    }
-                },
-                {
-                    "id": 2001,
-                    "name": "Climb Position",
-                    "type": "grid",
-                    "required": false,
-                    "props": {
-                        "rows": 1,
-                        "cols": 3
-                    }
-                },
-                {
-                    "id": 2002,
-                    "name": "Time to Climb (s)",
-                    "type": "slider",
-                    "required": false,
-                    "props": {
-                        "selectsRange": true,
-                        "min": 0,
-                        "max": 30,
-                        "step": 1
-                    }
-                },
-                {
-                    "id": 2003,
-                    "name": "Climb in Auto",
-                    "type": "checkbox",
-                    "required": false,
-                    "props": {}
-                }
-            ]
-        },
-        {
             "title": "Auto",
             "fields": [
                 {
-                    "id": 3000,
+                    "id": 2000,
                     "name": "Starting Position (Hub POV)",
                     "type": "grid",
                     "required": false,
@@ -185,7 +122,7 @@
                     "doubleWidth": true
                 },
                 {
-                    "id": 3001,
+                    "id": 2001,
                     "name": "Expected Fuel Score",
                     "type": "slider",
                     "required": false,
@@ -194,6 +131,50 @@
                         "selectsRange": true,
                         "min": 0,
                         "max": 50
+                    }
+                },
+                {
+                    "id": 2002,
+                    "name": "Climb in Auto",
+                    "type": "checkbox",
+                    "required": false,
+                    "props": {}
+                }
+            ]
+        },
+        {
+            "title": "Climbing",
+            "fields": [
+                {
+                    "id": 3000,
+                    "name": "Climb Level",
+                    "type": "grid",
+                    "required": false,
+                    "props": {
+                        "rows": 3,
+                        "cols": 1
+                    }
+                },
+                {
+                    "id": 3001,
+                    "name": "Climb Position",
+                    "type": "grid",
+                    "required": false,
+                    "props": {
+                        "rows": 1,
+                        "cols": 3
+                    }
+                },
+                {
+                    "id": 3002,
+                    "name": "Time to Climb (s)",
+                    "type": "slider",
+                    "required": false,
+                    "props": {
+                        "selectsRange": true,
+                        "min": 0,
+                        "max": 30,
+                        "step": 1
                     }
                 }
             ]
@@ -227,7 +208,7 @@
                 },
                 {
                     "id": 4002,
-                    "name": "AprilTag Usage?",
+                    "name": "AprilTag Use",
                     "type": "dropdown",
                     "required": false,
                     "props": {
@@ -236,6 +217,31 @@
                             "Auto Only",
                             "Yes"
                         ]
+                    }
+                }
+            ]
+        },
+        {
+            "title": "Other",
+            "fields": [
+                {
+                    "id": 5000,
+                    "name": "Comments",
+                    "type": "text",
+                    "required": false,
+                    "props": {}
+                },
+                {
+                    "id": 5001,
+                    "name": "Vibe Check",
+                    "type": "slider",
+                    "required": true,
+                    "props": {
+                        "min": 1,
+                        "selectsRange": false,
+                        "step": 1,
+                        "max": 5,
+                        "default": 3
                     }
                 }
             ]
