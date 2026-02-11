@@ -31,6 +31,17 @@
                     "type": "checkbox",
                     "required": false,
                     "props": {}
+                },
+                {
+                    "id": 3,
+                    "name": "Starting Position (Hub POV)",
+                    "type": "grid",
+                    "required": false,
+                    "props": {
+                        "rows": 1,
+                        "cols": 5
+                    },
+                    "doubleWidth": true
                 }
             ]
         },
@@ -108,55 +119,29 @@
             ]
         },
         {
-            "title": "Auto",
+            "title": "Auto & Climbing",
             "fields": [
                 {
                     "id": 2000,
-                    "name": "Starting Position (Hub POV)",
-                    "type": "grid",
-                    "required": false,
-                    "props": {
-                        "rows": 1,
-                        "cols": 5
-                    },
-                    "doubleWidth": true
-                },
-                {
-                    "id": 2001,
-                    "name": "Expected Fuel Score",
+                    "name": "Est. Auto Fuel Score",
                     "type": "slider",
                     "required": false,
                     "props": {
                         "step": 1,
                         "selectsRange": true,
                         "min": 0,
-                        "max": 50
+                        "max": 80
                     }
                 },
                 {
-                    "id": 2002,
+                    "id": 2001,
                     "name": "Climb in Auto",
                     "type": "checkbox",
                     "required": false,
                     "props": {}
-                }
-            ]
-        },
-        {
-            "title": "Climbing",
-            "fields": [
-                {
-                    "id": 3000,
-                    "name": "Climb Level",
-                    "type": "grid",
-                    "required": false,
-                    "props": {
-                        "rows": 3,
-                        "cols": 1
-                    }
                 },
                 {
-                    "id": 3001,
+                    "id": 2002,
                     "name": "Climb Position",
                     "type": "grid",
                     "required": false,
@@ -166,7 +151,17 @@
                     }
                 },
                 {
-                    "id": 3002,
+                    "id": 2003,
+                    "name": "Climb Level",
+                    "type": "grid",
+                    "required": false,
+                    "props": {
+                        "rows": 3,
+                        "cols": 1
+                    }
+                },
+                {
+                    "id": 2004,
                     "name": "Time to Climb (s)",
                     "type": "slider",
                     "required": false,
@@ -183,7 +178,7 @@
             "title": "Gameplay",
             "fields": [
                 {
-                    "id": 4000,
+                    "id": 3000,
                     "name": "Dump/Transfer Fuel",
                     "type": "dropdown",
                     "required": false,
@@ -195,7 +190,7 @@
                     }
                 },
                 {
-                    "id": 4001,
+                    "id": 3001,
                     "name": "Play Defense?",
                     "type": "slider",
                     "required": false,
@@ -207,7 +202,7 @@
                     }
                 },
                 {
-                    "id": 4002,
+                    "id": 3002,
                     "name": "AprilTag Use",
                     "type": "dropdown",
                     "required": false,
@@ -225,14 +220,14 @@
             "title": "Other",
             "fields": [
                 {
-                    "id": 5000,
+                    "id": 4000,
                     "name": "Comments",
                     "type": "text",
                     "required": false,
                     "props": {}
                 },
                 {
-                    "id": 5001,
+                    "id": 4001,
                     "name": "Vibe Check",
                     "type": "slider",
                     "required": true,
