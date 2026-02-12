@@ -34,6 +34,7 @@ type ComponentType =
 interface Component {
   name: string;
   id: number;
+  note?: string;
   type: ComponentType;
   required?: boolean;
   doubleWidth?: boolean;

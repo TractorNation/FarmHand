@@ -25,6 +25,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import RenameDialog from "./dialog/RenameDialog";
 import DeleteDialog from "./dialog/DeleteDialog";
+import TextInput from "./components/TextInput";
 
 /* Properties for the Component Card*/
 interface ComponentCardProps {
@@ -157,7 +158,8 @@ export default function EditableComponentCard(props: ComponentCardProps) {
       field === "name" ||
       field === "type" ||
       field === "required" ||
-      field === "doubleWidth"
+      field === "doubleWidth" ||
+      field === "note"
     ) {
       newComponent = { ...editedComponent, [field]: value };
     } else {
@@ -632,6 +634,11 @@ export default function EditableComponentCard(props: ComponentCardProps) {
               />
             )}
             {renderTypeSpecificProps()}
+            <TextInput 
+              label="Note (Optional)"
+              value={editedComponent.note || ""}
+              onChange={(value) => handleFieldChange("note", value)}
+            />
           </Stack>
         </AccordionDetails>
       </Accordion>
