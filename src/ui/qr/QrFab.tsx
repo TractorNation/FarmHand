@@ -1,22 +1,27 @@
 import { Box, Fab, Stack, Zoom } from "@mui/material";
 import QrScanIcon from "@mui/icons-material/QrCodeScannerRounded";
+import SendIcon from "@mui/icons-material/SendRounded";
 import ExportIcon from "@mui/icons-material/IosShareRounded";
-import ArchiveIcon from "@mui/icons-material/ArchiveRounded";
+import RemoveFromFolderIcon from "@mui/icons-material/RemoveCircleOutlineRounded";
 
 interface Props {
   selecting: boolean;
   disabled: boolean;
   onScan: () => void;
+  onSendTo: () => void;
   onExport: () => void;
-  onMassArchive: () => void;
+  showRemoveFromFolder?: boolean;
+  onRemoveFromFolder?: () => void;
 }
 
 export default function QrPageFab({
   selecting,
   disabled,
   onScan,
+  onSendTo,
   onExport,
-  onMassArchive,
+  showRemoveFromFolder,
+  onRemoveFromFolder,
 }: Props) {
   const fabStyle = {
     position: "fixed",
@@ -51,14 +56,25 @@ export default function QrPageFab({
             paddingRight: "calc(16px + env(safe-area-inset-right, 0px))",
           }}
         >
+          {showRemoveFromFolder && onRemoveFromFolder && (
+            <Fab
+              color="secondary"
+              variant="extended"
+              size="large"
+              disabled={disabled}
+              onClick={onRemoveFromFolder}
+            >
+              <RemoveFromFolderIcon sx={{ mr: 1 }} /> Remove from folder
+            </Fab>
+          )}
           <Fab
-            color="warning"
+            color="primary"
             variant="extended"
             size="large"
             disabled={disabled}
-            onClick={onMassArchive}
+            onClick={onSendTo}
           >
-            <ArchiveIcon sx={{ mr: 1 }} /> Send to archive
+            <SendIcon sx={{ mr: 1 }} /> Send to
           </Fab>
           <Fab
             color="primary"
