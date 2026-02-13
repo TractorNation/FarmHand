@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep A Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [0.2026.3] (First full release!!)
+
+### Fixed
+
+- Schema editor crash issue
+- Small bugs
+- Double Wide feature not working on tablets
+
+### Added
+
+- Note feature to fields
+- Blue alliance match integration
+- date range filter for codes
+- Folders to store codes in
+- Radio button (Multiple choice) option for fields
+### Changed
+
+- Small ui fixes for mobile devices
+- Slightly updated app icon
+
 ## [0.2026.3-beta.3]
 
 ### Fixed

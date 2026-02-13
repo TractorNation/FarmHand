@@ -58,7 +58,7 @@ const Settings = React.lazy(() => import("./pages/Settings"));
 const Scout = React.lazy(() => import("./pages/Scout"));
 const QRPage = React.lazy(() => import("./pages/QR"));
 
-const CURRENT_VERSION: string = "0.2026.3-beta.3";
+const CURRENT_VERSION: string = "0.2026.3";
 
 const checkForUpdates = async (): Promise<{
   available: boolean;
