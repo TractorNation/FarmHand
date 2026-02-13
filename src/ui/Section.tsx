@@ -133,13 +133,15 @@ export default function Section(props: SectionProps) {
               size={{
                 xs: component.doubleWidth ? 12 : 12,
                 sm: component.doubleWidth ? 12 : 6,
-                md: component.doubleWidth ? 4 : 4,
+                md: component.doubleWidth ? 8 : 4,
                 lg: component.doubleWidth ? 6 : 3,
               }}
               key={index}
             >
               <ValidationProvider key={component.id}>
                 <InputCard
+                  isFiller={component.type === "filler"}
+                  note={component.note}
                   label={component.name}
                   required={component.required ?? false}
                   submitted={submitted}

@@ -34,6 +34,7 @@ type ComponentType =
 interface Component {
   name: string;
   id: number;
+  note?: string;
   type: ComponentType;
   required?: boolean;
   doubleWidth?: boolean;
@@ -183,4 +184,13 @@ interface Chart {
     | "stepAfter"
     | "stepBefore";
   colorScheme?: string; // For heatmap color scheme selection
+}
+
+/// To store QR codes in a "Folder"
+interface QrFolder {
+  id: string;
+  name: string;
+  createdAt: number;
+  qrCodes: string[];
+  archived: boolean;
 }

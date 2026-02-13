@@ -96,9 +96,7 @@ export default function ScoutDataProvider(props: ScoutDataProviderProps) {
       }
     };
 
-    // Check periodically for event key changes (e.g., from settings)
-    const interval = setInterval(checkEventKey, 2000);
-    return () => clearInterval(interval);
+    checkEventKey();
   }, [currentEventKey, loadTbaMatchData]);
 
   const processEventData = (

@@ -8,6 +8,8 @@ import { useValidation } from "../context/ValidationContext";
  */
 interface InputCardProps {
   label: string;
+  isFiller: boolean;
+  note?: string;
   required: boolean;
   children: ReactNode;
   submitted: boolean;
@@ -19,7 +21,7 @@ interface InputCardProps {
  * @returns A Card wrapper for all the input components
  */
 function InputCard(props: InputCardProps) {
-  const { label, required, children, submitted } = props;
+  const { label, note, isFiller, required, children, submitted } = props;
   const { valid, touched } = useValidation();
   const theme = useTheme();
   const isWindowsXPTheme = theme.farmhandThemeId === "WindowsXPTheme";
@@ -93,8 +95,13 @@ function InputCard(props: InputCardProps) {
             }),
           }}
         >
-          {label + " "}
-          {required && "*"}
+          {isFiller && required
+            ? label
+            : !isFiller && required
+            ? `${label} *`
+            : !isFiller && !required
+            ? label
+            : null}
         </Typography>
         <Box
           sx={{
@@ -108,6 +115,22 @@ function InputCard(props: InputCardProps) {
         >
           {children}
         </Box>
+        {note !== undefined && note !== null && (
+          <Typography
+            variant="h6"
+            sx={{
+              mt: 2,
+              fontWeight: 500,
+              ...(isWindowsXPTheme && {
+                fontFamily: '"Tahoma", "MS Sans Serif", sans-serif',
+                fontSize: "0.95rem",
+                color: "#0f3fa6",
+              }),
+            }}
+          >
+            {note}
+          </Typography>
+        )}
       </CardContent>
     </Card>
   );

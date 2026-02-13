@@ -1,6 +1,7 @@
-import { Box, Grid, Stack, Tooltip, Typography } from "@mui/material";
+import { Box, Divider, Grid, Stack, Tooltip, Typography } from "@mui/material";
 import HelpIcon from "@mui/icons-material/HelpRounded";
 import QrCard from "./QrCard";
+import FolderCard from "./FolderCard";
 
 interface QrGridProps {
   validQrCodes: QrCode[];
@@ -13,6 +14,19 @@ interface QrGridProps {
   filter: FilterOption[];
   sortMode: string;
   sortDirection: string;
+  folders?: QrFolder[];
+  onClickFolder?: (folderId: string) => void;
+  // Folder selection props
+  onSelectFolder?: (folder: QrFolder, qrCodesInFolder: QrCode[]) => void;
+  isFolderSelected?: (folder: QrFolder) => boolean;
+  // Folder action props
+  onRenameFolder?: (folder: QrFolder) => void;
+  onDeleteFolder?: (folder: QrFolder) => void;
+  onArchiveFolder?: (folder: QrFolder) => void;
+  onUnarchiveFolder?: (folder: QrFolder) => void;
+  isArchivePage?: boolean;
+  // All QR codes for finding codes in folders
+  allQrCodes?: QrCode[];
 }
 
 export default function QrGrid(props: QrGridProps) {
@@ -24,13 +38,60 @@ export default function QrGrid(props: QrGridProps) {
     onSelect,
     onClickQr,
     toggleSelectMode,
+    folders,
+    onClickFolder,
+    onSelectFolder,
+    isFolderSelected,
+    onRenameFolder,
+    onDeleteFolder,
+    onArchiveFolder,
+    onUnarchiveFolder,
+    isArchivePage = false,
+    allQrCodes = [],
   } = props;
+
+  // Handle folder selection - select all valid QR codes in that folder
+  const handleFolderSelect = (folder: QrFolder) => {
+    if (!onSelectFolder) return;
+    
+    // Find all QR codes that belong to this folder
+    const qrCodesInFolder = allQrCodes.filter((qr) =>
+      folder.qrCodes.includes(qr.name)
+    );
+    
+    onSelectFolder(folder, qrCodesInFolder);
+  };
 
   return (
     <Box>
       {/* Prevent clicks inside the grid from triggering the Box's onClick */}
       <Box onClick={(e) => e.stopPropagation()}>
         <Grid container spacing={2}>
+          {/* Render folders first */}
+          {folders?.map((folder) => (
+            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={folder.id}>
+              <FolderCard
+                folder={folder}
+                onClickFolder={onClickFolder!}
+                selecting={selecting}
+                onSelect={() => handleFolderSelect(folder)}
+                isSelected={isFolderSelected?.(folder) ?? false}
+                toggleSelectMode={toggleSelectMode}
+                onRename={onRenameFolder}
+                onDelete={onDeleteFolder}
+                onArchive={onArchiveFolder}
+                onUnarchive={onUnarchiveFolder}
+                isArchived={isArchivePage}
+              />
+            </Grid>
+          ))}
+
+          {folders && folders.length > 0 && (
+            <Grid size={12}>
+              <Divider />
+            </Grid>
+          )}
+
           {validQrCodes.map((qr, i) => (
             <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={i}>
               <QrCard
