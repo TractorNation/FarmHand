@@ -45,9 +45,12 @@ const StoreManager = {
   async get(key: string): Promise<string | undefined> {
     try {
       await this.ensureInit();
+      console.log("What is being got", key);
+
       if (!store) return undefined;
 
       const value = await store.get(key);
+      console.log("Got this thingy from tha sto", value);
       return value as string | undefined;
     } catch (e) {
       console.error("Failed to get item from store", e);
@@ -160,19 +163,26 @@ const StoreManager = {
 
   async getFolders(): Promise<QrFolder[]> {
     const listData = await this.get(StoreKeys.folders.list);
-
     if (!listData) return [];
 
-    const folderIds = JSON.parse(listData);
-
-    const folders = await Promise.all(
+    const folderIds: string[] = JSON.parse(listData);
+    const folders: (QrFolder | null)[] = await Promise.all(
       folderIds.map(async (id: string) => {
         const data = await this.get(StoreKeys.folders.byId(id));
         return data ? JSON.parse(data) : null;
       })
     );
 
-    return folders;
+    // Filter out null (folders that were deleted but IDs lingered in the list)
+    const validFolders = folders.filter((f): f is QrFolder => f != null);
+    const validIds = validFolders.map((f) => f.id);
+
+    // Clean up stale IDs from the list if any were missing
+    if (validIds.length !== folderIds.length) {
+      await this.set(StoreKeys.folders.list, JSON.stringify(validIds));
+    }
+
+    return validFolders;
   },
 
   async saveFolder(folder: QrFolder) {
@@ -190,8 +200,13 @@ const StoreManager = {
     await this.remove(StoreKeys.folders.byId(folderId));
 
     const folders = await this.getFolders();
-    const ids = folders.filter((f) => f.id !== folderId).map((f) => f.id);
-    await this.set(StoreKeys.folders.list, JSON.stringify(ids));
+
+    const ids = folders.map((f) => f.id);
+
+    await this.set(
+      StoreKeys.folders.list,
+      JSON.stringify(ids.filter((id) => id !== folderId))
+    );
   },
 };
 

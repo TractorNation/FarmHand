@@ -16,6 +16,17 @@ interface QrGridProps {
   sortDirection: string;
   folders?: QrFolder[];
   onClickFolder?: (folderId: string) => void;
+  // Folder selection props
+  onSelectFolder?: (folder: QrFolder, qrCodesInFolder: QrCode[]) => void;
+  isFolderSelected?: (folder: QrFolder) => boolean;
+  // Folder action props
+  onRenameFolder?: (folder: QrFolder) => void;
+  onDeleteFolder?: (folder: QrFolder) => void;
+  onArchiveFolder?: (folder: QrFolder) => void;
+  onUnarchiveFolder?: (folder: QrFolder) => void;
+  isArchivePage?: boolean;
+  // All QR codes for finding codes in folders
+  allQrCodes?: QrCode[];
 }
 
 export default function QrGrid(props: QrGridProps) {
@@ -29,11 +40,27 @@ export default function QrGrid(props: QrGridProps) {
     toggleSelectMode,
     folders,
     onClickFolder,
+    onSelectFolder,
+    isFolderSelected,
+    onRenameFolder,
+    onDeleteFolder,
+    onArchiveFolder,
+    onUnarchiveFolder,
+    isArchivePage = false,
+    allQrCodes = [],
   } = props;
 
-  folders?.map((folder) => {
-    console.log("Folder in QrGrid:", folder);
-  });
+  // Handle folder selection - select all valid QR codes in that folder
+  const handleFolderSelect = (folder: QrFolder) => {
+    if (!onSelectFolder) return;
+    
+    // Find all QR codes that belong to this folder
+    const qrCodesInFolder = allQrCodes.filter((qr) =>
+      folder.qrCodes.includes(qr.name)
+    );
+    
+    onSelectFolder(folder, qrCodesInFolder);
+  };
 
   return (
     <Box>
@@ -47,10 +74,14 @@ export default function QrGrid(props: QrGridProps) {
                 folder={folder}
                 onClickFolder={onClickFolder!}
                 selecting={selecting}
-                onSelect={() => {
-                  /* Will add all codes in folder to selected codes */
-                }}
-                isSelected={false}
+                onSelect={() => handleFolderSelect(folder)}
+                isSelected={isFolderSelected?.(folder) ?? false}
+                toggleSelectMode={toggleSelectMode}
+                onRename={onRenameFolder}
+                onDelete={onDeleteFolder}
+                onArchive={onArchiveFolder}
+                onUnarchive={onUnarchiveFolder}
+                isArchived={isArchivePage}
               />
             </Grid>
           ))}

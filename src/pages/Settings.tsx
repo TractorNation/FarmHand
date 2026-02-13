@@ -289,7 +289,7 @@ export default function Settings() {
 
       // Show appropriate success message based on whether data is cached
       const severity = response.is_cached ? "info" : "success";
-      const prefix = response.is_cached ? "📦 Offline Mode - " : "✅ Online - ";
+      const prefix = response.is_cached ? "Offline Mode - " : "Online - ";
 
       setSnackbarState({
         open: true,
