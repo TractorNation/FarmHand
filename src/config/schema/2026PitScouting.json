@@ -129,12 +129,6 @@
                     "type": "grid",
                     "required": false,
                     "props": {
-                        "options": [
-                            "0",
-                            "1",
-                            "2",
-                            "3"
-                        ],
                         "rows": 3,
                         "cols": 1
                     }
