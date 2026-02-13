@@ -10,20 +10,13 @@
     "frontendDist": "../dist"
   },
   "app": {
-    "windows": [
-      {
-        "title": "farmhand",
-        "width": 800,
-        "height": 600
-      }
-    ],
-    "security": {
-      "csp": null
-    }
+    "windows": [{ "title": "farmhand", "width": 800, "height": 600 }],
+    "security": { "csp": null }
   },
   "bundle": {
     "active": true,
     "targets": "all",
+    "android": { "minSdkVersion": 21 },
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -35,9 +28,6 @@
       "entitlements": "Entitlements.plist",
       "infoPlist": "Info.plist"
     },
-    "iOS": {
-      "minimumSystemVersion": "14.0",
-      "bundleVersion": "0.2026.3"
-    }
+    "iOS": { "minimumSystemVersion": "14.0", "bundleVersion": "0.2026.3" }
   }
 }
