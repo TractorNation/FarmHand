@@ -16,8 +16,8 @@
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "95B39963C63F153592097247"
                BuildableName = "farmhand.app"
-               BlueprintName = "farmhand_iOS"
-               ReferencedContainer = "container:farmhand.xcodeproj">
+               BlueprintName = "Farmhand_iOS"
+               ReferencedContainer = "container:Farmhand.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -32,8 +32,8 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "95B39963C63F153592097247"
             BuildableName = "farmhand.app"
-            BlueprintName = "farmhand_iOS"
-            ReferencedContainer = "container:farmhand.xcodeproj">
+            BlueprintName = "Farmhand_iOS"
+            ReferencedContainer = "container:Farmhand.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <EnvironmentVariables>
@@ -67,8 +67,8 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "95B39963C63F153592097247"
             BuildableName = "farmhand.app"
-            BlueprintName = "farmhand_iOS"
-            ReferencedContainer = "container:farmhand.xcodeproj">
+            BlueprintName = "Farmhand_iOS"
+            ReferencedContainer = "container:Farmhand.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <EnvironmentVariables>
@@ -96,8 +96,8 @@
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "95B39963C63F153592097247"
             BuildableName = "farmhand.app"
-            BlueprintName = "farmhand_iOS"
-            ReferencedContainer = "container:farmhand.xcodeproj">
+            BlueprintName = "Farmhand_iOS"
+            ReferencedContainer = "container:Farmhand.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <EnvironmentVariables>
