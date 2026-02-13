@@ -12,6 +12,8 @@ import GridInput from "./GridInput";
 import SliderInput from "./SliderInput";
 import NumberInput from "./NumberInput";
 import TimerInput from "./TimerInput";
+import AutocompleteInput from "./AutocompleteInput";
+import RadioButtonInput from "./RadioButtonInput";
 
 /* Props for the dynamic component
  */
@@ -26,7 +28,15 @@ interface DynamicComponentProps {
  */
 export default function DynamicComponent(props: DynamicComponentProps) {
   const { valid, touched, setValid, setTouched } = useValidation();
-  const { addMatchData, addError, removeError, getMatchData } = useScoutData();
+  const {
+    addMatchData,
+    addError,
+    removeError,
+    getMatchData,
+    getAllMatchNumbers,
+    getAllTeamNumbers,
+    tbaMatchData,
+  } = useScoutData();
   const { component, submitted } = props;
 
   const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -57,6 +67,7 @@ export default function DynamicComponent(props: DynamicComponentProps) {
       case "text":
         emptyStateValue = component.props?.default ?? "";
         break;
+      case "multiplechoice":
       case "dropdown":
         emptyStateValue = component.props?.default ?? "Select an option...";
         break;
@@ -101,7 +112,6 @@ export default function DynamicComponent(props: DynamicComponentProps) {
     const isInvalid = isFieldInvalid(
       component.required!,
       component.type,
-      emptyStateValue,
       initialDisplayValue
     );
 
@@ -143,7 +153,6 @@ export default function DynamicComponent(props: DynamicComponentProps) {
     const isInvalid = isFieldInvalid(
       component.required!,
       component.type,
-      component.props?.default!,
       newValue
     );
 
@@ -175,6 +184,44 @@ export default function DynamicComponent(props: DynamicComponentProps) {
       );
     }
 
+    // Check if this is a protected field (Match Number or Team Number) with TBA enabled
+    const isPullFromTBAEnabled = component.props?.pullFromTBA === true;
+    const isProtectedField =
+      component.name === "Match Number" || component.name === "Team Number";
+
+    // Handle TBA autocomplete fields
+    if (isPullFromTBAEnabled && isProtectedField) {
+      if (component.name === "Match Number") {
+        const matchNumbers = getAllMatchNumbers();
+        return (
+          <AutocompleteInput
+            value={value}
+            options={matchNumbers}
+            onChange={handleChange}
+            label={component.name}
+            loading={!tbaMatchData}
+            placeholder="Select or enter match number"
+          />
+        );
+      }
+
+      if (component.name === "Team Number") {
+        let teamNumbers: string[] = getAllTeamNumbers();
+
+        return (
+          <AutocompleteInput
+            value={value}
+            options={teamNumbers}
+            onChange={handleChange}
+            label={component.name}
+            loading={!tbaMatchData}
+            placeholder="Select or enter team number"
+          />
+        );
+      }
+    }
+
+    // Regular component rendering (including number input for Team/Match Number when pullFromTBA is false)
     switch (component.type) {
       case "counter":
         return (
@@ -214,7 +261,15 @@ export default function DynamicComponent(props: DynamicComponentProps) {
             allowUnset
           />
         );
-
+      case "multiplechoice":
+        return (
+          <RadioButtonInput
+            value={value}
+            options={component.props?.options!}
+            onChange={handleChange}
+            label={component.props?.label}
+          />
+        );
       case "checkbox":
         return <CheckboxInput value={Boolean(value)} onChange={handleChange} />;
 

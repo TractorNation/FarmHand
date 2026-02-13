@@ -35,17 +35,21 @@ export function useQrSelection(qrCodes?: QrCode[]) {
   }, [qrCodes, selecting, selectedHash]);
 
   const updateSelectedCodes = (code: QrCode) => {
-    const newList = codeIsSelected(code)
-      ? selectedCodes.filter((c) => c !== code)
-      : [...selectedCodes, code];
-    setSelectedCodes(newList);
+    setSelectedCodes((prev) => {
+      const isSelected = prev.includes(code);
+      const newList = isSelected
+        ? prev.filter((c) => c !== code)
+        : [...prev, code];
 
-    if (newList.length === 1) {
-      const [, , hash] = newList[0].data.split(":");
-      setSelectedHash(hash);
-    } else if (newList.length === 0) {
-      setSelectedHash(null);
-    }
+      if (newList.length === 1) {
+        const [, , hash] = newList[0].data.split(":");
+        setSelectedHash(hash);
+      } else if (newList.length === 0) {
+        setSelectedHash(null);
+      }
+
+      return newList;
+    });
   };
 
   const selectAllCodes = (useHash: boolean) => {
@@ -53,7 +57,7 @@ export function useQrSelection(qrCodes?: QrCode[]) {
 
     if (useHash) {
       setSelectedCodes(
-        qrCodes
+        qrCodes && selectedHash
           ? [...qrCodes.filter((c) => c.data.includes(selectedHash || ""))]
           : []
       );

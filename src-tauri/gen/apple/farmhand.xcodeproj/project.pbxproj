@@ -22,7 +22,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		0742AFE6141FD012507CE30B /* farmhand_iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = farmhand_iOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		0742AFE6141FD012507CE30B /* Farmhand_iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Farmhand_iOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		110523F1157CA0C6169E3098 /* lib.rs */ = {isa = PBXFileReference; path = lib.rs; sourceTree = "<group>"; };
 		12117A6AF797313D39AB9802 /* main.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
 		14CF6C75DE8BC1E3418EDAF5 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -31,7 +31,7 @@
 		354FC1440B313EEC00DCEE8C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		41498AAF6D296BA9E0CE4F4E /* main.rs */ = {isa = PBXFileReference; path = main.rs; sourceTree = "<group>"; };
 		4376FEDEF21D3462D84D89AD /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
-		43BF98D5392464AC2DE040B1 /* farmhand_iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = farmhand_iOS.entitlements; sourceTree = "<group>"; };
+		43BF98D5392464AC2DE040B1 /* Farmhand_iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Farmhand_iOS.entitlements; sourceTree = "<group>"; };
 		454FF4FF65E221FDCF03A3DD /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
 		4631B9BEFDF73760861B915B /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 		473A7DBAFEDB2EACF84C0CB7 /* libapp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libapp.a; sourceTree = "<group>"; };
@@ -69,7 +69,7 @@
 		296FE6008F8F30F51F1B98AE /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				0742AFE6141FD012507CE30B /* farmhand_iOS.app */,
+				0742AFE6141FD012507CE30B /* Farmhand_iOS.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -123,13 +123,13 @@
 			path = Externals;
 			sourceTree = "<group>";
 		};
-		7C907864501A21A0A851177C /* farmhand_iOS */ = {
+		7C907864501A21A0A851177C /* Farmhand_iOS */ = {
 			isa = PBXGroup;
 			children = (
-				43BF98D5392464AC2DE040B1 /* farmhand_iOS.entitlements */,
+				43BF98D5392464AC2DE040B1 /* Farmhand_iOS.entitlements */,
 				354FC1440B313EEC00DCEE8C /* Info.plist */,
 			);
-			path = farmhand_iOS;
+			path = Farmhand_iOS;
 			sourceTree = "<group>";
 		};
 		82E4E226E3C61B10BE42542C /* farmhand */ = {
@@ -160,7 +160,7 @@
 				23C85FB9AE5F28CAED182099 /* Assets.xcassets */,
 				AA50900835B2D1783637D869 /* LaunchScreen.storyboard */,
 				74D91A15D7C8B234570A9859 /* Externals */,
-				7C907864501A21A0A851177C /* farmhand_iOS */,
+				7C907864501A21A0A851177C /* Farmhand_iOS */,
 				4B6D355612F645BB6CC7BA39 /* Sources */,
 				B740687B492CBD79CE9C1DA1 /* src */,
 				30791EDEA378EE2CF4D316D1 /* Frameworks */,
@@ -171,9 +171,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		95B39963C63F153592097247 /* farmhand_iOS */ = {
+		95B39963C63F153592097247 /* Farmhand_iOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 688EE7B734CED1E430AE7356 /* Build configuration list for PBXNativeTarget "farmhand_iOS" */;
+			buildConfigurationList = 688EE7B734CED1E430AE7356 /* Build configuration list for PBXNativeTarget "Farmhand_iOS" */;
 			buildPhases = (
 				CEC6918FAB73046B9F157C7D /* Build Rust Code */,
 				EAD154B0BC7C6DC8B71F1056 /* Sources */,
@@ -184,11 +184,11 @@
 			);
 			dependencies = (
 			);
-			name = farmhand_iOS;
+			name = Farmhand_iOS;
 			packageProductDependencies = (
 			);
-			productName = farmhand_iOS;
-			productReference = 0742AFE6141FD012507CE30B /* farmhand_iOS.app */;
+			productName = Farmhand_iOS;
+			productReference = 0742AFE6141FD012507CE30B /* Farmhand_iOS.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -214,7 +214,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				95B39963C63F153592097247 /* farmhand_iOS */,
+				95B39963C63F153592097247 /* Farmhand_iOS */,
 			);
 		};
 /* End PBXProject section */
@@ -276,7 +276,7 @@
 					arm64,
 				);
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = farmhand_iOS/farmhand_iOS.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Farmhand_iOS/Farmhand_iOS.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				ENABLE_BITCODE = NO;
 				"EXCLUDED_ARCHS[sdk=iphoneos*]" = x86_64;
@@ -284,7 +284,7 @@
 					"$(inherited)",
 					"\".\"",
 				);
-				INFOPLIST_FILE = farmhand_iOS/Info.plist;
+				INFOPLIST_FILE = Farmhand_iOS/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -296,6 +296,7 @@
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALID_ARCHS = arm64;
+				DEVELOPMENT_TEAM = "SL7LGQ7AD3";
 			};
 			name = release;
 		};
@@ -426,7 +427,7 @@
 					arm64,
 				);
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = farmhand_iOS/farmhand_iOS.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Farmhand_iOS/Farmhand_iOS.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				ENABLE_BITCODE = NO;
 				"EXCLUDED_ARCHS[sdk=iphoneos*]" = x86_64;
@@ -434,7 +435,7 @@
 					"$(inherited)",
 					"\".\"",
 				);
-				INFOPLIST_FILE = farmhand_iOS/Info.plist;
+				INFOPLIST_FILE = Farmhand_iOS/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -446,13 +447,14 @@
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALID_ARCHS = arm64;
+				DEVELOPMENT_TEAM = "SL7LGQ7AD3";
 			};
 			name = debug;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		688EE7B734CED1E430AE7356 /* Build configuration list for PBXNativeTarget "farmhand_iOS" */ = {
+		688EE7B734CED1E430AE7356 /* Build configuration list for PBXNativeTarget "Farmhand_iOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A4BFC04CCD5E22F08652482D /* debug */,

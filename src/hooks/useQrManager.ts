@@ -18,6 +18,8 @@ export function useQrManager({ qrCodes }: UseQrManagerParams) {
     useState<SortDirection>("ascending");
   const [matchNumberFilter, setMatchNumberFilter] = useState("");
   const [teamNumberFilter, setTeamNumberFilter] = useState("");
+  const [dateRangeStart, setDateRangeStart] = useState<Date | null>(null);
+  const [dateRangeEnd, setDateRangeEnd] = useState<Date | null>(null);
 
   // Apply filtering and sorting
   const filteredAndSortedQrCodes = useQrSortFilter({
@@ -27,6 +29,8 @@ export function useQrManager({ qrCodes }: UseQrManagerParams) {
     sortDirection,
     matchNumberFilter,
     teamNumberFilter,
+    dateRangeStart,
+    dateRangeEnd,
   });
 
   // Selection logic
@@ -66,6 +70,10 @@ export function useQrManager({ qrCodes }: UseQrManagerParams) {
     filters,
     matchNumberFilter,
     teamNumberFilter,
+    dateRangeStart,
+    dateRangeEnd,
+    setDateRangeStart,
+    setDateRangeEnd,
 
     // Filter methods
     updateFilters,

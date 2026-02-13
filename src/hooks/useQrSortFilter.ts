@@ -8,6 +8,8 @@ interface UseQrSortFilterParams {
   sortDirection: SortDirection;
   matchNumberFilter?: string;
   teamNumberFilter?: string;
+  dateRangeStart?: Date | null;
+  dateRangeEnd?: Date | null;
 }
 
 /**
@@ -21,6 +23,8 @@ export function useQrSortFilter({
   sortDirection,
   matchNumberFilter = "",
   teamNumberFilter = "",
+  dateRangeStart = null,
+  dateRangeEnd = null,
 }: UseQrSortFilterParams) {
   const processedQrCodes = useMemo(() => {
     let filtered = qrCodes.filter((code) => {
@@ -44,6 +48,18 @@ export function useQrSortFilter({
         }
       }
 
+      if (filters.includes("date range") && dateRangeStart && dateRangeEnd) {
+        const codeDate = new Date(parseInt(data.Timestamp) * 1000);
+        // Set hours to 0 for date-only comparison
+        const startDate = new Date(dateRangeStart);
+        startDate.setHours(0, 0, 0, 0);
+        const endDate = new Date(dateRangeEnd);
+        endDate.setHours(23, 59, 59, 999);
+
+        if (codeDate < startDate || codeDate > endDate) {
+          return false;
+        }
+      }
       const hasDateFilter =
         filters.includes("day") ||
         filters.includes("week") ||
@@ -101,6 +117,8 @@ export function useQrSortFilter({
     sortDirection,
     matchNumberFilter,
     teamNumberFilter,
+    dateRangeStart,
+    dateRangeEnd,
   ]);
 
   return processedQrCodes;

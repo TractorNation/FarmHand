@@ -25,6 +25,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import RenameDialog from "./dialog/RenameDialog";
 import DeleteDialog from "./dialog/DeleteDialog";
+import TextInput from "./components/TextInput";
 
 /* Properties for the Component Card*/
 interface ComponentCardProps {
@@ -84,7 +85,7 @@ export default function EditableComponentCard(props: ComponentCardProps) {
       // Dropdown
       const initialDropdownValue = component.props?.options?.join(",") || "";
       setDropdownInputValue(initialDropdownValue);
-      if (component.type.toLowerCase() === "dropdown") {
+      if (component.type.toLowerCase() === "dropdown" || component.type.toLowerCase() === "multiplechoice") {
         validateDropdown(initialDropdownValue);
       }
 
@@ -102,7 +103,7 @@ export default function EditableComponentCard(props: ComponentCardProps) {
       }
       setRawDefaultValue(initialDefaultValue);
       lastSyncedComponentId.current = component.id;
-    } else if (component.type.toLowerCase() === "dropdown") {
+    } else if (component.type.toLowerCase() === "dropdown" || component.type.toLowerCase() === "multiplechoice") {
       validateDropdown(dropdownInputValue);
     }
   }, [component]);
@@ -157,7 +158,8 @@ export default function EditableComponentCard(props: ComponentCardProps) {
       field === "name" ||
       field === "type" ||
       field === "required" ||
-      field === "doubleWidth"
+      field === "doubleWidth" ||
+      field === "note"
     ) {
       newComponent = { ...editedComponent, [field]: value };
     } else {
@@ -193,6 +195,7 @@ export default function EditableComponentCard(props: ComponentCardProps) {
 
   const renderTypeSpecificProps = () => {
     switch (editedComponent.type.toLowerCase()) {
+      case "multiplechoice":
       case "dropdown":
         return (
           <TextField
@@ -568,17 +571,22 @@ export default function EditableComponentCard(props: ComponentCardProps) {
             <DropdownInput
               label="Type"
               value={
-                editedComponent.type.charAt(0).toUpperCase() +
-                editedComponent.type.slice(1)
+                editedComponent.type === "multiplechoice"
+                  ? "Multiple Choice"
+                  : editedComponent.type.charAt(0).toUpperCase() +
+                    editedComponent.type.slice(1)
               }
               disabled={isProtected}
-              onChange={(value) =>
-                handleFieldChange("type", value.toLowerCase())
-              }
+              onChange={(value) => {
+                const type =
+                  value === "Multiple Choice" ? "multiplechoice" : value.toLowerCase();
+                handleFieldChange("type", type);
+              }}
               options={[
                 "Checkbox",
                 "Counter",
                 "Dropdown",
+                "Multiple Choice",
                 "Text",
                 "Number",
                 "Slider",
@@ -612,7 +620,25 @@ export default function EditableComponentCard(props: ComponentCardProps) {
               }
               label="Double Wide?"
             />
+            {isProtected && (editedComponent.name === "Match Number" || editedComponent.name === "Team Number") && (
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={editedComponent.props?.pullFromTBA || false}
+                    onChange={(e) =>
+                      handleFieldChange("pullFromTBA", e.target.checked)
+                    }
+                  />
+                }
+                label="Pull from The Blue Alliance?"
+              />
+            )}
             {renderTypeSpecificProps()}
+            <TextInput 
+              label="Note (Optional)"
+              value={editedComponent.note || ""}
+              onChange={(value) => handleFieldChange("note", value)}
+            />
           </Stack>
         </AccordionDetails>
       </Accordion>

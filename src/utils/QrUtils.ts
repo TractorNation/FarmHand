@@ -75,10 +75,24 @@ export function reconstructMatchDataFromArray(
   const reconstructed: Record<string, any> = {};
 
   const allFields = schema.sections.flatMap((section) => section.fields);
+  
+  const defaultValueMap = new Map<ComponentType, any>();
+
+  defaultValueMap.set("checkbox", false);
+  defaultValueMap.set("counter", 0);
+  defaultValueMap.set("dropdown", "No option Selected");
+  defaultValueMap.set("filler", "*");
+  defaultValueMap.set("grid", "Empty");
+  defaultValueMap.set("multiplechoice", "No Option Selected");
+  defaultValueMap.set("number", 0);
+  defaultValueMap.set("slider", 0);
+  defaultValueMap.set("text", "No text provided");
+  defaultValueMap.set("timer", "0.0");
 
   allFields.forEach((field, index) => {
-    const rawValue = values[index] !== "" ? values[index] : "*";
-    reconstructed[field.id] = rawValue === "*" ? "" : rawValue;
+    let defaultValue = field.props?.default ? field.props.default : defaultValueMap.get(field.type);
+    const rawValue = values[index] !== "" ? values[index] : defaultValue;
+    reconstructed[field.id] = rawValue ? rawValue : "Failed to get default value";
   });
 
   return reconstructed;

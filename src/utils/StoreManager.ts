@@ -45,9 +45,12 @@ const StoreManager = {
   async get(key: string): Promise<string | undefined> {
     try {
       await this.ensureInit();
+      console.log("What is being got", key);
+
       if (!store) return undefined;
 
       const value = await store.get(key);
+      console.log("Got this thingy from tha sto", value);
       return value as string | undefined;
     } catch (e) {
       console.error("Failed to get item from store", e);
@@ -122,6 +125,89 @@ const StoreManager = {
     const value = await this.get(StoreKeys.code.scanned(name));
     return value === "true";
   },
+
+  async getTbaEventData(): Promise<EventData | null> {
+    try {
+      const data = await this.get(StoreKeys.tba.EVENT_DATA);
+      return data ? JSON.parse(data) : null;
+    } catch (e) {
+      console.error("Failed to get TBA event data", e);
+      return null;
+    }
+  },
+
+  async setTbaEventData(eventData: EventData) {
+    await this.set(StoreKeys.tba.EVENT_DATA, JSON.stringify(eventData));
+  },
+
+  async clearTbaEventData() {
+    await this.remove(StoreKeys.tba.EVENT_DATA);
+  },
+
+  async getCachedEvents() {
+    try {
+      const data = await this.get(StoreKeys.tba.CACHED_EVENTS);
+      return data ? JSON.parse(data) : null;
+    } catch (e) {
+      return null;
+    }
+  },
+
+  async setCachedEvents(events: TbaEvent[]) {
+    await this.set(StoreKeys.tba.CACHED_EVENTS, JSON.stringify(events));
+  },
+
+  async clearCachedEvents() {
+    await this.remove(StoreKeys.tba.CACHED_EVENTS);
+  },
+
+  async getFolders(): Promise<QrFolder[]> {
+    const listData = await this.get(StoreKeys.folders.list);
+    if (!listData) return [];
+
+    const folderIds: string[] = JSON.parse(listData);
+    const folders: (QrFolder | null)[] = await Promise.all(
+      folderIds.map(async (id: string) => {
+        const data = await this.get(StoreKeys.folders.byId(id));
+        return data ? JSON.parse(data) : null;
+      })
+    );
+
+    // Filter out null (folders that were deleted but IDs lingered in the list)
+    const validFolders = folders.filter((f): f is QrFolder => f != null);
+    const validIds = validFolders.map((f) => f.id);
+
+    // Clean up stale IDs from the list if any were missing
+    if (validIds.length !== folderIds.length) {
+      await this.set(StoreKeys.folders.list, JSON.stringify(validIds));
+    }
+
+    return validFolders;
+  },
+
+  async saveFolder(folder: QrFolder) {
+    await this.set(StoreKeys.folders.byId(folder.id), JSON.stringify(folder));
+
+    const folders = await this.getFolders();
+    const ids = folders.map((f) => f.id);
+    if (!ids.includes(folder.id)) {
+      ids.push(folder.id);
+    }
+    await this.set(StoreKeys.folders.list, JSON.stringify(ids));
+  },
+
+  async deleteFolder(folderId: string) {
+    await this.remove(StoreKeys.folders.byId(folderId));
+
+    const folders = await this.getFolders();
+
+    const ids = folders.map((f) => f.id);
+
+    await this.set(
+      StoreKeys.folders.list,
+      JSON.stringify(ids.filter((id) => id !== folderId))
+    );
+  },
 };
 
 export default StoreManager;
@@ -135,6 +221,8 @@ export const StoreKeys = {
     LAST_SCHEMA_NAME: "settings::LAST_SCHEMA_NAME",
     DEVICE_ID: "settings::DEVICE_ID",
     THEME: "settings::THEME",
+    TBA_API_KEY: "settings::TBA_API_KEY",
+    TBA_EVENT_KEY: "settings::TBA_EVENT_KEY",
     EXPECTED_DEVICES_COUNT: "settings::EXPECTED_DEVICES_COUNT",
     LEAD_SCOUT_ONLY: "settings::LEAD_SCOUT_ONLY",
     AUTOSAVE_ON_COMPLETE: "settings::AUTOSAVE_ON_COMPLETE",
@@ -143,6 +231,11 @@ export const StoreKeys = {
   code: {
     archived: (name: string) => `code::${name}::archived`,
     scanned: (name: string) => `code::${name}::scanned`,
+    putInFolder: (name: string) => `code::${name}::folder`,
+  },
+  folders: {
+    list: "folders::list",
+    byId: (id: string) => `folders::${id}`,
   },
   match: {
     field: (name: string) => `match::field::${name}`,
@@ -151,5 +244,10 @@ export const StoreKeys = {
     byId: (id: number) => `analysis::${id}`,
     list: "analyses::list",
     pinned: (chartId: string) => `analysis::${chartId}::pinned`,
+  },
+  tba: {
+    EVENT_DATA: "tba::EVENT_DATA",
+    EVENT_KEY: "tba::EVENT_KEY",
+    CACHED_EVENTS: "tba::CACHED_EVENTS",
   },
 };

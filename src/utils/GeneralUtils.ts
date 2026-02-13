@@ -6,7 +6,7 @@ import { getSchemaFromHash } from "./SchemaUtils";
 import changelog from "../../CHANGELOG.md?raw";
 import StoreManager, { StoreKeys } from "./StoreManager";
 
-const GITHUB_OWNER = "Team3655";
+const GITHUB_OWNER = "TractorNation";
 const GITHUB_REPO = "FarmHand";
 const CACHE_DURATION = 3600000;
 
@@ -45,16 +45,14 @@ const propMap: { [key: string]: string } = {
 export function isFieldInvalid(
   required: boolean,
   type: string,
-  //defaultValue: any,
   value: any
 ) {
   return (
     required &&
     (value === "" ||
       (type === "checkbox" && value === false) ||
-      (type === "number" && (value === undefined || value === null)) ||
-      (type === "grid" && (value as string).split(":")[1] === "[]")/* ||
-      value === defaultValue*/
+      (type === "number" && (value === undefined || value === null )) ||
+      (type === "grid" && (value as string).split(":")[1] === "[]")
     )
   );
 }

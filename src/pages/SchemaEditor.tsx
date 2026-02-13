@@ -235,7 +235,11 @@ export default function SchemaEditor() {
     for (const section of editingSchema.sections) {
       for (const field of section.fields) {
         if (!field.type) return false;
-        if (field.type === "dropdown" && !field.props?.options) return false;
+        if (
+          (field.type === "dropdown" || field.type === "multiplechoice") &&
+          !field.props?.options
+        )
+          return false;
       }
     }
     return true;
@@ -510,7 +514,11 @@ export default function SchemaEditor() {
         : prevSchema.sections[toSectionIndex].fields.length;
 
       // Adjust index based on drop position relative to the 'over' item
-      if (overFieldInDest && over.rect && active.rect.current.translated) {
+      if (
+        overFieldInDest &&
+        over.rect &&
+        active.rect?.current?.translated
+      ) {
         const isBelow =
           active.rect.current.translated.top >
           over.rect.top + over.rect.height / 2;
@@ -539,31 +547,91 @@ export default function SchemaEditor() {
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
 
-    if (over && active.id !== over.id) {
-      const sourceLocation = findFieldLocation(editingSchema!, active.id);
-      const overLocation = findFieldLocation(editingSchema!, over.id);
+    if (!over || !editingSchema || active.id === over.id) {
+      resetDragState();
+      return;
+    }
 
-      // Only handle same-container sorting.
-      if (
-        sourceLocation &&
-        overLocation &&
-        sourceLocation.sectionIndex === overLocation.sectionIndex
-      ) {
-        const { sectionIndex, fieldIndex: fromIndex } = sourceLocation;
-        const { fieldIndex: toIndex } = overLocation;
+    const sourceLocation = findFieldLocation(editingSchema, active.id);
+    if (!sourceLocation) {
+      resetDragState();
+      return;
+    }
 
-        if (fromIndex !== toIndex) {
-          setEditingSchema((schema) => {
-            if (!schema) return null;
-            const newSections = JSON.parse(JSON.stringify(schema.sections));
-            newSections[sectionIndex].fields = arrayMove(
-              newSections[sectionIndex].fields,
-              fromIndex,
-              toIndex
-            );
-            return { ...schema, sections: newSections };
-          });
-        }
+    const sourceContainerId =
+      editingSchema.sections[sourceLocation.sectionIndex].title;
+
+    const overLocation = findFieldLocation(editingSchema, over.id);
+    const overContainerId = overLocation
+      ? editingSchema.sections[overLocation.sectionIndex].title
+      : over.id.toString();
+
+    // Same-container sorting
+    if (
+      sourceLocation &&
+      overLocation &&
+      sourceLocation.sectionIndex === overLocation.sectionIndex
+    ) {
+      const { sectionIndex, fieldIndex: fromIndex } = sourceLocation;
+      const { fieldIndex: toIndex } = overLocation;
+
+      if (fromIndex !== toIndex) {
+        setEditingSchema((schema) => {
+          if (!schema) return null;
+          const newSections = JSON.parse(JSON.stringify(schema.sections));
+          newSections[sectionIndex].fields = arrayMove(
+            newSections[sectionIndex].fields,
+            fromIndex,
+            toIndex
+          );
+          return { ...schema, sections: newSections };
+        });
+      }
+    }
+    // Cross-container move (including to empty sections)
+    else if (sourceContainerId !== overContainerId) {
+      const fromSectionIndex = editingSchema.sections.findIndex(
+        (s) => s.title === sourceContainerId
+      );
+      const toSectionIndex = editingSchema.sections.findIndex(
+        (s) => s.title === overContainerId
+      );
+
+      if (fromSectionIndex !== -1 && toSectionIndex !== -1) {
+        setEditingSchema((schema) => {
+          if (!schema) return null;
+
+          const fromFieldIndex = schema.sections[fromSectionIndex].fields.findIndex(
+            (f) => f.id === active.id
+          );
+          if (fromFieldIndex === -1) {
+            return schema;
+          }
+
+          // Determine target index
+          let toFieldIndex = overLocation
+            ? overLocation.fieldIndex
+            : schema.sections[toSectionIndex].fields.length;
+
+          // Adjust index if dropping below a field
+          if (overLocation && over.rect && active.rect.current.translated) {
+            const isBelow =
+              active.rect.current.translated.top >
+              over.rect.top + over.rect.height / 2;
+            if (isBelow) {
+              toFieldIndex += 1;
+            }
+          }
+
+          const newSections = JSON.parse(JSON.stringify(schema.sections));
+          const [movedField] = newSections[fromSectionIndex].fields.splice(
+            fromFieldIndex,
+            1
+          );
+          newSections[toSectionIndex].fields.splice(toFieldIndex, 0, movedField);
+
+          return { ...schema, sections: newSections };
+        });
       }
     }
 

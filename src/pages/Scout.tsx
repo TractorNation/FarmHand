@@ -52,6 +52,7 @@ export default function Scout() {
     openUnsavedResetWarning,
     closeUnsavedResetWarning,
   ] = useDialog();
+  
   const [
     showCompleteScoutDialog,
     openCompleteScoutDialog,

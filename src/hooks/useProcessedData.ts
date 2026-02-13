@@ -233,7 +233,11 @@ export default function useProcessedData(
           } else if (yFieldType === "checkbox") {
             // Convert boolean to number (0 or 1) for numeric charts
             yValue = Boolean(rawYValue) ? 1 : 0;
-          } else if (yFieldType === "text" || yFieldType === "dropdown") {
+          } else if (
+            yFieldType === "text" ||
+            yFieldType === "dropdown" ||
+            yFieldType === "multiplechoice"
+          ) {
             // For categorical fields, use the string value as-is
             // They'll be counted/aggregated in the grouping logic
             yValue = String(rawYValue);
@@ -410,8 +414,12 @@ export default function useProcessedData(
         xValueMap.forEach((yValues, xKey) => {
           let aggregatedValue = 0;
 
-          // Handle string/categorical values (text, dropdown)
-          if (yFieldType === "text" || yFieldType === "dropdown") {
+          // Handle string/categorical values (text, dropdown, radio)
+          if (
+            yFieldType === "text" ||
+            yFieldType === "dropdown" ||
+            yFieldType === "multiplechoice"
+          ) {
             // For categorical data, count is the most meaningful aggregation
             aggregatedValue = yValues.length;
           } else {
@@ -686,8 +694,12 @@ export default function useProcessedData(
       groupedSimple.forEach((values, xKey) => {
         let aggregatedValue = 0;
 
-        // Handle string/categorical values (text, dropdown)
-        if (yFieldType === "text" || yFieldType === "dropdown") {
+        // Handle string/categorical values (text, dropdown, radio)
+        if (
+          yFieldType === "text" ||
+          yFieldType === "dropdown" ||
+          yFieldType === "multiplechoice"
+        ) {
           // For categorical data, count is the most meaningful aggregation
           aggregatedValue = values.length;
         } else {
@@ -754,10 +766,92 @@ export default function useProcessedData(
     if (!groupedSimple) return [];
     const result: any[] = [];
 
+    // Special handling for pie charts: group by value and show team numbers
+    if (chart.type === "pie") {
+      // For pie charts, use X-axis if Y-axis is not specified
+      const valueFieldIndex = yFieldIndex !== -1 ? yFieldIndex : xFieldIndex;
+
+      if (valueFieldIndex === -1) {
+        console.log("No valid field index for pie chart");
+        return [];
+      }
+
+      // Find Team Number field index
+      let teamNumberIndex = -1;
+      absoluteIndex = 0;
+      for (
+        let sectionIdx = 0;
+        sectionIdx < schema.sections.length;
+        sectionIdx++
+      ) {
+        const section = schema.sections[sectionIdx];
+        for (let fieldIdx = 0; fieldIdx < section.fields.length; fieldIdx++) {
+          const field = section.fields[fieldIdx];
+          if (field.name === "Team Number") {
+            teamNumberIndex = absoluteIndex;
+            break;
+          }
+          absoluteIndex++;
+        }
+        if (teamNumberIndex !== -1) break;
+      }
+
+      // Group by values, with counts per team number
+      const valueTeamCounts = new Map<string, Map<string, number>>();
+
+      // Process all data items
+      data.forEach((item) => {
+        if (!item || !item.decoded || !item.decoded.data) return;
+
+        // Get the field value (from Y-axis or X-axis)
+        const fieldValue = item.decoded.data[valueFieldIndex];
+        if (fieldValue === undefined || fieldValue === null) return;
+
+        // Convert value to string for grouping
+        const stringValue = String(fieldValue);
+
+        // Get team number
+        let teamNumber = "Unknown";
+        if (teamNumberIndex !== -1) {
+          const teamValue = item.decoded.data[teamNumberIndex];
+          if (teamValue !== undefined && teamValue !== null) {
+            teamNumber = String(teamValue);
+          }
+        }
+
+        // Initialize nested map structure
+        if (!valueTeamCounts.has(stringValue)) {
+          valueTeamCounts.set(stringValue, new Map<string, number>());
+        }
+        const teamCounts = valueTeamCounts.get(stringValue)!;
+
+        // Increment count
+        const currentCount = teamCounts.get(teamNumber) || 0;
+        teamCounts.set(teamNumber, currentCount + 1);
+      });
+
+      // Convert to pie chart format
+      const pieResult: any[] = [];
+      valueTeamCounts.forEach((teamCounts, value) => {
+        teamCounts.forEach((count, teamNumber) => {
+          const combinedLabel = `${count} - Team ${teamNumber}`;
+          pieResult.push({
+            id: combinedLabel,
+            label: combinedLabel,
+            value: value,
+          });
+        });
+      });
+
+      return pieResult;
+    }
+
     // Special handling for bar charts with text/dropdown Y-axis: group by text values, subgroup by team number
     if (
       chart.type === "bar" &&
-      (yFieldType === "text" || yFieldType === "dropdown")
+      (yFieldType === "text" ||
+        yFieldType === "dropdown" ||
+        yFieldType === "multiplechoice")
     ) {
       // Find Team Number field index for subgrouping
       let teamNumberIndex = -1;
@@ -846,8 +940,12 @@ export default function useProcessedData(
         (values: (number | string | number[])[], key: string) => {
           let aggregatedValue = 0;
 
-          // Handle string/categorical values (text, dropdown)
-          if (yFieldType === "text" || yFieldType === "dropdown") {
+          // Handle string/categorical values (text, dropdown, radio)
+          if (
+            yFieldType === "text" ||
+            yFieldType === "dropdown" ||
+            yFieldType === "multiplechoice"
+          ) {
             // For categorical data, count is the most meaningful aggregation
             aggregatedValue = values.length;
           } else {
@@ -890,82 +988,6 @@ export default function useProcessedData(
           });
         }
       );
-    }
-
-    // Special handling for pie charts with text/dropdown Y-axis: create slices with team subgroups
-    if (
-      chart.type === "pie" &&
-      (yFieldType === "text" || yFieldType === "dropdown")
-    ) {
-      // Find Team Number field index for subgrouping
-      let teamNumberIndex = -1;
-      absoluteIndex = 0;
-      for (
-        let sectionIdx = 0;
-        sectionIdx < schema.sections.length;
-        sectionIdx++
-      ) {
-        const section = schema.sections[sectionIdx];
-        for (let fieldIdx = 0; fieldIdx < section.fields.length; fieldIdx++) {
-          const field = section.fields[fieldIdx];
-          if (field.name === "Team Number") {
-            teamNumberIndex = absoluteIndex;
-            break;
-          }
-          absoluteIndex++;
-        }
-        if (teamNumberIndex !== -1) break;
-      }
-
-      // Group by text/dropdown values, with counts per team number
-      const textValueTeamCounts = new Map<string, Map<string, number>>();
-
-      // Process all data items to build grouped structure
-      data.forEach((item) => {
-        if (!item || !item.decoded || !item.decoded.data) return;
-
-        // Get Y-axis text/dropdown value
-        if (yFieldIndex === -1) return;
-        const yValue = item.decoded.data[yFieldIndex];
-        if (yValue === undefined || yValue === null) return;
-        const textValue = String(yValue);
-
-        // Get team number for subgrouping
-        let teamNumber = "Unknown";
-        if (teamNumberIndex !== -1) {
-          const teamValue = item.decoded.data[teamNumberIndex];
-          if (teamValue !== undefined && teamValue !== null) {
-            teamNumber = String(teamValue);
-          }
-        }
-
-        // Initialize nested map structure
-        if (!textValueTeamCounts.has(textValue)) {
-          textValueTeamCounts.set(textValue, new Map<string, number>());
-        }
-        const teamCounts = textValueTeamCounts.get(textValue)!;
-
-        // Increment count for this team number within this text value
-        const currentCount = teamCounts.get(teamNumber) || 0;
-        teamCounts.set(teamNumber, currentCount + 1);
-      });
-
-      // Convert to pie chart format with combined labels
-      // Format: [{ id: "Success - Team 123", label: "Success - Team 123", value: 3 }, ...]
-      const pieResult: any[] = [];
-      textValueTeamCounts.forEach((teamCounts, textValue) => {
-        teamCounts.forEach((count, teamNumber) => {
-          const combinedLabel = `${textValue} - Team ${teamNumber}`;
-          pieResult.push({
-            id: combinedLabel,
-            label: combinedLabel,
-            value: count,
-          });
-        });
-      });
-
-      // Replace result with pie chart data
-      return pieResult;
     }
 
     // Sort result if sortMode is specified (for bar charts)
