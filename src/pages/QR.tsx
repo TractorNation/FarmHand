@@ -64,7 +64,6 @@ export default function QRPage() {
     [allQrCodes]
   );
 
-  // Use the combined hook - all filter, sort, and selection logic in one place!
   const qrManager = useQrManager({ qrCodes: unarchivedQrCodes });
 
   const executeExport = async (type: "csv" | "json") => {
