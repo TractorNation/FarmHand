@@ -12,7 +12,8 @@
                     "props": {
                         "min": 0,
                         "max": 100,
-                        "default": 0
+                        "default": 0,
+                        "pullFromTBA": false
                     }
                 },
                 {
@@ -47,7 +48,7 @@
                     "required": true,
                     "props": {
                         "min": 0,
-                        "max": 100
+                        "max": 99999
                     }
                 }
             ]
