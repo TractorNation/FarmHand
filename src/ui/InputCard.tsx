@@ -39,7 +39,8 @@ function InputCard(props: InputCardProps) {
         borderWidth: 1,
         borderStyle: "solid",
         borderRadius: isWindowsXPTheme ? 3 : theme.shape.borderRadius,
-        p: 2,
+        p: 1,
+        paddingBottom: 0,
         height: "100%",
         backgroundColor: theme.palette.surface.elevated,
         backgroundImage: isWindowsXPTheme
@@ -117,10 +118,10 @@ function InputCard(props: InputCardProps) {
         </Box>
         {note !== undefined && note !== null && (
           <Typography
-            variant="h6"
+            variant="body2"
             sx={{
-              mt: 2,
-              fontWeight: 500,
+              mt: 1,
+              fontWeight: 250,
               ...(isWindowsXPTheme && {
                 fontFamily: '"Tahoma", "MS Sans Serif", sans-serif',
                 fontSize: "0.95rem",
