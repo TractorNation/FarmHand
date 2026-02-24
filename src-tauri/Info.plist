@@ -8,5 +8,9 @@
     <!-- Camera usage description -->
     <key>NSCameraUsageDescription</key>
     <string>This app requires access to the camera to scan QR codes.</string>
+
+    <!-- Localhost permissions to connect to internal server -->
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>Allows connecting to local development servers for testing.</string>
 </dict>
 </plist>
