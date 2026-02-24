@@ -7,25 +7,25 @@ import {
 } from "@tauri-apps/plugin-fs";
 import { createSchemaHash } from "./GeneralUtils";
 import { appLocalDataDir, resolve } from "@tauri-apps/api/path";
-//import Reefscape from "../config/schema/2025Reefscape.json";
-//import Decode from "../config/schema/2025Decode.json";
+import Reefscape from "../config/schema/2025Reefscape.json";
+import Decode from "../config/schema/2025Decode.json";
 import Pits from "../config/schema/2026PitScouting.json";
 import Rebuilt from "../config/schema/2026Rebuilt.json";
 import { invoke } from "@tauri-apps/api/core";
 
 export const defaultSchemas: SchemaMetaData[] = [
-  // {
-  //   name: "2025 Decode",
-  //   path: "../config/schema/2025Decode.json",
-  //   schema: Decode as Schema,
-  //   type: "default",
-  // },
-  // {
-  //   name: "2025 Reefscape",
-  //   path: "../config/schema/2025Reefscape.json",
-  //   schema: Reefscape as Schema,
-  //   type: "default",
-  // },
+  {
+    name: "2025 Decode",
+    path: "../config/schema/2025Decode.json",
+    schema: Decode as Schema,
+    type: "default",
+  },
+  {
+    name: "2025 Reefscape",
+    path: "../config/schema/2025Reefscape.json",
+    schema: Reefscape as Schema,
+    type: "default",
+  },
   {
     name: "2026 Pit Scouting",
     path: "../config/schema/2026PitScouting.json",

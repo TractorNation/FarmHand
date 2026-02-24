@@ -10,9 +10,9 @@
                     "type": "number",
                     "required": true,
                     "props": {
-                        "min": 0,
-                        "max": 100,
-                        "default": 0
+                        "min": 1,
+                        "max": 1000,
+                        "pullFromTBA": false
                     }
                 },
                 {
@@ -47,7 +47,7 @@
                     "required": true,
                     "props": {
                         "min": 0,
-                        "max": 100
+                        "max": 99999
                     }
                 }
             ]
@@ -86,11 +86,9 @@
                 {
                     "id": 1004,
                     "name": "Approx. Score",
-                    "type": "counter",
+                    "type": "number",
                     "required": false,
-                    "props": {
-                        "min": 0
-                    },
+                    "props": {},
                     "doubleWidth": true
                 },
                 {
