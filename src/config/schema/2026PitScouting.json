@@ -123,14 +123,15 @@
             "fields": [
                 {
                     "id": 2000,
-                    "name": "Est. Auto Fuel Score",
-                    "type": "slider",
-                    "required": false,
+                    "name": "Autonomous",
+                    "type": "dropdown",
+                    "required": true,
                     "props": {
-                        "step": 1,
-                        "selectsRange": true,
-                        "min": 0,
-                        "max": 80
+                        "options": [
+                            "None",
+                            "Hard-coded",
+                            "Path Planner/similar"
+                        ]
                     }
                 },
                 {
@@ -142,26 +143,6 @@
                 },
                 {
                     "id": 2002,
-                    "name": "Climb Position",
-                    "type": "grid",
-                    "required": false,
-                    "props": {
-                        "rows": 1,
-                        "cols": 3
-                    }
-                },
-                {
-                    "id": 2003,
-                    "name": "Climb Level",
-                    "type": "grid",
-                    "required": false,
-                    "props": {
-                        "rows": 3,
-                        "cols": 1
-                    }
-                },
-                {
-                    "id": 2004,
                     "name": "Time to Climb (s)",
                     "type": "slider",
                     "required": false,
@@ -171,6 +152,17 @@
                         "max": 30,
                         "step": 1
                     }
+                },
+                {
+                    "id": 2003,
+                    "name": "Climb Position",
+                    "type": "grid",
+                    "required": false,
+                    "props": {
+                        "rows": 3,
+                        "cols": 3
+                    },
+                    "doubleWidth": true
                 }
             ]
         },
