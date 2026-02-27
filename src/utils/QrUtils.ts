@@ -75,7 +75,7 @@ export function reconstructMatchDataFromArray(
   const reconstructed: Record<string, any> = {};
 
   const allFields = schema.sections.flatMap((section) => section.fields);
-  
+
   const defaultValueMap = new Map<ComponentType, any>();
 
   defaultValueMap.set("checkbox", false);
@@ -90,9 +90,13 @@ export function reconstructMatchDataFromArray(
   defaultValueMap.set("timer", "0.0");
 
   allFields.forEach((field, index) => {
-    let defaultValue = field.props?.default ? field.props.default : defaultValueMap.get(field.type);
+    let defaultValue = field.props?.default
+      ? field.props.default
+      : defaultValueMap.get(field.type);
     const rawValue = values[index] !== "" ? values[index] : defaultValue;
-    reconstructed[field.id] = rawValue ? rawValue : "Failed to get default value";
+    reconstructed[field.id] = rawValue
+      ? rawValue
+      : "Failed to get default value";
   });
 
   return reconstructed;
@@ -122,8 +126,10 @@ function buildQrString(
  * @returns an object containing the type, schemaHash, and data encoded into the code
  */
 export async function decodeQR(qrString: string): Promise<DecodedQr> {
-  const [prefix, typeCode, schemaHash, deviceId, compressed] =
-    qrString.split(":");
+  const [prefix, typeCode, schemaHash, deviceId, compressed] = qrString.split(
+    ":",
+    5
+  );
 
   if (prefix !== APP_PREFIX) throw new Error("Invalid QR prefix");
   if (!typeCode) throw new Error("QR type missing");
@@ -209,7 +215,7 @@ export async function isQrCodeScanned(qrCode: QrCode): Promise<boolean> {
 }
 
 export function validateQR(qrString: string): boolean {
-  const parts = qrString.split(":");
+  const parts = qrString.split(":", 5);
   if (parts.length !== 5) return false;
 
   const [prefix, typeCode, schemaHash, _, compressed] = parts;
@@ -272,7 +278,7 @@ export async function createQrCodeFromImportedData(
   data: string,
   schema: Schema
 ) {
-  const [_prefix, type, schemaHash, deviceId, compressed] = data.split(":");
+  const [_prefix, type, schemaHash, deviceId, compressed] = data.split(":", 5);
 
   const qrString = buildQrString(
     type as QrType,
@@ -325,7 +331,7 @@ export async function fetchQrCodes(): Promise<QrCode[] | undefined> {
 
 export function validateQrType(type: QrType, qrData: string): boolean {
   if (!validateQR(qrData)) return false;
-  const parts = qrData.split(":");
+  const parts = qrData.split(":", 5);
   return parts[0] === "frmhnd" && parts[1] === type.charAt(0);
 }
 
