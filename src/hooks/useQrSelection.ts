@@ -69,7 +69,7 @@ export function useQrSelection(qrCodes?: QrCode[]) {
   const resetSelection = () => {
     setSelectedCodes([]);
     setSelectedHash(null);
-    toggleSelecting;
+    toggleSelecting();
   };
 
   const noCodesSelected = useMemo(
