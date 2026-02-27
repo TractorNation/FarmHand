@@ -53,12 +53,13 @@ import Help from "./pages/Help";
 import Analyses from "./pages/Analyses";
 import AnalysisViewer from "./pages/AnalysisViewer";
 import { getLatestGitHubVersion } from "./utils/GeneralUtils";
+import { version } from "../package.json";
 const Home = React.lazy(() => import("./pages/Home"));
 const Settings = React.lazy(() => import("./pages/Settings"));
 const Scout = React.lazy(() => import("./pages/Scout"));
 const QRPage = React.lazy(() => import("./pages/QR"));
 
-const CURRENT_VERSION: string = "0.2026.3-beta.3";
+const CURRENT_VERSION: string = String(version);
 
 const checkForUpdates = async (): Promise<{
   available: boolean;
@@ -150,7 +151,7 @@ function Layout({ children }: { children: React.ReactNode }) {
       setUpdateAvailable(result.available);
       setLatestVersion(result.version);
     });
-  }, [latestVersion]);
+  }, []);
 
   useEffect(() => {
     const scrollThreshold = 10;
