@@ -150,7 +150,7 @@ function Layout({ children }: { children: React.ReactNode }) {
       setUpdateAvailable(result.available);
       setLatestVersion(result.version);
     });
-  }, [latestVersion]);
+  }, []);
 
   useEffect(() => {
     const scrollThreshold = 10;
