@@ -141,6 +141,7 @@ export function getFieldValueByName(
     sec.fields.find((f) => {
       if (f.name.toLowerCase().trim() === fieldName.toLowerCase().trim()) {
         fieldId = f.id;
+        return true;
       }
     });
   });

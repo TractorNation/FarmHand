@@ -87,7 +87,7 @@ export default function SchemaEditor() {
 
   const [editingSchema, setEditingSchema] = useState<Schema | null>(null);
   const [originalSchema, setOriginalSchema] = useState<Schema | null>(null);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  // const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [nextFieldId, setNextFieldId] = useState(1);
   const [activeId, setActiveId] = useState<string | number | null>(null);
@@ -179,16 +179,24 @@ export default function SchemaEditor() {
   }, [editingSchema]);
 
   // Check for unsaved changes
-  useEffect(() => {
-    if (!editingSchema || !originalSchema) {
-      setHasUnsavedChanges(false);
-      return;
-    }
 
-    const hasChanges =
-      JSON.stringify(editingSchema) !== JSON.stringify(originalSchema);
-    setHasUnsavedChanges(hasChanges);
+  const hasUnsavedChanges = useMemo(() => {
+    if (!editingSchema || !originalSchema) {
+     return false;
+    }
+    return JSON.stringify(editingSchema) !== JSON.stringify(originalSchema);
   }, [editingSchema, originalSchema]);
+
+  // useEffect(() => {
+  //   if (!editingSchema || !originalSchema) {
+  //     setHasUnsavedChanges(false);
+  //     return;
+  //   }
+
+  //   const hasChanges =
+  //     JSON.stringify(editingSchema) !== JSON.stringify(originalSchema);
+  //   setHasUnsavedChanges(hasChanges);
+  // }, [editingSchema, originalSchema]);
 
   const activeComponent = useMemo(() => {
     if (!activeId || !editingSchema) return null;
