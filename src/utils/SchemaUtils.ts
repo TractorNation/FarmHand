@@ -10,7 +10,9 @@ import { appLocalDataDir, resolve } from "@tauri-apps/api/path";
 import Reefscape from "../config/schema/2025Reefscape.json";
 import Decode from "../config/schema/2025Decode.json";
 import Pits from "../config/schema/2026PitScouting.json";
+import TBAPits from "../config/schema/2026PitScoutingTBA.json";
 import Rebuilt from "../config/schema/2026Rebuilt.json";
+import TBARebuilt from "../config/schema/2026RebuiltTBA.json";
 import { invoke } from "@tauri-apps/api/core";
 
 export const defaultSchemas: SchemaMetaData[] = [
@@ -32,10 +34,22 @@ export const defaultSchemas: SchemaMetaData[] = [
     schema: Pits as Schema,
     type: "default",
   },
+  {
+    name: "2026 Pit Scouting (TBA)",
+    path: "../config/schema/2026PitScoutingTBA.json",
+    schema: TBAPits as Schema,
+    type: "default",
+  },
    {
     name: "2026 Rebuilt",
     path: "../config/schema/2026Rebuilt.json",
     schema: Rebuilt as Schema,
+    type: "default",
+  },
+   {
+    name: "2026 Rebuilt (TBA)",
+    path: "../config/schema/2026RebuiltTBA.json",
+    schema: TBARebuilt as Schema,
     type: "default",
   }
 ];
