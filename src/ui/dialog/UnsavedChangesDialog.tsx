@@ -23,7 +23,7 @@ export default function UnsavedChangesDialog({
     <Dialog
       open={open}
       onClose={onClose}
-      slotProps={{ paper: { sx: { borderRadius: 3, minwidth: 'fit-content' } } }}
+      slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 'fit-content' } } }}
     >
       <DialogTitle
         sx={{

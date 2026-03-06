@@ -1,6 +1,6 @@
 [package]
 name = "Farmhand"
-version = "0.2026.3"
+version = "2026.3.1"
 description = "A FIRST Robotics Competition scouting application."
 authors = ["Henry Mullin", "Jacob Evenson"]
 edition = "2021"

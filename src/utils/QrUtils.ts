@@ -254,6 +254,8 @@ export async function saveQrCode(code: QrCode) {
   });
 }
 
+
+// TODO: `StoreManager.remove()` calls for folder references are unawaited; folders can retain ghost references to deleted QR codes.
 export async function deleteQrCode(code: QrCode) {
   StoreManager.remove(StoreKeys.code.archived(code.name));
   StoreManager.remove(StoreKeys.code.scanned(code.name));

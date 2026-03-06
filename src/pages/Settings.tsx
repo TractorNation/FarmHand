@@ -47,6 +47,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { useScoutData } from "../context/ScoutDataContext";
 import AutocompleteInput from "../ui/components/AutocompleteInput";
 import StoreManager, { StoreKeys } from "../utils/StoreManager";
+import { version } from "../../package.json";
 
 // Type definition for TBA data response from Rust backend
 interface TbaDataResponse {
@@ -796,7 +797,7 @@ export default function Settings() {
                   Version
                 </Typography>
                 <Typography variant="body1" sx={{ fontWeight: 600 }}>
-                  FarmHand v0.2026.3
+                  Farmhand { String(version) }
                 </Typography>
               </Box>
               <Divider sx={{ borderColor: theme.palette.surface.outline }} />

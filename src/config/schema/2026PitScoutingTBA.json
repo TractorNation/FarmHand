@@ -1,5 +1,5 @@
 {
-    "name": "2026 Pit Scouting",
+    "name": "2026 Pit Scouting (TBA)",
     "sections": [
         {
             "title": "Match Info",
@@ -12,7 +12,8 @@
                     "props": {
                         "min": 0,
                         "max": 0,
-                        "default": 0
+                        "default": 0,
+                        "pullFromTBA": false
                     }
                 },
                 {
@@ -22,7 +23,8 @@
                     "required": true,
                     "props": {
                         "min": 1,
-                        "max": 99999
+                        "max": 99999,
+                        "pullFromTBA": true
                     }
                 },
                 {

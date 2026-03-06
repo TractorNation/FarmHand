@@ -136,15 +136,19 @@ export function getFieldValueByName(
   schema: Schema,
   matchData: Map<number, any>
 ): string | null {
-  let fieldId;
-  schema.sections.forEach((schema) => {
-    schema.fields.find((f) => {
+  let fieldId: number | undefined;
+  schema.sections.forEach((sec) => {
+    sec.fields.find((f) => {
       if (f.name.toLowerCase().trim() === fieldName.toLowerCase().trim()) {
         fieldId = f.id;
+        return true;
       }
     });
   });
-  if (!fieldId) return null;
+
+  // Explicitly check for undefined so id `0` is treated as a valid id
+  if (fieldId === undefined) return null;
+
   const value = matchData.get(fieldId);
   return value !== undefined
     ? String(value).replace(/[^a-zA-Z0-9_-]/g, "")
