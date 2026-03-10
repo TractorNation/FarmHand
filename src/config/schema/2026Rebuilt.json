@@ -25,7 +25,8 @@
                             "Red",
                             "Blue"
                         ]
-                    }
+                    },
+                    "persist": true
                 },
                 {
                     "id": 2,
@@ -38,7 +39,8 @@
                             "2",
                             "3"
                         ]
-                    }
+                    },
+                    "persist": true
                 },
                 {
                     "id": 3,
@@ -58,7 +60,7 @@
             "fields": [
                 {
                     "id": 1000,
-                    "name": "Moved",
+                    "name": "No Auto",
                     "type": "checkbox",
                     "required": false,
                     "props": {}
@@ -86,7 +88,7 @@
                 },
                 {
                     "id": 1004,
-                    "name": "Approx. Score",
+                    "name": "Auto Fuel Score",
                     "type": "number",
                     "required": false,
                     "props": {},
@@ -109,17 +111,11 @@
                     "name": "Fuel to Field",
                     "type": "checkbox",
                     "required": false,
-                    "props": {}
+                    "props": {},
+                    "note": "Did they transfer fuel to Ally Zone without attempting to score? (pushing doesn't count)"
                 },
                 {
                     "id": 2001,
-                    "name": "Fuel to Corral",
-                    "type": "checkbox",
-                    "required": false,
-                    "props": {}
-                },
-                {
-                    "id": 2002,
                     "name": "Defense?",
                     "type": "slider",
                     "required": false,
@@ -129,13 +125,6 @@
                         "min": 0,
                         "max": 2
                     }
-                },
-                {
-                    "id": 2003,
-                    "name": "Score",
-                    "type": "number",
-                    "required": false,
-                    "props": {}
                 }
             ]
         },
@@ -166,13 +155,20 @@
                 },
                 {
                     "id": 3002,
+                    "name": "Total Fuel Score",
+                    "type": "number",
+                    "required": true,
+                    "props": {}
+                },
+                {
+                    "id": 3003,
                     "name": "Broke Down?",
                     "type": "checkbox",
                     "required": false,
                     "props": {}
                 },
                 {
-                    "id": 3003,
+                    "id": 3004,
                     "name": "Climb Level",
                     "type": "dropdown",
                     "required": true,
@@ -188,7 +184,7 @@
                     }
                 },
                 {
-                    "id": 3004,
+                    "id": 3005,
                     "name": "Comments",
                     "type": "text",
                     "required": false,
@@ -196,7 +192,7 @@
                     "doubleWidth": true
                 },
                 {
-                    "id": 3005,
+                    "id": 3006,
                     "name": "Re-Scout?",
                     "type": "checkbox",
                     "required": false,
