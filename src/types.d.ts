@@ -38,6 +38,7 @@ interface Component {
   type: ComponentType;
   required?: boolean;
   doubleWidth?: boolean;
+  persist?: boolean;
   props?: ComponentProps;
 }
 

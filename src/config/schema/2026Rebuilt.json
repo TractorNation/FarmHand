@@ -63,28 +63,32 @@
                     "name": "No Auto",
                     "type": "checkbox",
                     "required": false,
-                    "props": {}
+                    "props": {},
+                    "note": "Check this if Robot did NOTHING during Auto"
                 },
                 {
                     "id": 1001,
                     "name": "Fuel from Depot",
                     "type": "checkbox",
                     "required": false,
-                    "props": {}
+                    "props": {},
+                    "note": "Did they pick up Fuel from Depot during Auto?"
                 },
                 {
                     "id": 1002,
                     "name": "Fuel from Corral",
                     "type": "checkbox",
                     "required": false,
-                    "props": {}
+                    "props": {},
+                    "note": "Did they pick up Fuel from Corral (Human Player) during Auto?"
                 },
                 {
                     "id": 1003,
                     "name": "Fuel from Neutral",
                     "type": "checkbox",
                     "required": false,
-                    "props": {}
+                    "props": {},
+                    "note": "Did they pick up Fuel from Neutral Zone during Auto?"
                 },
                 {
                     "id": 1004,
@@ -92,6 +96,7 @@
                     "type": "number",
                     "required": false,
                     "props": {},
+                    "note": "Don't reset clicker, just keep counting",
                     "doubleWidth": true
                 },
                 {
@@ -121,10 +126,11 @@
                     "required": false,
                     "props": {
                         "step": 1,
-                        "default": 0,
-                        "min": 0,
-                        "max": 2
-                    }
+                        "default": 1,
+                        "min": 1,
+                        "max": 3
+                    },
+                    "note": "1 = No defense, 3 = Great defense"
                 }
             ]
         },
@@ -137,8 +143,6 @@
                     "type": "counter",
                     "required": false,
                     "props": {
-                        "step": 1,
-                        "default": 0,
                         "min": 0,
                         "max": 10
                     }
@@ -149,8 +153,8 @@
                     "type": "counter",
                     "required": false,
                     "props": {
-                        "max": 10,
-                        "min": 0
+                        "min": 0,
+                        "max": 10
                     }
                 },
                 {
@@ -158,7 +162,8 @@
                     "name": "Total Fuel Score",
                     "type": "number",
                     "required": true,
-                    "props": {}
+                    "props": {},
+                    "note": "Total amount on clicker, no need for mental math"
                 },
                 {
                     "id": 3003,
@@ -170,10 +175,9 @@
                 {
                     "id": 3004,
                     "name": "Climb Level",
-                    "type": "dropdown",
+                    "type": "multiplechoice",
                     "required": true,
                     "props": {
-                        "rows": 1,
                         "options": [
                             "No Attempt",
                             "Failed",
@@ -189,6 +193,7 @@
                     "type": "text",
                     "required": false,
                     "props": {},
+                    "note": "Please be concise",
                     "doubleWidth": true
                 },
                 {
@@ -197,6 +202,7 @@
                     "type": "checkbox",
                     "required": false,
                     "props": {},
+                    "note": "Select if you feel this report is too inaccurate to use",
                     "doubleWidth": true
                 }
             ]
