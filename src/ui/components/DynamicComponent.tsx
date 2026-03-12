@@ -36,6 +36,10 @@ export default function DynamicComponent(props: DynamicComponentProps) {
     getAllMatchNumbers,
     getAllTeamNumbers,
     tbaMatchData,
+    setWatchedMatchNumber,
+    setWatchedAlliance,
+    setWatchedPosition,
+    getTeamForCurrentSlot,
   } = useScoutData();
   const { component, submitted } = props;
 
@@ -116,6 +120,17 @@ export default function DynamicComponent(props: DynamicComponentProps) {
     );
 
     setValue(initialDisplayValue);
+
+    // When persisted values are loaded (e.g. Alliance/Position survive a reset),
+    // push them into context so getTeamForCurrentSlot() starts with the right state.
+    if (component.name === "Match Number" && initialDisplayValue !== null && initialDisplayValue !== undefined) {
+      setWatchedMatchNumber(String(initialDisplayValue));
+    } else if (component.name === "Alliance" && initialDisplayValue && initialDisplayValue !== "Select an option...") {
+      setWatchedAlliance(String(initialDisplayValue));
+    } else if (component.name === "Position" && initialDisplayValue && initialDisplayValue !== "Select an option...") {
+      setWatchedPosition(String(initialDisplayValue));
+    }
+
     if (component.required) {
       setValid(!isInvalid);
       if (isInvalid) {
@@ -140,6 +155,9 @@ export default function DynamicComponent(props: DynamicComponentProps) {
     addError,
     removeError,
     getMatchData,
+    setWatchedMatchNumber,
+    setWatchedAlliance,
+    setWatchedPosition,
   ]);
 
   const handleChange = (newValue: any) => {
@@ -163,10 +181,49 @@ export default function DynamicComponent(props: DynamicComponentProps) {
       removeError(component.name);
     }
 
+    // Keep the context's watched states in sync so getTeamForCurrentSlot() stays current.
+    // Null/empty values clear the watched state, preventing stale lookups.
+    if (component.name === "Match Number") {
+      setWatchedMatchNumber(newValue !== null && newValue !== undefined ? String(newValue) : null);
+    } else if (component.name === "Alliance") {
+      setWatchedAlliance(newValue && newValue !== "Select an option..." ? String(newValue) : null);
+    } else if (component.name === "Position") {
+      setWatchedPosition(newValue && newValue !== "Select an option..." ? String(newValue) : null);
+    }
+
     debounceTimeout.current = setTimeout(() => {
       addMatchData(component.id, newValue);
     }, 300);
   };
+
+  // When all three slot inputs are filled, get team number from the match schedule
+  // and write it directly into this field's value and the match data store.
+  // getTeamForCurrentSlot is a useCallback that changes reference whenever any of
+  // watchedMatchNumber/watchedAlliance/watchedPosition changes, so this effect
+  // re-runs automatically on every relevant field change.
+  useEffect(() => {
+    if (component.name !== "Team Number") return;
+    const derived = getTeamForCurrentSlot();
+    if (!derived) return;
+
+    setValue(derived);
+    addMatchData(component.id, derived);
+
+    const isInvalid = isFieldInvalid(component.required!, component.type, derived);
+    setValid(!isInvalid);
+    if (isInvalid) addError(component.name);
+    else removeError(component.name);
+  }, [
+    getTeamForCurrentSlot,
+    component.name,
+    component.id,
+    component.required,
+    component.type,
+    addMatchData,
+    addError,
+    removeError,
+    setValid,
+  ]);
 
   const renderInput = () => {
     if (loading) {

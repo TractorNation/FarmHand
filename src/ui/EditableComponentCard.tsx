@@ -159,6 +159,7 @@ export default function EditableComponentCard(props: ComponentCardProps) {
       field === "type" ||
       field === "required" ||
       field === "doubleWidth" ||
+      field === "persist" ||
       field === "note"
     ) {
       newComponent = { ...editedComponent, [field]: value };
@@ -620,6 +621,22 @@ export default function EditableComponentCard(props: ComponentCardProps) {
               }
               label="Double Wide?"
             />
+            {!isProtected && (
+              // This is structured differently so the button won't appear (even as disabled) on
+              // Match Num or Team Num fields, as they have special behavior & should never
+              // persist like this
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={editedComponent.persist || false}
+                    onChange={(e) =>
+                      handleFieldChange("persist", e.target.checked)
+                    }
+                  />
+                }
+                label="Persist Value on Submit?"
+              />
+            )}
             {isProtected && (editedComponent.name === "Match Number" || editedComponent.name === "Team Number") && (
               <FormControlLabel
                 control={
