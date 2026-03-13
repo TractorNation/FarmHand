@@ -89,6 +89,31 @@ export default function Scout() {
     [schema]
   );
 
+  // Collects entries that should survive a form clear.
+  // persist: true fields retain their current value.
+  // If incrementMatchNumber is true, Match Number is incremented by 1 instead of being cleared.
+  const buildPersistedEntries = (incrementMatchNumber: boolean) => {
+    const matchData = getMatchDataMap();
+    const allFields = schema!.sections.flatMap((s) => s.fields);
+    const entries: { key: number; value: any }[] = [];
+
+    for (const field of allFields) {
+      if (field.name === "Match Number" && incrementMatchNumber) {
+        const current = matchData.get(field.id);
+        if (current !== undefined && current !== null) {
+          entries.push({ key: field.id, value: Number(current) + 1 });
+        }
+      } else if (field.persist) {
+        const val = matchData.get(field.id);
+        if (val !== undefined && val !== null) {
+          entries.push({ key: field.id, value: val });
+        }
+      }
+    }
+
+    return entries;
+  };
+
   const handleCompleteScout = async () => {
     // Mark as saved (autosave is handled in CompleteScoutDialog)
     isSavedRef.current = true;
@@ -101,8 +126,10 @@ export default function Scout() {
       setShowSuccessSnackbar(true);
     }
 
-    // Reset form
-    await clearMatchData();
+    // Reset form, persisting flagged fields and incrementing Match Number
+    // 'true' is passed to indicate match number should increment- see comments for
+    // buildPersistedEntries const
+    await clearMatchData(buildPersistedEntries(true));
     clearErrors();
     setResetKey((prev) => (prev as number) + 1);
     isSavedRef.current = false;
@@ -131,7 +158,8 @@ export default function Scout() {
   };
 
   const handleReset = async () => {
-    await clearMatchData();
+    // 'false' passed here to indicate Match Number should not increment
+    await clearMatchData(buildPersistedEntries(false));
     clearErrors();
     setResetKey((prev) => (prev as number) + 1);
     isSavedRef.current = false;
@@ -139,7 +167,8 @@ export default function Scout() {
   };
 
   const handleConfirmReset = async () => {
-    await clearMatchData();
+    // 'false' passed here to indicate Match Number should not increment
+    await clearMatchData(buildPersistedEntries(false));
     clearErrors();
     setResetKey((prev) => (prev as number) + 1);
     isSavedRef.current = false;

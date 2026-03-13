@@ -30,7 +30,8 @@
                     "name": "Stock Kit Bot",
                     "type": "checkbox",
                     "required": false,
-                    "props": {}
+                    "props": {},
+                    "note": "Set True only if OOTB Kit Bot"
                 },
                 {
                     "id": 3,
@@ -50,26 +51,40 @@
             "fields": [
                 {
                     "id": 1000,
-                    "name": "Dimensions w/ Bumpers (L/W/H)",
-                    "type": "text",
+                    "name": "Perimeter (in.))",
+                    "type": "number",
                     "required": false,
-                    "props": {}
+                    "props": {
+                        "min": 0,
+                        "max": 150
+                    },
+                    "note": "WITH Bumpers. If answer does not include bumpers, add 4x bumper width"
                 },
                 {
                     "id": 1001,
-                    "name": "Intake Source",
+                    "name": "Height (in.)",
+                    "type": "number",
+                    "required": false,
+                    "props": {
+                        "min": 0,
+                        "max": 30
+                    },
+                    "note": "30 in. legal max"
+                },
+                {
+                    "id": 1002,
+                    "name": "Intake",
                     "type": "dropdown",
                     "required": false,
                     "props": {
                         "options": [
-                            "Floor",
-                            "Corral",
-                            "Any"
+                            "Over Bumper",
+                            "Open Bumper"
                         ]
                     }
                 },
                 {
-                    "id": 1002,
+                    "id": 1003,
                     "name": "Hopper Capacity",
                     "type": "number",
                     "required": false,
@@ -79,7 +94,7 @@
                     }
                 },
                 {
-                    "id": 1003,
+                    "id": 1004,
                     "name": "Hopper Fill Time (s)",
                     "type": "slider",
                     "required": false,
@@ -87,10 +102,11 @@
                         "step": 1,
                         "min": 0,
                         "max": 60
-                    }
+                    },
+                    "note": "Seconds to fill Hoppper using Intake. Leave default if unknown."
                 },
                 {
-                    "id": 1004,
+                    "id": 1005,
                     "name": "Volley Time (s)",
                     "type": "slider",
                     "required": false,
@@ -99,10 +115,11 @@
                         "max": 60,
                         "step": 1,
                         "selectsRange": false
-                    }
+                    },
+                    "note": "Seconds to empty a full Hopper. Leave default if unknown."
                 },
                 {
-                    "id": 1005,
+                    "id": 1006,
                     "name": "Scoring Range (ft)",
                     "type": "dropdown",
                     "required": false,
@@ -151,7 +168,8 @@
                         "min": 0,
                         "max": 30,
                         "step": 1
-                    }
+                    },
+                    "note": "Set both ends to 0 if can't climb"
                 },
                 {
                     "id": 2003,
@@ -162,6 +180,7 @@
                         "rows": 3,
                         "cols": 3
                     },
+                    "note": "Hub POV- rows = rungs, columns = Left/Center/Right. Leave blank if can't climb",
                     "doubleWidth": true
                 }
             ]
@@ -179,7 +198,8 @@
                             "No",
                             "Yes"
                         ]
-                    }
+                    },
+                    "note": "Can they distribute fuel to Ally Zone to pick up later?"
                 },
                 {
                     "id": 3001,
@@ -191,7 +211,8 @@
                         "min": 1,
                         "max": 3,
                         "default": 2
-                    }
+                    },
+                    "note": "1 = \"Avoids def if possible\", 3 = \"Prefers playing def if possible\""
                 },
                 {
                     "id": 3002,
@@ -204,7 +225,8 @@
                             "Auto Only",
                             "Yes"
                         ]
-                    }
+                    },
+                    "note": "\"Yes\" if used during Teleop, assumed Auto also"
                 }
             ]
         },
@@ -229,7 +251,8 @@
                         "step": 1,
                         "max": 5,
                         "default": 3
-                    }
+                    },
+                    "note": "0 = DNP, 3 = *shrug*, 5 = best friends"
                 }
             ]
         }
