@@ -1,9 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 
-export function useAsyncFetch<T>(
-  fetchFunction: () => Promise<T>,
-  dependencies: any[] = []
-) {
+export function useAsyncFetch<T>(fetchFunction: () => Promise<T>) {
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -40,7 +37,7 @@ export function useAsyncFetch<T>(
     return () => {
       isMounted = false;
     };
-  }, [...dependencies, refetchIndex]);
+  }, [fetchFunction, refetchIndex]);
 
   return [data, loading, error, refetch] as const;
 }

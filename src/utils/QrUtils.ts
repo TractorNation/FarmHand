@@ -91,8 +91,8 @@ export function reconstructMatchDataFromArray(
 
   allFields.forEach((field, index) => {
     let defaultValue = field.props?.default ? field.props.default : defaultValueMap.get(field.type);
-    const rawValue = values[index] !== "" ? values[index] : defaultValue;
-    reconstructed[field.id] = rawValue ? rawValue : "Failed to get default value";
+    const rawValue = (values[index] !== "" && values[index] != null) ? values[index] : defaultValue;
+    reconstructed[field.id] = rawValue !== null && rawValue !== undefined ? rawValue : "Failed to get default value";
   });
 
   return reconstructed;
@@ -223,14 +223,18 @@ export function validateQR(qrString: string): boolean {
 }
 
 export function getDataFromQrName(name: string) {
-  const [teamNumber, matchNumber, timestamp] = name
-    .replace(".svg", "")
-    .split("-");
+  const stripped = name.replace(".svg", "");
+  const firstDash = stripped.indexOf("-");
+  const lastDash = stripped.lastIndexOf("-");
+
+  if (firstDash === -1 || firstDash === lastDash) {
+    return { TeamNumber: stripped, MatchNumber: "", Timestamp: "" };
+  }
 
   return {
-    TeamNumber: teamNumber,
-    MatchNumber: matchNumber,
-    Timestamp: timestamp,
+    TeamNumber: stripped.substring(0, firstDash),
+    MatchNumber: stripped.substring(firstDash + 1, lastDash),
+    Timestamp: stripped.substring(lastDash + 1),
   };
 }
 

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Button } from "@mui/material";
 import CheckIcon from "@mui/icons-material/CheckRounded";
 import CloseIcon from "@mui/icons-material/CloseRounded";
@@ -16,7 +17,7 @@ interface CheckboxInputProps {
  * @param props {@link CheckboxInputProps}
  * @returns a checkbox component
  */
-export default function CheckboxInput(props: CheckboxInputProps) {
+function CheckboxInput(props: CheckboxInputProps) {
   const { value, onChange } = props;
 
   return (
@@ -48,3 +49,5 @@ export default function CheckboxInput(props: CheckboxInputProps) {
     </Button>
   );
 }
+
+export default memo(CheckboxInput);

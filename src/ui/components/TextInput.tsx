@@ -1,5 +1,5 @@
 import { TextField } from "@mui/material";
-import { ChangeEvent } from "react";
+import { memo, ChangeEvent } from "react";
 
 /**
  * Props for the text input component
@@ -18,7 +18,7 @@ interface TextInputProps {
  * @param props {@link TextInputProps}
  * @returns A multiline text input
  */
-export default function TextInput(props: TextInputProps) {
+function TextInput(props: TextInputProps) {
   const { label, multiline, value, onChange, error } = props;
 
   const updateText = (e: ChangeEvent<HTMLInputElement>) => {
@@ -46,3 +46,5 @@ export default function TextInput(props: TextInputProps) {
     />
   );
 }
+
+export default memo(TextInput);

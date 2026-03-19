@@ -1,6 +1,6 @@
 import { Autocomplete, TextField } from "@mui/material";
 
-import { useState, useEffect } from "react";
+import { memo, useState, useEffect } from "react";
 
 interface AutocompleteInputProps {
   label?: string;
@@ -17,7 +17,7 @@ interface AutocompleteInputProps {
  * @param props {@link AutocompleteInputProps}
  * @returns Autocomplete input for the page
  */
-export default function AutocompleteInput(props: AutocompleteInputProps) {
+function AutocompleteInput(props: AutocompleteInputProps) {
   const { label, options, onChange, value, disabled, loading, placeholder } =
     props;
   const [inputValue, setInputValue] = useState("");
@@ -52,3 +52,5 @@ export default function AutocompleteInput(props: AutocompleteInputProps) {
     />
   );
 }
+
+export default memo(AutocompleteInput);

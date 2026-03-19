@@ -26,7 +26,7 @@ import AddChartIcon from "@mui/icons-material/AddchartRounded";
 
 import useDialog from "../hooks/useDialog";
 import { QrCodeBuilder } from "../utils/QrUtils";
-import { getFieldValueByName } from "../utils/GeneralUtils";
+import { getFieldValueByName, getFieldDefault } from "../utils/GeneralUtils";
 import PageHeader from "../ui/PageHeader";
 import { useSettings } from "../context/SettingsContext";
 import CompleteScoutDialog from "../ui/dialog/CompleteScoutDialog";
@@ -42,6 +42,7 @@ export default function Scout() {
     submitted,
     clearErrors,
     getMatchDataMap,
+    getAllMatchNumbers,
   } = useScoutData();
   const { settings } = useSettings();
   const [resetKey, setResetKey] = useState<Key>(0);
@@ -101,7 +102,20 @@ export default function Scout() {
       if (field.name === "Match Number" && incrementMatchNumber) {
         const current = matchData.get(field.id);
         if (current !== undefined && current !== null) {
-          entries.push({ key: field.id, value: Number(current) + 1 });
+          const currentStr = String(current);
+          const allMatchNums = getAllMatchNumbers();
+          const currentIndex = allMatchNums.indexOf(currentStr);
+          if (currentIndex !== -1 && currentIndex < allMatchNums.length - 1) {
+            // Advance to the next match in the schedule
+            entries.push({ key: field.id, value: allMatchNums[currentIndex + 1] });
+          } else if (currentIndex === allMatchNums.length - 1) {
+            // Last match in schedule — keep current value
+            entries.push({ key: field.id, value: current });
+          } else {
+            // Not in TBA list (TBA disabled or plain integer) — fall back to +1
+            const numericPart = parseInt(currentStr.split("-").pop() || "", 10);
+            entries.push({ key: field.id, value: isNaN(numericPart) ? current : numericPart + 1 });
+          }
         }
       } else if (field.persist) {
         const val = matchData.get(field.id);
@@ -133,6 +147,16 @@ export default function Scout() {
     clearErrors();
     setResetKey((prev) => (prev as number) + 1);
     isSavedRef.current = false;
+
+    // If Match Number pulls from TBA, it auto-advances through the schedule
+    // and Team Number re-populates, so skip to the next section (index 1).
+    // Otherwise (e.g. pit scouting where Match Number is always 0), expand
+    // Match Info so the user can select the next team.
+    const matchNumberAdvances = schema!.sections.some((s) =>
+      s.fields.some((f) => f.name === "Match Number" && f.props?.pullFromTBA === true)
+    );
+    setExpandedSectionIndex(matchNumberAdvances ? 1 : 0);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const schemaData = schema;
@@ -182,8 +206,10 @@ export default function Scout() {
     const allFields = schema!.sections.flatMap((section) => section.fields);
     const minifiedJSON = allFields.map((field) => matchData.get(field.id));
 
-    const teamNumber = getFieldValueByName("Team Number", schema!, matchData);
-    const matchNumber = getFieldValueByName("Match Number", schema!, matchData);
+    const teamNumber = getFieldValueByName("Team Number", schema!, matchData)
+      ?? getFieldDefault("Team Number", schema!);
+    const matchNumber = getFieldValueByName("Match Number", schema!, matchData)
+      ?? getFieldDefault("Match Number", schema!);
     const qr = await QrCodeBuilder.build.MATCH(
       schemaHash,
       minifiedJSON,

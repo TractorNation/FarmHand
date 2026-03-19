@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Button, Stack, Typography } from "@mui/material";
 import AddIcon from "@mui/icons-material/AddRounded";
 import RemoveIcon from "@mui/icons-material/RemoveRounded";
@@ -17,7 +18,7 @@ interface CounterInputProps {
  * @param props {@link CounterInputProps}
  * @returns A component that functions similarly to an HTML native number input
  */
-export default function CounterInput(props: CounterInputProps) {
+function CounterInput(props: CounterInputProps) {
   const { max, min, value, onChange } = props;
 
   const increment = () => {
@@ -92,3 +93,5 @@ export default function CounterInput(props: CounterInputProps) {
     </Stack>
   );
 }
+
+export default memo(CounterInput);

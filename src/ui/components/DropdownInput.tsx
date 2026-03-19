@@ -1,3 +1,4 @@
+import { memo } from "react";
 import {
   InputLabel,
   Select,
@@ -22,7 +23,7 @@ interface DropdownInputProps {
  * @param props {@link DropdownInputProps}
  * @returns Dropdown input for the page
  */
-export default function DropdownInput(props: DropdownInputProps) {
+function DropdownInput(props: DropdownInputProps) {
   const { label, options, onChange, value, error, disabled, allowUnset } = props;
   
   // Only include "Select an option..." if allowUnset is true
@@ -76,3 +77,5 @@ export default function DropdownInput(props: DropdownInputProps) {
     </FormControl>
   );
 }
+
+export default memo(DropdownInput);

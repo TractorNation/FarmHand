@@ -31,6 +31,7 @@ import {
 } from "../../utils/QrUtils";
 import { saveSchema } from "../../utils/SchemaUtils";
 import { useSchema } from "../../context/SchemaContext";
+import StoreManager, { StoreKeys } from "../../utils/StoreManager";
 
 interface QrScannerDialogueProps {
   open: boolean;
@@ -188,15 +189,17 @@ export default function QrScannerDialogue({
     onClose();
   };
 
-  // Initialize cameras
+  // Initialize cameras, restoring the previously selected camera when available
   useEffect(() => {
     if (!open) return;
     async function init() {
       const devices = await getCameraDevices();
       setCameraDevices(devices);
       if (devices.length > 0) {
+        const savedId = await StoreManager.get(StoreKeys.preferences.CAMERA_DEVICE_ID);
+        const index = Math.max(devices.findIndex((d) => d.deviceId === savedId), 0);
+        setActiveCamera({ index, id: devices[index].deviceId });
         setHasCamera(true);
-        setActiveCamera({ index: 0, id: devices[0].deviceId });
       } else {
         setHasCamera(false);
       }
@@ -246,10 +249,9 @@ export default function QrScannerDialogue({
     if (cameraDevices.length <= 1) return;
     const currentIndex = activeCamera?.index ?? 0;
     const nextIndex = (currentIndex + 1) % cameraDevices.length;
-    setActiveCamera({
-      index: nextIndex,
-      id: cameraDevices[nextIndex].deviceId,
-    });
+    const nextDeviceId = cameraDevices[nextIndex].deviceId;
+    setActiveCamera({ index: nextIndex, id: nextDeviceId });
+    StoreManager.set(StoreKeys.preferences.CAMERA_DEVICE_ID, nextDeviceId);
   };
 
   const getItemIcon = (type: ScannedItem["type"]) => {
