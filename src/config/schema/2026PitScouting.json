@@ -12,7 +12,8 @@
                     "props": {
                         "min": 0,
                         "max": 0,
-                        "default": 0
+                        "default": 0,
+                        "pullFromTBA": false
                     }
                 },
                 {
@@ -22,7 +23,8 @@
                     "required": true,
                     "props": {
                         "min": 1,
-                        "max": 99999
+                        "max": 99999,
+                        "pullFromTBA": false
                     }
                 },
                 {
@@ -42,6 +44,7 @@
                         "rows": 1,
                         "cols": 5
                     },
+                    "note": "Hub POV - Left box = Human Player (Corral) side",
                     "doubleWidth": true
                 }
             ]
@@ -55,7 +58,7 @@
                     "type": "number",
                     "required": false,
                     "props": {
-                        "min": 0,
+                        "min": 80,
                         "max": 150
                     },
                     "note": "WITH Bumpers. If answer does not include bumpers, add 4x bumper width"
@@ -100,8 +103,9 @@
                     "required": false,
                     "props": {
                         "step": 1,
-                        "min": 0,
-                        "max": 60
+                        "min": 1,
+                        "max": 20,
+                        "default": 20
                     },
                     "note": "Seconds to fill Hoppper using Intake. Leave default if unknown."
                 },
@@ -112,9 +116,9 @@
                     "required": false,
                     "props": {
                         "min": 0,
-                        "max": 60,
+                        "max": 20,
                         "step": 1,
-                        "selectsRange": false
+                        "default": 20
                     },
                     "note": "Seconds to empty a full Hopper. Leave default if unknown."
                 },

@@ -94,7 +94,7 @@
                     "id": 1004,
                     "name": "Auto Fuel Score",
                     "type": "number",
-                    "required": false,
+                    "required": true,
                     "props": {},
                     "note": "Don't reset clicker, just keep counting",
                     "doubleWidth": true
@@ -162,7 +162,9 @@
                     "name": "Total Fuel Score",
                     "type": "number",
                     "required": true,
-                    "props": {},
+                    "props": {
+                        "min": 0
+                    },
                     "note": "Total amount on clicker, no need for mental math"
                 },
                 {
@@ -189,20 +191,20 @@
                 },
                 {
                     "id": 3005,
-                    "name": "Comments",
-                    "type": "text",
-                    "required": false,
-                    "props": {},
-                    "note": "Please be concise",
-                    "doubleWidth": true
-                },
-                {
-                    "id": 3006,
                     "name": "Re-Scout?",
                     "type": "checkbox",
                     "required": false,
                     "props": {},
                     "note": "Select if you feel this report is too inaccurate to use",
+                    "doubleWidth": false
+                },
+                {
+                    "id": 3006,
+                    "name": "Comments",
+                    "type": "text",
+                    "required": false,
+                    "props": {},
+                    "note": "Please be concise",
                     "doubleWidth": true
                 }
             ]

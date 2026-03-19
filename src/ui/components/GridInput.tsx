@@ -8,7 +8,7 @@ import {
   IconButton,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
-import { useMemo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 import ClearIcon from "@mui/icons-material/ClearRounded";
 import ZoomInIcon from "@mui/icons-material/ZoomInRounded";
 import ZoomOutIcon from "@mui/icons-material/ZoomOutRounded";
@@ -32,7 +32,7 @@ interface GridInputProps {
  * @param props {@link GridInputProps}
  * @returns A grid of clickable cells that track their active state
  */
-export default function GridInput(props: GridInputProps) {
+function GridInput(props: GridInputProps) {
   const {
     value: rawValue,
     onChange,
@@ -335,3 +335,5 @@ export default function GridInput(props: GridInputProps) {
     </Stack>
   );
 }
+
+export default memo(GridInput);

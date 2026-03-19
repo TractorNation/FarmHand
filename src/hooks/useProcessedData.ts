@@ -4,6 +4,7 @@ import {
   parseGridData,
   parseGridToNumber,
   parseTime,
+  getMatchSortKey,
 } from "../utils/GeneralUtils";
 
 // Process data based on chart configuration
@@ -15,7 +16,59 @@ export default function useProcessedData(
   return useMemo(() => {
     if (!schema || !data.length) return [];
 
-    // Parse field identifiers (format: "Section Name|Field Name")
+    // Helper: find a field's flat index, type, and props from the schema.
+    // Pass an empty string for sectionName to match any section.
+    const findField = (sectionName: string, fieldName: string) => {
+      let idx = 0;
+      for (const section of schema.sections) {
+        for (const field of section.fields) {
+          if (
+            field.name === fieldName &&
+            (!sectionName || section.title === sectionName)
+          ) {
+            return { index: idx, type: field.type, props: field.props };
+          }
+          idx++;
+        }
+      }
+      return null;
+    };
+
+    // Helper: aggregate a set of values by mode.
+    // Categorical fields (text/dropdown/multiplechoice) always return a count.
+    // Defaults to "average" when mode is undefined.
+    const aggregate = (
+      values: (number | string | number[])[],
+      mode: Chart["aggregation"],
+      fieldType: ComponentType | null
+    ): number => {
+      if (
+        fieldType === "text" ||
+        fieldType === "dropdown" ||
+        fieldType === "multiplechoice"
+      ) {
+        return values.length;
+      }
+      const nums = values
+        .map((v) => (typeof v === "number" ? v : Number(v)))
+        .filter((v) => !isNaN(v));
+      if (nums.length === 0) return 0;
+      switch (mode || "average") {
+        case "sum":
+          return nums.reduce((a, b) => a + b, 0);
+        case "count":
+          return values.length;
+        case "min":
+          return Math.min(...nums);
+        case "max":
+          return Math.max(...nums);
+        case "average":
+        default:
+          return nums.reduce((a, b) => a + b, 0) / nums.length;
+      }
+    };
+
+    // Parse field identifiers (format: "Section Name - Field Name")
     let xSectionName = "";
     let xFieldName = "";
     let ySectionName = "";
@@ -43,119 +96,40 @@ export default function useProcessedData(
       }
     }
 
-    // Find field indices by section and field name, and track field types
-    // Build flat array with section tracking for absolute indices
-    let xFieldIndex = -1;
-    let yFieldIndex = -1;
-    let xFieldType: ComponentType | null = null;
-    let yFieldType: ComponentType | null = null;
-    let absoluteIndex = 0;
+    // Find field indices, types, and props
+    const xResult = xFieldName ? findField(xSectionName, xFieldName) : null;
+    const yResult = yFieldName ? findField(ySectionName, yFieldName) : null;
 
-    for (
-      let sectionIdx = 0;
-      sectionIdx < schema.sections.length;
-      sectionIdx++
-    ) {
-      const section = schema.sections[sectionIdx];
-
-      for (let fieldIdx = 0; fieldIdx < section.fields.length; fieldIdx++) {
-        const field = section.fields[fieldIdx];
-
-        // Check X-axis field
-        if (xFieldIndex === -1 && field.name === xFieldName) {
-          // If section name was specified, only match if it's the right section
-          if (!xSectionName || section.title === xSectionName) {
-            xFieldIndex = absoluteIndex;
-            xFieldType = field.type;
-          }
-        }
-
-        // Check Y-axis field
-        if (yFieldIndex === -1 && yFieldName && field.name === yFieldName) {
-          // If section name was specified, only match if it's the right section
-          if (!ySectionName || section.title === ySectionName) {
-            yFieldIndex = absoluteIndex;
-            yFieldType = field.type;
-          }
-        }
-
-        absoluteIndex++;
-      }
-    }
+    const xFieldIndex = xResult?.index ?? -1;
+    const xFieldType = xResult?.type ?? null;
+    const yFieldIndex = yResult?.index ?? -1;
+    const yFieldType = yResult?.type ?? null;
 
     if (xFieldIndex === -1) return [];
 
-    // Check if Y-axis field is a range slider early (needed for proper data handling)
-    let isRangeSliderField = false;
-    if (schema && yFieldIndex !== -1 && yFieldType === "slider") {
-      let absoluteIndex = 0;
-      for (const section of schema.sections) {
-        for (const field of section.fields) {
-          if (absoluteIndex === yFieldIndex && field.type === "slider") {
-            isRangeSliderField = field.props?.selectsRange === true;
-            break;
-          }
-          absoluteIndex++;
-        }
-        if (isRangeSliderField) break;
-      }
-    }
+    // Check if Y-axis field is a range slider
+    const isRangeSliderField =
+      yResult !== null &&
+      yResult.type === "slider" &&
+      yResult.props?.selectsRange === true;
 
-    // For line charts, we need to determine what field to group by for multiple lines
-    // Typically: X-axis = Match Number, group by Team Number to create one line per team
+    // For line/scatter charts, determine the groupBy field
     let groupByFieldIndex = -1;
-    let groupByFieldName = "";
 
     if ((chart.type === "line" || chart.type === "scatter") && chart.groupBy) {
       // Use explicit groupBy field if specified
       const groupByParts = chart.groupBy.split(" - ");
       if (groupByParts.length === 2) {
-        groupByFieldName = groupByParts[1];
-        // Find the field index for groupBy
-        absoluteIndex = 0;
-        for (
-          let sectionIdx = 0;
-          sectionIdx < schema.sections.length;
-          sectionIdx++
-        ) {
-          const section = schema.sections[sectionIdx];
-          for (let fieldIdx = 0; fieldIdx < section.fields.length; fieldIdx++) {
-            const field = section.fields[fieldIdx];
-            if (
-              field.name === groupByFieldName &&
-              (section.title === groupByParts[0] || !groupByParts[0])
-            ) {
-              groupByFieldIndex = absoluteIndex;
-              break;
-            }
-            absoluteIndex++;
-          }
-          if (groupByFieldIndex !== -1) break;
-        }
+        const groupByResult = findField(groupByParts[0], groupByParts[1]);
+        if (groupByResult) groupByFieldIndex = groupByResult.index;
       }
     } else if (
       chart.type === "line" ||
       (chart.type === "scatter" && xFieldName === "Match Number")
     ) {
       // Auto-detect: if X-axis is Match Number, group by Team Number
-      absoluteIndex = 0;
-      for (
-        let sectionIdx = 0;
-        sectionIdx < schema.sections.length;
-        sectionIdx++
-      ) {
-        const section = schema.sections[sectionIdx];
-        for (let fieldIdx = 0; fieldIdx < section.fields.length; fieldIdx++) {
-          const field = section.fields[fieldIdx];
-          if (field.name === "Team Number") {
-            groupByFieldIndex = absoluteIndex;
-            groupByFieldName = "Team Number";
-            break;
-          }
-          absoluteIndex++;
-        }
-        if (groupByFieldIndex !== -1) break;
-      }
+      const teamResult = findField("", "Team Number");
+      if (teamResult) groupByFieldIndex = teamResult.index;
     }
 
     // Group data - for line charts with grouping, use nested map; otherwise simple map
@@ -195,7 +169,6 @@ export default function useProcessedData(
         if (rawYValue !== undefined && rawYValue !== null) {
           // Handle range slider arrays first - preserve the array structure
           if (isRangeSliderField) {
-            // Preserve array structure for range sliders
             if (Array.isArray(rawYValue)) {
               // Already an array, use as-is
               yValue = rawYValue;
@@ -395,7 +368,7 @@ export default function useProcessedData(
       return result;
     }
 
-    // Handle line charts - create one line per group (team)
+    // Handle grouped line/scatter charts - create one line per group (team)
     // Format: [{ id: "123", data: [{x: 1, y: 10}, {x: 2, y: 15}] }, { id: "456", data: [...] }]
     if (
       (chart.type === "line" || chart.type === "scatter") &&
@@ -412,55 +385,13 @@ export default function useProcessedData(
 
         // For each X-axis value (e.g., match number), aggregate the Y-values
         xValueMap.forEach((yValues, xKey) => {
-          let aggregatedValue = 0;
-
-          // Handle string/categorical values (text, dropdown, radio)
-          if (
-            yFieldType === "text" ||
-            yFieldType === "dropdown" ||
-            yFieldType === "multiplechoice"
-          ) {
-            // For categorical data, count is the most meaningful aggregation
-            aggregatedValue = yValues.length;
-          } else {
-            // For numeric values, use specified aggregation
-            const numericValues = yValues
-              .map((v) => (typeof v === "number" ? v : Number(v)))
-              .filter((v) => !isNaN(v));
-
-            if (numericValues.length === 0) {
-              aggregatedValue = 0;
-            } else {
-              switch (chart.aggregation || "average") {
-                case "sum":
-                  aggregatedValue = numericValues.reduce((a, b) => a + b, 0);
-                  break;
-                case "average":
-                  aggregatedValue =
-                    numericValues.reduce((a, b) => a + b, 0) /
-                    numericValues.length;
-                  break;
-                case "count":
-                  aggregatedValue = yValues.length;
-                  break;
-                case "min":
-                  aggregatedValue = Math.min(...numericValues);
-                  break;
-                case "max":
-                  aggregatedValue = Math.max(...numericValues);
-                  break;
-              }
-            }
-          }
+          const aggregatedValue = aggregate(yValues, chart.aggregation, yFieldType);
 
           // Try to convert X-key to number if possible (for proper sorting)
           const xNum = Number(xKey);
           const xValue = !isNaN(xNum) && isFinite(xNum) ? xNum : xKey;
 
-          lineData.push({
-            x: xValue,
-            y: aggregatedValue,
-          });
+          lineData.push({ x: xValue, y: aggregatedValue });
         });
 
         // Sort line data by X value
@@ -470,14 +401,13 @@ export default function useProcessedData(
           if (!isNaN(aNum) && !isNaN(bNum)) {
             return aNum - bNum;
           }
-          return String(a.x).localeCompare(String(b.x));
+          const [aLevel, aMatchNum] = getMatchSortKey(String(a.x));
+          const [bLevel, bMatchNum] = getMatchSortKey(String(b.x));
+          return aLevel !== bLevel ? aLevel - bLevel : aMatchNum - bMatchNum;
         });
 
         if (lineData.length > 0) {
-          result.push({
-            id: groupKey,
-            data: lineData,
-          });
+          result.push({ id: groupKey, data: lineData });
         }
       });
 
@@ -510,23 +440,11 @@ export default function useProcessedData(
     if (chart.type === "boxplot") {
       if (!groupedSimple) return [];
 
-      // Check if Y-axis field is a range slider and get step value if available
-      let isRangeSlider = false;
-      let sliderStep = 1; // Default step
-      if (schema && yFieldIndex !== -1) {
-        let absoluteIndex = 0;
-        for (const section of schema.sections) {
-          for (const field of section.fields) {
-            if (absoluteIndex === yFieldIndex && field.type === "slider") {
-              isRangeSlider = field.props?.selectsRange === true;
-              sliderStep = field.props?.step || 1;
-              break;
-            }
-            absoluteIndex++;
-          }
-          if (isRangeSlider) break;
-        }
-      }
+      const isRangeSlider =
+        yResult !== null &&
+        yResult.type === "slider" &&
+        yResult.props?.selectsRange === true;
+      const sliderStep = yResult?.props?.step || 1;
 
       const result: Array<{ group: string; value: number }> = [];
       let allValues: number[] = []; // Collect all values for min/max calculation
@@ -624,7 +542,6 @@ export default function useProcessedData(
       );
 
       // Sort by median value if sortMode is specified
-      // For flat array format, we need to group by group first, calculate median, then sort
       if (chart.sortMode && result.length > 0) {
         // Group data points by group to calculate medians
         const groupMedians = new Map<string, number[]>();
@@ -692,54 +609,12 @@ export default function useProcessedData(
       const lineData: Array<{ x: string | number; y: number }> = [];
 
       groupedSimple.forEach((values, xKey) => {
-        let aggregatedValue = 0;
-
-        // Handle string/categorical values (text, dropdown, radio)
-        if (
-          yFieldType === "text" ||
-          yFieldType === "dropdown" ||
-          yFieldType === "multiplechoice"
-        ) {
-          // For categorical data, count is the most meaningful aggregation
-          aggregatedValue = values.length;
-        } else {
-          // For numeric values, use specified aggregation
-          const numericValues = values
-            .map((v) => (typeof v === "number" ? v : Number(v)))
-            .filter((v) => !isNaN(v));
-
-          if (numericValues.length === 0) {
-            aggregatedValue = 0;
-          } else {
-            switch (chart.aggregation || "average") {
-              case "sum":
-                aggregatedValue = numericValues.reduce((a, b) => a + b, 0);
-                break;
-              case "average":
-                aggregatedValue =
-                  numericValues.reduce((a, b) => a + b, 0) /
-                  numericValues.length;
-                break;
-              case "count":
-                aggregatedValue = values.length;
-                break;
-              case "min":
-                aggregatedValue = Math.min(...numericValues);
-                break;
-              case "max":
-                aggregatedValue = Math.max(...numericValues);
-                break;
-            }
-          }
-        }
+        const aggregatedValue = aggregate(values, chart.aggregation, yFieldType);
 
         const xNum = Number(xKey);
         const xValue = !isNaN(xNum) && isFinite(xNum) ? xNum : xKey;
 
-        lineData.push({
-          x: xValue,
-          y: aggregatedValue,
-        });
+        lineData.push({ x: xValue, y: aggregatedValue });
       });
 
       // Sort by X value
@@ -749,14 +624,13 @@ export default function useProcessedData(
         if (!isNaN(aNum) && !isNaN(bNum)) {
           return aNum - bNum;
         }
-        return String(a.x).localeCompare(String(b.x));
+        const [aLevel, aMatchNum] = getMatchSortKey(String(a.x));
+        const [bLevel, bMatchNum] = getMatchSortKey(String(b.x));
+        return aLevel !== bLevel ? aLevel - bLevel : aMatchNum - bMatchNum;
       });
 
       if (lineData.length > 0) {
-        result.push({
-          id: chart.name || "data",
-          data: lineData,
-        });
+        result.push({ id: chart.name || "data", data: lineData });
       }
 
       return result;
@@ -776,41 +650,19 @@ export default function useProcessedData(
         return [];
       }
 
-      // Find Team Number field index
-      let teamNumberIndex = -1;
-      absoluteIndex = 0;
-      for (
-        let sectionIdx = 0;
-        sectionIdx < schema.sections.length;
-        sectionIdx++
-      ) {
-        const section = schema.sections[sectionIdx];
-        for (let fieldIdx = 0; fieldIdx < section.fields.length; fieldIdx++) {
-          const field = section.fields[fieldIdx];
-          if (field.name === "Team Number") {
-            teamNumberIndex = absoluteIndex;
-            break;
-          }
-          absoluteIndex++;
-        }
-        if (teamNumberIndex !== -1) break;
-      }
+      const teamNumberIndex = findField("", "Team Number")?.index ?? -1;
 
       // Group by values, with counts per team number
       const valueTeamCounts = new Map<string, Map<string, number>>();
 
-      // Process all data items
       data.forEach((item) => {
         if (!item || !item.decoded || !item.decoded.data) return;
 
-        // Get the field value (from Y-axis or X-axis)
         const fieldValue = item.decoded.data[valueFieldIndex];
         if (fieldValue === undefined || fieldValue === null) return;
 
-        // Convert value to string for grouping
         const stringValue = String(fieldValue);
 
-        // Get team number
         let teamNumber = "Unknown";
         if (teamNumberIndex !== -1) {
           const teamValue = item.decoded.data[teamNumberIndex];
@@ -819,13 +671,11 @@ export default function useProcessedData(
           }
         }
 
-        // Initialize nested map structure
         if (!valueTeamCounts.has(stringValue)) {
           valueTeamCounts.set(stringValue, new Map<string, number>());
         }
         const teamCounts = valueTeamCounts.get(stringValue)!;
 
-        // Increment count
         const currentCount = teamCounts.get(teamNumber) || 0;
         teamCounts.set(teamNumber, currentCount + 1);
       });
@@ -853,42 +703,21 @@ export default function useProcessedData(
         yFieldType === "dropdown" ||
         yFieldType === "multiplechoice")
     ) {
-      // Find Team Number field index for subgrouping
-      let teamNumberIndex = -1;
-      absoluteIndex = 0;
-      for (
-        let sectionIdx = 0;
-        sectionIdx < schema.sections.length;
-        sectionIdx++
-      ) {
-        const section = schema.sections[sectionIdx];
-        for (let fieldIdx = 0; fieldIdx < section.fields.length; fieldIdx++) {
-          const field = section.fields[fieldIdx];
-          if (field.name === "Team Number") {
-            teamNumberIndex = absoluteIndex;
-            break;
-          }
-          absoluteIndex++;
-        }
-        if (teamNumberIndex !== -1) break;
-      }
+      const teamNumberIndex = findField("", "Team Number")?.index ?? -1;
 
       // Group by text/dropdown values, with counts per team number
       // Structure: Map<textValue, Map<teamNumber, count>>
       const textValueTeamCounts = new Map<string, Map<string, number>>();
       const allTeamNumbers = new Set<string>();
 
-      // Process all data items to build grouped structure
       data.forEach((item) => {
         if (!item || !item.decoded || !item.decoded.data) return;
 
-        // Get Y-axis text/dropdown value
         if (yFieldIndex === -1) return;
         const yValue = item.decoded.data[yFieldIndex];
         if (yValue === undefined || yValue === null) return;
         const textValue = String(yValue);
 
-        // Get team number for subgrouping
         let teamNumber = "Unknown";
         if (teamNumberIndex !== -1) {
           const teamValue = item.decoded.data[teamNumberIndex];
@@ -898,13 +727,11 @@ export default function useProcessedData(
           }
         }
 
-        // Initialize nested map structure
         if (!textValueTeamCounts.has(textValue)) {
           textValueTeamCounts.set(textValue, new Map<string, number>());
         }
         const teamCounts = textValueTeamCounts.get(textValue)!;
 
-        // Increment count for this team number within this text value
         const currentCount = teamCounts.get(teamNumber) || 0;
         teamCounts.set(teamNumber, currentCount + 1);
       });
@@ -938,46 +765,7 @@ export default function useProcessedData(
       // Standard processing for numeric Y-axis or other chart types
       groupedSimple.forEach(
         (values: (number | string | number[])[], key: string) => {
-          let aggregatedValue = 0;
-
-          // Handle string/categorical values (text, dropdown, radio)
-          if (
-            yFieldType === "text" ||
-            yFieldType === "dropdown" ||
-            yFieldType === "multiplechoice"
-          ) {
-            // For categorical data, count is the most meaningful aggregation
-            aggregatedValue = values.length;
-          } else {
-            // For numeric values, use specified aggregation
-            const numericValues = values
-              .map((v) => (typeof v === "number" ? v : Number(v)))
-              .filter((v) => !isNaN(v));
-
-            if (numericValues.length === 0) {
-              aggregatedValue = 0;
-            } else {
-              switch (chart.aggregation) {
-                case "sum":
-                  aggregatedValue = numericValues.reduce((a, b) => a + b, 0);
-                  break;
-                case "average":
-                  aggregatedValue =
-                    numericValues.reduce((a, b) => a + b, 0) /
-                    numericValues.length;
-                  break;
-                case "count":
-                  aggregatedValue = values.length;
-                  break;
-                case "min":
-                  aggregatedValue = Math.min(...numericValues);
-                  break;
-                case "max":
-                  aggregatedValue = Math.max(...numericValues);
-                  break;
-              }
-            }
-          }
+          const aggregatedValue = aggregate(values, chart.aggregation, yFieldType);
 
           result.push({
             id: key,

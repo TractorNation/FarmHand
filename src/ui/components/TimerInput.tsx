@@ -3,7 +3,7 @@ import PlayIcon from "@mui/icons-material/PlayArrowRounded";
 import PauseIcon from "@mui/icons-material/PauseRounded";
 import ResetIcon from "@mui/icons-material/ReplayRounded";
 import useToggle from "../../hooks/useToggle";
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { parseTime } from "../../utils/GeneralUtils";
 
 /**
@@ -14,7 +14,7 @@ interface TimerInputProps {
   onChange?: (value: string) => void;
 }
 
-export default function TimerInput(props: TimerInputProps) {
+function TimerInput(props: TimerInputProps) {
   const [playing, togglePlaying] = useToggle(false);
   const { value: initialValueString, onChange } = props;
   const initialTimeInTenths = parseTime(initialValueString);
@@ -138,3 +138,5 @@ export default function TimerInput(props: TimerInputProps) {
     </Stack>
   );
 }
+
+export default memo(TimerInput);

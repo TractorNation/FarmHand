@@ -29,7 +29,19 @@ export default function Section(props: SectionProps) {
   const { section, submitted, expanded, onToggle } = props;
   const theme = useTheme();
   const isWindowsXPTheme = theme.farmhandThemeId === "WindowsXPTheme";
-  const { errors } = useScoutData();
+  const { errors, getMatchDataMap } = useScoutData();
+
+  // Collect Match Number / Alliance / Position / Team Number values for display
+  // in the collapsed header. Only fields that exist in this section and have a
+  // non-empty value are included.
+  const matchDataMap = getMatchDataMap();
+  const headerInfoItems = (["Match Number", "Alliance", "Position", "Team Number"] as const).flatMap((name) => {
+    const field = section.fields.find((f) => f.name === name);
+    if (!field) return [];
+    const value = matchDataMap.get(field.id);
+    if (value == null || value === "") return [];
+    return [{ label: name, value: String(value) }];
+  });
 
   // Check if any field in this section has an error
   const hasErrorInSection = useMemo(
@@ -91,38 +103,69 @@ export default function Section(props: SectionProps) {
           />
         }
       >
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <Typography
-            variant="h5"
-            sx={{
-              fontWeight: 600,
-              ...(isWindowsXPTheme && {
-                fontFamily: '"Trebuchet MS", "Tahoma", sans-serif',
-                fontSize: "1rem",
-                color: "#0f3fa6",
-              }),
-            }}
-          >
-            {section.title}
-          </Typography>
-          {isSectionComplete && (
-            <CheckCircleOutlineRounded
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            width: "100%",
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Typography
+              variant="h5"
               sx={{
-                color: theme.palette.success.main,
-                fontSize: 24,
-                ml: 1,
+                fontWeight: 600,
+                ...(isWindowsXPTheme && {
+                  fontFamily: '"Trebuchet MS", "Tahoma", sans-serif',
+                  fontSize: "1rem",
+                  color: "#0f3fa6",
+                }),
               }}
-            />
-          )}
-          {hasErrorInSection && submitted && (
+            >
+              {section.title}
+            </Typography>
+            {isSectionComplete && (
+              <CheckCircleOutlineRounded
+                sx={{
+                  color: theme.palette.success.main,
+                  fontSize: 24,
+                  ml: 1,
+                }}
+              />
+            )}
+            {hasErrorInSection && submitted && (
+              <Box
+                sx={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: "50%",
+                  backgroundColor: theme.palette.error.main,
+                }}
+              />
+            )}
+          </Box>
+          {!expanded && headerInfoItems.length > 0 && (
             <Box
               sx={{
-                width: 8,
-                height: 8,
-                borderRadius: "50%",
-                backgroundColor: theme.palette.error.main,
+                display: "flex",
+                flex: 1,
+                justifyContent: "space-evenly",
+                alignItems: "center",
+                ml: 2,
+                mr: 1,
               }}
-            />
+            >
+              {headerInfoItems.map((item) => (
+                <Typography
+                  key={item.label}
+                  variant="body2"
+                  color="text.secondary"
+                >
+                  {item.label}: {item.value}
+                </Typography>
+              ))}
+            </Box>
           )}
         </Box>
       </AccordionSummary>
