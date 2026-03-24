@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { getDataFromQrName } from "../utils/QrUtils";
+import { getMatchSortKey } from "../utils/GeneralUtils";
 
 interface UseQrSortFilterParams {
   qrCodes: QrCode[];
@@ -49,7 +50,7 @@ export function useQrSortFilter({
       }
 
       if (filters.includes("date range") && dateRangeStart && dateRangeEnd) {
-        const codeDate = new Date(parseInt(data.Timestamp) * 1000);
+        const codeDate = new Date(parseInt(data.Timestamp, 10) * 1000);
         // Set hours to 0 for date-only comparison
         const startDate = new Date(dateRangeStart);
         startDate.setHours(0, 0, 0, 0);
@@ -66,7 +67,7 @@ export function useQrSortFilter({
         filters.includes("month");
 
       if (hasDateFilter) {
-        const codeDate = new Date(parseInt(data.Timestamp) * 1000);
+        const codeDate = new Date(parseInt(data.Timestamp, 10) * 1000);
         const now = new Date();
 
         if (filters.includes("day")) {
@@ -99,8 +100,9 @@ export function useQrSortFilter({
         let comparison = 0;
 
         if (sortMode === "match number") {
-          comparison =
-            parseInt(aData.MatchNumber) - parseInt(bData.MatchNumber);
+          const [aLevel, aNum] = getMatchSortKey(aData.MatchNumber);
+          const [bLevel, bNum] = getMatchSortKey(bData.MatchNumber);
+          comparison = aLevel !== bLevel ? aLevel - bLevel : aNum - bNum;
         } else if (sortMode === "recent") {
           comparison = parseInt(aData.Timestamp) - parseInt(bData.Timestamp);
         }

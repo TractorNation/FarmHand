@@ -24,7 +24,7 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircleRounded";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUncheckedRounded";
 import ArrowBackIcon from "@mui/icons-material/ArrowBackRounded";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForwardRounded";
-import { saveFileWithDialog } from "../../utils/GeneralUtils";
+import { saveFileWithDialog, getMatchSortKey } from "../../utils/GeneralUtils";
 import {
   QrCodeBuilder,
   decodeQR,
@@ -179,9 +179,9 @@ export default function ShareDialog(props: ShareDialogProps) {
       return matching.sort((a, b) => {
         const aData = getDataFromQrName(a.name);
         const bData = getDataFromQrName(b.name);
-        const aMatch = parseInt(aData.MatchNumber) || 0;
-        const bMatch = parseInt(bData.MatchNumber) || 0;
-        return aMatch - bMatch;
+        const [aLevel, aNum] = getMatchSortKey(aData.MatchNumber);
+        const [bLevel, bNum] = getMatchSortKey(bData.MatchNumber);
+        return aLevel !== bLevel ? aLevel - bLevel : aNum - bNum;
       });
     } catch {
       return [];

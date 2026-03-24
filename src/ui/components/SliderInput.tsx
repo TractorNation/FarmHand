@@ -1,3 +1,4 @@
+import { memo } from "react";
 import {
   Slider,
   Typography,
@@ -12,7 +13,7 @@ interface SliderInputProps {
   onChange?: (value: number | number[]) => void;
   selectsRange?: boolean;
 }
-export default function SliderInput(props: SliderInputProps) {
+function SliderInput(props: SliderInputProps) {
   const { max, min, step, value, onChange, selectsRange } = props;
 
   const handleChange = (_: Event, newValue: number | number[]) => {
@@ -56,3 +57,5 @@ export default function SliderInput(props: SliderInputProps) {
     </Box>
   );
 }
+
+export default memo(SliderInput);

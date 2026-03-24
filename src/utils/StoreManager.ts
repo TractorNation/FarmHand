@@ -250,4 +250,9 @@ export const StoreKeys = {
     EVENT_KEY: "tba::EVENT_KEY",
     CACHED_EVENTS: "tba::CACHED_EVENTS",
   },
+  preferences: {
+    SORT_MODE: "preferences::SORT_MODE",
+    SORT_DIRECTION: "preferences::SORT_DIRECTION",
+    CAMERA_DEVICE_ID: "preferences::CAMERA_DEVICE_ID",
+  },
 };

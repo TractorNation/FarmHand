@@ -225,11 +225,7 @@ export default function AnalysisViewer() {
           }
           const matchField = item.decoded.data[matchNumberIndex];
           if (matchField === undefined || matchField === null) return false;
-          const matchNum = Number(matchField);
-          if (
-            isNaN(matchNum) ||
-            !editingAnalysis.selectedMatches.includes(matchNum)
-          ) {
+          if (!editingAnalysis.selectedMatches.includes(String(matchField))) {
             return false;
           }
         }
@@ -357,7 +353,7 @@ export default function AnalysisViewer() {
     });
   };
 
-  const handleUpdateFilters = (teams: number[], matches: number[]) => {
+  const handleUpdateFilters = (teams: number[], matches: string[]) => {
     if (!editingAnalysis) return;
     setEditingAnalysis({
       ...editingAnalysis,

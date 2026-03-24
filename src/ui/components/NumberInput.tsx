@@ -26,7 +26,7 @@ interface NumberFieldProps extends BaseNumberField.Root.Props {
   max?: number;
 }
 
-export default function NumberInput(props: NumberFieldProps) {
+function NumberInput(props: NumberFieldProps) {
   const {
     label,
     error,
@@ -55,8 +55,8 @@ export default function NumberInput(props: NumberFieldProps) {
       allowWheelScrub
       format={{ useGrouping: false }}
       value={value ?? null}
-      // Don't pass min/max to BaseNumberField to allow empty values during input
-      // We'll handle validation manually on blur
+      min={min}
+      max={max}
       disabled={disabled}
       required={required}
       onValueChange={(newValue) => {
@@ -198,3 +198,5 @@ export default function NumberInput(props: NumberFieldProps) {
     </BaseNumberField.Root>
   );
 }
+
+export default React.memo(NumberInput);

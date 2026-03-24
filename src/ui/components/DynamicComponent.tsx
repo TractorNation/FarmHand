@@ -1,4 +1,5 @@
 import { Typography } from "@mui/material";
+import Skeleton from "@mui/material/Skeleton";
 import { useValidation } from "../../context/ValidationContext";
 import { useScoutData } from "../../context/ScoutDataContext";
 import { useEffect, useState, useRef, useCallback } from "react";
@@ -47,12 +48,23 @@ export default function DynamicComponent(props: DynamicComponentProps) {
   const [value, setValue] = useState<any>(null);
   const showError = !valid && (touched || submitted);
 
+  /** Push a value into the watched-state slots so getTeamForCurrentSlot stays current. */
+  const syncWatchedState = useCallback((name: string, val: any) => {
+    if (name === "Match Number") {
+      setWatchedMatchNumber(val !== null && val !== undefined ? String(val) : null);
+    } else if (name === "Alliance") {
+      setWatchedAlliance(val && val !== "Select an option..." ? String(val) : null);
+    } else if (name === "Position") {
+      setWatchedPosition(val && val !== "Select an option..." ? String(val) : null);
+    }
+  }, [setWatchedMatchNumber, setWatchedAlliance, setWatchedPosition]);
+
   const fetchData = useCallback(
     () => getMatchData(component.id),
     [getMatchData, component.id]
   );
 
-  const [storedValue, loading, error] = useAsyncFetch(fetchData, []);
+  const [storedValue, loading, error] = useAsyncFetch(fetchData);
 
   useEffect(() => {
     if (loading && value === null) {
@@ -118,18 +130,23 @@ export default function DynamicComponent(props: DynamicComponentProps) {
       component.type,
       initialDisplayValue
     );
-
-    setValue(initialDisplayValue);
+    
+    /*
+      For Team Number: if there's no stored value, skip setValue to avoid overwriting
+      the auto-populate effect. When the form resets, async storage fetches for each
+      field complete at different times. If Team Number's fetch resolves after the
+      auto-populate has already written the correct team, calling setValue(null) here
+      would overwrite it — and since getTeamForCurrentSlot's reference won't change
+      again, the auto-populate won't re-fire to recover. Skipping setValue(null) is safe
+      because the component already starts with value=null on mount.
+    */
+    if (component.name !== "Team Number" || initialDisplayValue !== null) {
+      setValue(initialDisplayValue);
+    }
 
     // When persisted values are loaded (e.g. Alliance/Position survive a reset),
     // push them into context so getTeamForCurrentSlot() starts with the right state.
-    if (component.name === "Match Number" && initialDisplayValue !== null && initialDisplayValue !== undefined) {
-      setWatchedMatchNumber(String(initialDisplayValue));
-    } else if (component.name === "Alliance" && initialDisplayValue && initialDisplayValue !== "Select an option...") {
-      setWatchedAlliance(String(initialDisplayValue));
-    } else if (component.name === "Position" && initialDisplayValue && initialDisplayValue !== "Select an option...") {
-      setWatchedPosition(String(initialDisplayValue));
-    }
+    syncWatchedState(component.name, initialDisplayValue);
 
     if (component.required) {
       setValid(!isInvalid);
@@ -155,12 +172,10 @@ export default function DynamicComponent(props: DynamicComponentProps) {
     addError,
     removeError,
     getMatchData,
-    setWatchedMatchNumber,
-    setWatchedAlliance,
-    setWatchedPosition,
+    syncWatchedState,
   ]);
 
-  const handleChange = (newValue: any) => {
+  const handleChange = useCallback((newValue: any) => {
     setValue(newValue);
     setTouched(true);
 
@@ -182,19 +197,16 @@ export default function DynamicComponent(props: DynamicComponentProps) {
     }
 
     // Keep the context's watched states in sync so getTeamForCurrentSlot() stays current.
-    // Null/empty values clear the watched state, preventing stale lookups.
-    if (component.name === "Match Number") {
-      setWatchedMatchNumber(newValue !== null && newValue !== undefined ? String(newValue) : null);
-    } else if (component.name === "Alliance") {
-      setWatchedAlliance(newValue && newValue !== "Select an option..." ? String(newValue) : null);
-    } else if (component.name === "Position") {
-      setWatchedPosition(newValue && newValue !== "Select an option..." ? String(newValue) : null);
-    }
+    syncWatchedState(component.name, newValue);
 
     debounceTimeout.current = setTimeout(() => {
       addMatchData(component.id, newValue);
     }, 300);
-  };
+  }, [
+    component.id, component.name, component.required, component.type,
+    addMatchData, addError, removeError, setValid, setTouched,
+    syncWatchedState,
+  ]);
 
   // When all three slot inputs are filled, get team number from the match schedule
   // and write it directly into this field's value and the match data store.
@@ -227,11 +239,7 @@ export default function DynamicComponent(props: DynamicComponentProps) {
 
   const renderInput = () => {
     if (loading) {
-      return (
-        <Typography variant="h6" color="info">
-          Loading...
-        </Typography>
-      );
+      return <Skeleton variant="rounded" height={48} />;
     }
     if (error) {
       return (
@@ -273,6 +281,7 @@ export default function DynamicComponent(props: DynamicComponentProps) {
             label={component.name}
             loading={!tbaMatchData}
             placeholder="Select or enter team number"
+            disabled={!!getTeamForCurrentSlot()}
           />
         );
       }
@@ -290,7 +299,7 @@ export default function DynamicComponent(props: DynamicComponentProps) {
           />
         );
 
-      case "dropdown":
+      case "dropdown": {
         // Ensure value is valid - handle null/undefined and validate against options
         const dropdownOptions = component.props?.options || [];
         const normalizedDropdownValue =
@@ -318,6 +327,7 @@ export default function DynamicComponent(props: DynamicComponentProps) {
             allowUnset
           />
         );
+      }
       case "multiplechoice":
         return (
           <RadioButtonInput

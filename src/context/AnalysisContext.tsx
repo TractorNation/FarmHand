@@ -76,7 +76,22 @@ export default function AnalysisProvider({
 
       // Load analyses from files
       const loadedAnalyses = await fetchAnalyses();
-      setAnalyses(loadedAnalyses);
+
+      // Migrate selectedMatches from number[] to string[]: analyses saved before
+      // the match label format change may have integer arrays. We can't reliably
+      // convert integers to prefixed labels without TBA data at load time, so
+      // clear any integer-valued filters. Users will need to re-apply them.
+      const migratedAnalyses = loadedAnalyses.map((analysis) => {
+        if (
+          analysis.selectedMatches.length > 0 &&
+          typeof (analysis.selectedMatches[0] as any) === "number"
+        ) {
+          return { ...analysis, selectedMatches: [] as string[] };
+        }
+        return analysis;
+      });
+
+      setAnalyses(migratedAnalyses);
     } catch (error) {
       console.error("Failed to load analyses:", error);
       setAnalyses([]);
