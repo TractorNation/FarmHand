@@ -23,15 +23,21 @@ const patch = versionParts[2] || "0";
 
 let numericVersion;
 
+if (parseInt(major) > 255 && parseInt(minor) > 255) {
+  // Standard semver, just strip prerelease
+  numericVersion = `${major}.${minor}.${patch}`;
+}
 // Check if minor version is > 255 (our year-based versioning)
 if (parseInt(minor) > 255) {
   // Transform: "0.2026.3" -> "0.26.3"
   // Use last 2 digits of year
   const yearLastTwo = minor.slice(-2); // "2026" -> "26"
   numericVersion = `${major}.${yearLastTwo}.${patch}`;
-} else {
-  // Standard semver, just strip prerelease
-  numericVersion = `${major}.${minor}.${patch}`;
+}
+
+if (parseInt(major) > 255) {
+  const yearLastTwo = major.slice(-2); // "2026" -> "26"
+  numericVersion = `${yearLastTwo}.${minor}.${patch}`;
 }
 
 console.log(`Setting numeric version: ${numericVersion} (from ${version})`);
