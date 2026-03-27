@@ -95,7 +95,9 @@
                     "name": "Auto Fuel Score",
                     "type": "number",
                     "required": true,
-                    "props": {},
+                    "props": {
+                        "min": 0,
+                        "max": 200},
                     "note": "Don't reset clicker, just keep counting",
                     "doubleWidth": true
                 },

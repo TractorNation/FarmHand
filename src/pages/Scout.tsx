@@ -114,7 +114,13 @@ export default function Scout() {
           } else {
             // Not in TBA list (TBA disabled or plain integer) — fall back to +1
             const numericPart = parseInt(currentStr.split("-").pop() || "", 10);
-            entries.push({ key: field.id, value: isNaN(numericPart) ? current : numericPart + 1 });
+            if (isNaN(numericPart)) {
+              entries.push({ key: field.id, value: current });
+            } else {
+              const next = numericPart + 1;
+              const max = field.props?.max;
+              entries.push({ key: field.id, value: max != null && next > max ? max : next });
+            }
           }
         }
       } else if (field.persist) {

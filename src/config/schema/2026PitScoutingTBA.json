@@ -108,7 +108,7 @@
                         "max": 20,
                         "default": 20
                     },
-                    "note": "Seconds to fill Hoppper using Intake. Leave default if unknown."
+                    "note": "Seconds to fill Hopper using Intake. Leave default if unknown."
                 },
                 {
                     "id": 1005,
@@ -174,7 +174,7 @@
                         "max": 30,
                         "step": 1
                     },
-                    "note": "Set both ends to 0 if can't climb"
+                    "note": "Leave as 0-30 if can't climb"
                 },
                 {
                     "id": 2003,
@@ -257,7 +257,7 @@
                         "max": 5,
                         "default": 3
                     },
-                    "note": "0 = DNP, 3 = *shrug*, 5 = best friends"
+                    "note": "1 = DNP, 3 = *shrug*, 5 = best friends"
                 }
             ]
         }
