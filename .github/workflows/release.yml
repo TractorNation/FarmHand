@@ -196,12 +196,6 @@ jobs:
         with:
           targets: x86_64-pc-windows-msvc
 
-      - name: Set numeric version for Windows MSI
-        if: matrix.platform == 'windows'
-        run: |
-          node scripts/set-numeric-version.js "${{ needs.prepare.outputs.version }}"
-        shell: pwsh
-
       - name: Build Windows
         if: matrix.platform == 'windows'
         run: |
@@ -211,12 +205,6 @@ jobs:
             exit $LASTEXITCODE
           }
           Write-Host "Build completed successfully"
-        shell: pwsh
-
-      - name: Restore original version
-        if: always() && matrix.platform == 'windows'
-        run: |
-          node scripts/restore-version.js
         shell: pwsh
 
       - name: Prepare Windows artifacts
