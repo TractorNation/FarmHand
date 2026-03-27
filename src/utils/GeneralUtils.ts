@@ -155,6 +155,25 @@ export function getFieldValueByName(
     : null;
 }
 
+/**
+ * Returns the schema-defined default value for a named field, or null if the
+ * field has no default. Used as a fallback when a field was never interacted
+ * with and therefore has no entry in the match data store.
+ */
+export function getFieldDefault(fieldName: string, schema: Schema): string | null {
+  for (const section of schema.sections) {
+    const field = section.fields.find(
+      (f) => f.name.toLowerCase().trim() === fieldName.toLowerCase().trim()
+    );
+    if (field) {
+      return field.props?.default !== undefined
+        ? String(field.props.default).replace(/[^a-zA-Z0-9_-]/g, "")
+        : null;
+    }
+  }
+  return null;
+}
+
 export function matchDataJsonToMap(object: any) {
   const map = new Map<number, any>();
   for (const key in object) {
@@ -492,6 +511,30 @@ export function indexToCoordinate(index: number, cols: number): string {
   const row = Math.floor(index / cols);
   const col = index % cols;
   return `${row},${col}`;
+}
+
+/** Canonical match-label prefixes keyed by TBA comp_level. */
+export const MATCH_PREFIX: Record<string, string> = {
+  qm: "Qual",
+  sf: "Semis",
+  f: "Final",
+} as const;
+
+const PREFIX_ORDER: Record<string, number> = { Qual: 0, Semis: 1, Final: 2 };
+
+/**
+ * Returns a [compLevelOrder, matchNumber] sort key for a match label.
+ * Qual < Semis < Final. Plain integers are treated as Qual-level.
+ */
+export function getMatchSortKey(matchLabel: string): [number, number] {
+  const dashIdx = matchLabel.indexOf("-");
+  if (dashIdx !== -1) {
+    const prefix = matchLabel.substring(0, dashIdx);
+    const num = parseInt(matchLabel.substring(dashIdx + 1), 10) || 0;
+    return [PREFIX_ORDER[prefix] ?? 0, num];
+  }
+  const n = parseInt(matchLabel, 10);
+  return [0, isNaN(n) ? 0 : n];
 }
 
 export async function getLatestGitHubVersion(): Promise<string | null> {

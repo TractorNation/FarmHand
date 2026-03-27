@@ -121,6 +121,8 @@ interface EventData {
 interface ProcessedMatchData {
   matchNumbers: string[];
   teamNumbersByMatch: Map<string, string[]>;
+  /** Reverse map: plain integer string → prefixed label (e.g. "78" → "Qual-78"). Ambiguous numbers map to empty string. */
+  numberToLabel: Map<string, string>;
   allTeamNumbers: string[];
 }
 
@@ -158,7 +160,7 @@ interface Analysis {
   id: number;
   name: string;
   selectedTeams: number[];
-  selectedMatches: number[];
+  selectedMatches: string[];
   charts: Chart[];
   createdAt: Date;
   schemaHash: string;

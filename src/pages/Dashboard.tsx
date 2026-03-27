@@ -38,6 +38,8 @@ import StoreManager, { StoreKeys } from "../utils/StoreManager";
 import { useAnalysis } from "../context/AnalysisContext";
 import ChartRenderer from "../ui/ChartRenderer";
 import { getSchemaFromHash } from "../utils/SchemaUtils";
+import { getMatchSortKey } from "../utils/GeneralUtils";
+import { useScoutData } from "../context/ScoutDataContext";
 
 interface PinnedChart {
   chartId: string;
@@ -55,9 +57,10 @@ export default function LeadScoutDashboard() {
   const { availableSchemas, schema, hash: currentSchemaHash } = useSchema();
   const { analyses } = useAnalysis();
   const [qrCodes] = useAsyncFetch(fetchQrCodes);
+  const { getAllMatchNumbers } = useScoutData();
   const [receivedMatches, setReceivedMatches] = useState<
     Map<
-      number,
+      string,
       Array<{
         deviceID: number;
         qr: QrCode;
@@ -73,7 +76,7 @@ export default function LeadScoutDashboard() {
       {
         deviceID: number;
         teamNumber: number | null;
-        matchNumber: number;
+        matchNumber: string;
         timestamp: number | null;
       }
     >
@@ -91,7 +94,7 @@ export default function LeadScoutDashboard() {
       const nonArchivedQrCodes = qrCodes.filter((qr) => !qr.archived);
 
       const matchesMap = new Map<
-        number,
+        string,
         Array<{
           deviceID: number;
           qr: QrCode;
@@ -105,7 +108,7 @@ export default function LeadScoutDashboard() {
         {
           deviceID: number;
           teamNumber: number | null;
-          matchNumber: number;
+          matchNumber: string;
           timestamp: number | null;
         }
       >();
@@ -140,8 +143,8 @@ export default function LeadScoutDashboard() {
             const matchNumberValue = decoded.data[matchNumberIndex];
             if (matchNumberValue === null || matchNumberValue === undefined)
               continue;
-            const matchNumber = Number(matchNumberValue);
-            if (isNaN(matchNumber) || matchNumber === 0) continue;
+            const matchNumber = String(matchNumberValue);
+            if (!matchNumber) continue;
 
             // Extract team number
             let teamNumber: number | null = null;
@@ -160,14 +163,14 @@ export default function LeadScoutDashboard() {
             try {
               const qrNameData = getDataFromQrName(qr.name);
               if (qrNameData.Timestamp) {
-                timestamp = parseInt(qrNameData.Timestamp) * 1000; // Convert to milliseconds
+                timestamp = qrNameData.Timestamp ? parseInt(qrNameData.Timestamp, 10) * 1000 : null;
               }
             } catch {
               // If timestamp extraction fails, use current time as fallback
               timestamp = Date.now();
             }
 
-            if (matchNumber) {
+            if (matchNumber.length > 0) {
               if (!matchesMap.has(matchNumber)) {
                 matchesMap.set(matchNumber, []);
               }
@@ -246,16 +249,35 @@ export default function LeadScoutDashboard() {
     return `${diffDays} day${diffDays !== 1 ? "s" : ""} ago`;
   };
 
-  // Calculate the maximum match number to iterate through
-  const maxMatchNumber = useMemo(() => {
-    const matchNumbers = Array.from(receivedMatches.keys());
-    return matchNumbers.length > 0 ? Math.max(...matchNumbers) : 0;
-  }, [receivedMatches]);
+  // Build the ordered match number list up through the highest received match.
+  // Uses the TBA-ordered sequence from ScoutDataContext when available, falling
+  // back to a sort of whatever keys are in receivedMatches.
+  const allMatchNumbers = useMemo(() => {
+    const ordered = getAllMatchNumbers(); // full ordered list from TBA/fallback
+    const receivedKeys = Array.from(receivedMatches.keys());
+    if (receivedKeys.length === 0) return [];
 
-  const allMatchNumbers = Array.from(
-    { length: maxMatchNumber },
-    (_, i) => i + 1
-  );
+    if (ordered.length > 0) {
+      // Find the highest index among received matches in the ordered list.
+      // Keys without a prefix (e.g. "78" from early matches) are treated as Qual.
+      let maxIndex = -1;
+      for (const key of receivedKeys) {
+        let idx = ordered.indexOf(key);
+        if (idx === -1 && !key.includes("-")) {
+          idx = ordered.indexOf(`Qual-${key}`);
+        }
+        if (idx > maxIndex) maxIndex = idx;
+      }
+      return maxIndex >= 0 ? ordered.slice(0, maxIndex + 1) : receivedKeys;
+    }
+
+    // No TBA data: sort received keys by composite sort key
+    return [...receivedKeys].sort((a, b) => {
+      const [aLevel, aNum] = getMatchSortKey(a);
+      const [bLevel, bNum] = getMatchSortKey(b);
+      return aLevel !== bLevel ? aLevel - bLevel : aNum - bNum;
+    });
+  }, [receivedMatches, getAllMatchNumbers]);
 
   // Calculate overall statistics
   const stats = useMemo(() => {
@@ -362,10 +384,8 @@ export default function LeadScoutDashboard() {
                     const matchField = item.decoded.data[matchNumberIndex];
                     if (matchField === undefined || matchField === null)
                       return false;
-                    const matchNum = Number(matchField);
                     if (
-                      isNaN(matchNum) ||
-                      !analysis.selectedMatches.includes(matchNum)
+                      !analysis.selectedMatches.includes(String(matchField))
                     ) {
                       return false;
                     }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { decodeQR } from "../../utils/QrUtils";
+import { getMatchSortKey } from "../../utils/GeneralUtils";
 import { Dialog, DialogTitle, DialogContent, Stack, Autocomplete, TextField, Typography, DialogActions, Button } from "@mui/material";
 
 export default function FilterDialog({
@@ -14,16 +15,16 @@ export default function FilterDialog({
   open: boolean;
   onClose: () => void;
   currentTeams: number[];
-  currentMatches: number[];
-  onSave: (teams: number[], matches: number[]) => void;
+  currentMatches: string[];
+  onSave: (teams: number[], matches: string[]) => void;
   availableData: QrCode[];
   schema?: Schema;
 }) {
   const [selectedTeams, setSelectedTeams] = useState<number[]>(currentTeams);
   const [selectedMatches, setSelectedMatches] =
-    useState<number[]>(currentMatches);
+    useState<string[]>(currentMatches);
   const [uniqueTeams, setUniqueTeams] = useState<number[]>([]);
-  const [uniqueMatches, setUniqueMatches] = useState<number[]>([]);
+  const [uniqueMatches, setUniqueMatches] = useState<string[]>([]);
 
   useEffect(() => {
     setSelectedTeams(currentTeams);
@@ -55,7 +56,7 @@ export default function FilterDialog({
       }
 
       const teams = new Set<number>();
-      const matches = new Set<number>();
+      const matches = new Set<string>();
 
       // Process all QR codes
       const nonArchivedCodes = availableData.filter((qr) => !qr.archived);
@@ -78,9 +79,10 @@ export default function FilterDialog({
           matchNumberIndex !== -1 &&
           decoded.data[matchNumberIndex] !== undefined
         ) {
-          const matchNum = Number(decoded.data[matchNumberIndex]);
-          if (!isNaN(matchNum) && matchNum > 0) {
-            matches.add(matchNum);
+          const matchVal = decoded.data[matchNumberIndex];
+          if (matchVal !== null && matchVal !== undefined) {
+            const matchStr = String(matchVal);
+            if (matchStr) matches.add(matchStr);
           }
         }
 
@@ -96,7 +98,13 @@ export default function FilterDialog({
       });
 
       setUniqueTeams(Array.from(teams).sort((a, b) => a - b));
-      setUniqueMatches(Array.from(matches).sort((a, b) => a - b));
+      setUniqueMatches(
+        Array.from(matches).sort((a, b) => {
+          const [aLevel, aNum] = getMatchSortKey(a);
+          const [bLevel, bNum] = getMatchSortKey(b);
+          return aLevel !== bLevel ? aLevel - bLevel : aNum - bNum;
+        })
+      );
     };
 
     if (open) {

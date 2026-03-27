@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQrSelection } from "./useQrSelection";
 import { useQrSortFilter } from "./useQrSortFilter";
+import StoreManager, { StoreKeys } from "../utils/StoreManager";
 
 interface UseQrManagerParams {
   qrCodes: QrCode[];
@@ -13,13 +14,38 @@ interface UseQrManagerParams {
 export function useQrManager({ qrCodes }: UseQrManagerParams) {
   // Filter and sort state
   const [filters, setFilters] = useState<FilterOption[]>([]);
-  const [sortMode, setSortMode] = useState<SortMode>("none");
+  const [sortMode, setSortMode] = useState<SortMode>("match number");
   const [sortDirection, setSortDirection] =
     useState<SortDirection>("ascending");
   const [matchNumberFilter, setMatchNumberFilter] = useState("");
   const [teamNumberFilter, setTeamNumberFilter] = useState("");
   const [dateRangeStart, setDateRangeStart] = useState<Date | null>(null);
   const [dateRangeEnd, setDateRangeEnd] = useState<Date | null>(null);
+
+  // Load persisted sort preferences on mount
+  useEffect(() => {
+    async function loadSortPreferences() {
+      const savedMode = await StoreManager.get(StoreKeys.preferences.SORT_MODE);
+      const savedDirection = await StoreManager.get(StoreKeys.preferences.SORT_DIRECTION);
+      if (savedMode === "match number" || savedMode === "recent" || savedMode === "none") {
+        setSortMode(savedMode);
+      }
+      if (savedDirection === "ascending" || savedDirection === "descending") {
+        setSortDirection(savedDirection);
+      }
+    }
+    loadSortPreferences();
+  }, []);
+
+  const handleSetSortMode = useCallback((mode: SortMode) => {
+    setSortMode(mode);
+    StoreManager.set(StoreKeys.preferences.SORT_MODE, mode);
+  }, []);
+
+  const handleSetSortDirection = useCallback((direction: SortDirection) => {
+    setSortDirection(direction);
+    StoreManager.set(StoreKeys.preferences.SORT_DIRECTION, direction);
+  }, []);
 
   // Apply filtering and sorting
   const filteredAndSortedQrCodes = useQrSortFilter({
@@ -86,7 +112,7 @@ export function useQrManager({ qrCodes }: UseQrManagerParams) {
     sortDirection,
 
     // Sort methods
-    setSortMode,
-    setSortDirection,
+    setSortMode: handleSetSortMode,
+    setSortDirection: handleSetSortDirection,
   };
 }

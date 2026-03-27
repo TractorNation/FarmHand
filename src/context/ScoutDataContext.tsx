@@ -8,6 +8,7 @@ import {
   useEffect,
 } from "react";
 import StoreManager, { StoreKeys } from "../utils/StoreManager";
+import { getMatchSortKey, MATCH_PREFIX } from "../utils/GeneralUtils";
 
 interface ScoutDataContextType {
   getMatchDataMap: () => Map<number, any>;
@@ -64,22 +65,6 @@ export default function ScoutDataProvider(props: ScoutDataProviderProps) {
     loadTbaMatchData();
   }, []);
 
-  /**
-   * Determines the maximum number of matches based on event type
-   * Event keys follow pattern: YYYY[event_code]
-   */
-  const getMaxMatchCount = (eventKey: string): number => {
-    const eventCode = eventKey.toLowerCase();
-
-    // Championship event 150 matches
-    if (eventCode.includes("cmp")) {
-      return 150;
-    }
-
-    // Default for everything else
-    return 100;
-  };
-
   const loadTbaMatchData = useCallback(async () => {
     try {
       const eventData = await StoreManager.getTbaEventData();
@@ -113,21 +98,34 @@ export default function ScoutDataProvider(props: ScoutDataProviderProps) {
 
   const processEventData = (
     eventData: EventData,
-    eventKey: string
+    _eventKey: string
   ): ProcessedMatchData => {
     const teamNumbersByMatch = new Map<string, string[]>();
     const allTeamNumbersSet = new Set<string>();
 
-    // Process actual matches if they exist (to map teams to specific matches)
+    // Generate a prefixed label for each match based on comp level.
+    // sf matches use set_number (parsed from key) so both games in a series
+    // share the same label — the first game encountered wins for slot mapping
+    // since both games have the same six teams.
+    const getMatchLabel = (match: TbaMatch): string => {
+      const prefix = MATCH_PREFIX[match.comp_level];
+      if (match.comp_level === "sf") {
+        const sfMatch = match.key.match(/_sf(\d+)m\d+$/);
+        const setNumber = sfMatch ? sfMatch[1] : match.match_number.toString();
+        return `${prefix}-${setNumber}`;
+      }
+      return prefix
+        ? `${prefix}-${match.match_number}`
+        : match.match_number.toString();
+    };
+
+    const matchLabelSet = new Set<string>();
+
     if (eventData.matches && eventData.matches.length > 0) {
       eventData.matches.forEach((match) => {
-        // Only map qualification matches — finals/semis share match numbers (1, 2, etc.)
-        // with quals and would overwrite the correct slot assignments if included.
-        if (match.comp_level !== "qm") return;
+        const label = getMatchLabel(match);
+        matchLabelSet.add(label);
 
-        const matchNum = match.match_number.toString();
-
-        // Extract team numbers (remove "frc" prefix)
         const redTeams = match.alliances.red.team_keys.map((key) =>
           key.replace("frc", "")
         );
@@ -136,7 +134,10 @@ export default function ScoutDataProvider(props: ScoutDataProviderProps) {
         );
         const matchTeams = [...redTeams, ...blueTeams];
 
-        teamNumbersByMatch.set(matchNum, matchTeams);
+        // First occurrence wins — both games in an sf series have the same teams
+        if (!teamNumbersByMatch.has(label)) {
+          teamNumbersByMatch.set(label, matchTeams);
+        }
         matchTeams.forEach((team) => allTeamNumbersSet.add(team));
       });
     }
@@ -149,15 +150,33 @@ export default function ScoutDataProvider(props: ScoutDataProviderProps) {
       });
     }
 
-    // Generate match numbers based on event type instead of actual matches
-    const maxMatches = getMaxMatchCount(eventKey);
-    const matchNumbers = Array.from({ length: maxMatches }, (_, i) =>
-      (i + 1).toString()
-    );
-    
+    let matchNumbers: string[];
+    if (matchLabelSet.size > 0) {
+      // Sort: Qual ascending, then Semis ascending, then Final ascending
+      matchNumbers = Array.from(matchLabelSet).sort((a, b) => {
+        const [aLevel, aNum] = getMatchSortKey(a);
+        const [bLevel, bNum] = getMatchSortKey(b);
+        return aLevel !== bLevel ? aLevel - bLevel : aNum - bNum;
+      });
+    } else {
+      // Fallback: no match data available yet, generate plain 1–100
+      matchNumbers = Array.from({ length: 100 }, (_, i) => (i + 1).toString());
+    }
+
+    // Build reverse map: plain trailing number → prefixed label.
+    // If two labels share a trailing number (ambiguous), map to empty string
+    // so the fallback lookup won't guess wrong.
+    const numberToLabel = new Map<string, string>();
+    for (const label of matchLabelSet) {
+      const dashIdx = label.indexOf("-");
+      const num = dashIdx !== -1 ? label.substring(dashIdx + 1) : label;
+      numberToLabel.set(num, numberToLabel.has(num) ? "" : label);
+    }
+
     return {
       matchNumbers,
       teamNumbersByMatch,
+      numberToLabel,
       allTeamNumbers: Array.from(allTeamNumbersSet).sort(
         (a, b) => Number(a) - Number(b)
       ),
@@ -236,7 +255,20 @@ export default function ScoutDataProvider(props: ScoutDataProviderProps) {
     if (!tbaMatchData || !watchedMatchNumber || !watchedAlliance || !watchedPosition) {
       return null;
     }
-    const teams = tbaMatchData.teamNumbersByMatch.get(watchedMatchNumber);
+
+    // Direct lookup by label (e.g. "Qual-78")
+    let teams = tbaMatchData.teamNumbersByMatch.get(watchedMatchNumber);
+
+    // Prefix-agnostic fallback: if the user typed a plain integer (e.g. "78"),
+    // resolve it via the pre-built reverse map (O(1) instead of scanning all keys).
+    // Empty string in the map means ambiguous — don't auto-populate.
+    if (!teams) {
+      const resolved = tbaMatchData.numberToLabel.get(watchedMatchNumber);
+      if (resolved) {
+        teams = tbaMatchData.teamNumbersByMatch.get(resolved);
+      }
+    }
+
     if (!teams || teams.length < 6) return null;
     const posIndex = parseInt(watchedPosition, 10) - 1; // schema uses "1"/"2"/"3"
     if (posIndex < 0 || posIndex > 2) return null;

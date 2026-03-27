@@ -1,3 +1,4 @@
+import { memo } from "react";
 import {
   FormControl,
   FormControlLabel,
@@ -15,7 +16,7 @@ interface DropdownInputProps {
   disabled?: boolean;
 }
 
-export default function RadioButtonInput(props: DropdownInputProps) {
+function RadioButtonInput(props: DropdownInputProps) {
   const { label, options, value, onChange, error, disabled } = props;
 
   return (
@@ -39,3 +40,5 @@ export default function RadioButtonInput(props: DropdownInputProps) {
     </FormControl>
   );
 }
+
+export default memo(RadioButtonInput);

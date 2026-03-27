@@ -42,22 +42,22 @@ import {
 import { ThemeProvider, alpha, useTheme } from "@mui/material/styles";
 import SchemaProvider from "./context/SchemaContext";
 import AnalysisProvider from "./context/AnalysisContext";
-import Schemas from "./pages/Schemas";
-import SchemaEditor from "./pages/SchemaEditor";
-import LeadScoutDashboard from "./pages/Dashboard";
 import ScoutDataProvider from "./context/ScoutDataContext";
 import { useSettings } from "./context/SettingsContext";
 import { themeRegistry, type ThemeRegistryKey } from "./config/themes";
-import Archive from "./pages/Archive";
-import Help from "./pages/Help";
-import Analyses from "./pages/Analyses";
-import AnalysisViewer from "./pages/AnalysisViewer";
 import { getLatestGitHubVersion } from "./utils/GeneralUtils";
 import { version } from "../package.json";
 const Home = React.lazy(() => import("./pages/Home"));
 const Settings = React.lazy(() => import("./pages/Settings"));
 const Scout = React.lazy(() => import("./pages/Scout"));
 const QRPage = React.lazy(() => import("./pages/QR"));
+const LeadScoutDashboard = React.lazy(() => import("./pages/Dashboard"));
+const Analyses = React.lazy(() => import("./pages/Analyses"));
+const AnalysisViewer = React.lazy(() => import("./pages/AnalysisViewer"));
+const Schemas = React.lazy(() => import("./pages/Schemas"));
+const SchemaEditor = React.lazy(() => import("./pages/SchemaEditor"));
+const Archive = React.lazy(() => import("./pages/Archive"));
+const Help = React.lazy(() => import("./pages/Help"));
 
 const CURRENT_VERSION: string = String(version);
 
