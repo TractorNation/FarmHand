@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import { decodeQR, reconstructMatchDataFromArray } from "./QrUtils";
 import { save } from "@tauri-apps/plugin-dialog";
-import { writeTextFile } from "@tauri-apps/plugin-fs";
+import { writeTextFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 import { getSchemaFromHash } from "./SchemaUtils";
 import changelog from "../../CHANGELOG.md?raw";
 import StoreManager, { StoreKeys } from "./StoreManager";
@@ -185,10 +185,23 @@ export function matchDataJsonToMap(object: any) {
   return map;
 }
 
+function isIOS(): boolean {
+  return /iphone|ipad/i.test(navigator.userAgent);
+}
+
 export async function saveFileWithDialog(
   fileData: string,
   defaultName: string
 ) {
+  if (isIOS()) {
+    // iOS does not support save dialogs; write directly to the Documents directory.
+    // Files are accessible to the user via the Files app (UIFileSharingEnabled in Info.plist).
+    await writeTextFile(defaultName, fileData, {
+      baseDir: BaseDirectory.Document,
+    });
+    return defaultName;
+  }
+
   const path = await save({
     defaultPath: defaultName,
     filters: [{ name: "CSV / JSON Files", extensions: ["csv", "json"] }],
