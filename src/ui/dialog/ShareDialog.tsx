@@ -303,8 +303,12 @@ export default function ShareDialog(props: ShareDialogProps) {
       : displayQrCode?.name || "match_qr";
   const handleDownload = async () => {
     if (!qrCodeImage) return;
-    await saveFileWithDialog(qrCodeImage, qrCodeName);
-    setDownloadSnackbarOpen(true);
+    try {
+      await saveFileWithDialog(qrCodeImage, qrCodeName);
+      setDownloadSnackbarOpen(true);
+    } catch {
+      // User cancelled the save dialog or save failed; do nothing.
+    }
   };
 
   const handleCopy = async () => {
