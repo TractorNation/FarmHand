@@ -10,7 +10,7 @@
     "frontendDist": "../dist"
   },
   "app": {
-    "windows": [{ "title": "farmhand", "width": 800, "height": 600 }],
+    "windows": [{ "title": "Farmhand", "width": 800, "height": 600 }],
     "security": { "csp": null }
   },
   "bundle": {

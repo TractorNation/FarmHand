@@ -1,4 +1,4 @@
-name: farmhand
+name: Farmhand
 options:
   bundleIdPrefix: com.tractortechs.farmhand
   deploymentTarget:
@@ -24,20 +24,20 @@ targetTemplates:
     settings:
       groups: [app]
 targets:
-  farmhand_iOS:
+  Farmhand_iOS:
     type: application
     platform: iOS
     sources:
       - path: Sources
       - path: Assets.xcassets
       - path: Externals
-      - path: farmhand_iOS
+      - path: Farmhand_iOS
       - path: assets
         buildPhase: resources
         type: folder
       - path: LaunchScreen.storyboard
     info:
-      path: farmhand_iOS/Info.plist
+      path: Farmhand_iOS/Info.plist
       properties:
         LSRequiresIPhoneOS: true
         UILaunchStoryboardName: LaunchScreen
@@ -54,7 +54,7 @@ targets:
         CFBundleShortVersionString: 26.3.3
         CFBundleVersion: "26.3.3"
     entitlements:
-      path: farmhand_iOS/farmhand_iOS.entitlements
+      path: Farmhand_iOS/Farmhand_iOS.entitlements
     scheme:
       environmentVariables:
         RUST_BACKTRACE: full
