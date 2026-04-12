@@ -17,7 +17,7 @@
 	<key>CFBundleShortVersionString</key>
 	<string>26.3.3</string>
 	<key>CFBundleVersion</key>
-	<string>26.3.3.1</string>
+	<string>26.3.3</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
@@ -46,5 +46,7 @@
 	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
 	<true/>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Allows connecting to local development servers for testing.</string>
 </dict>
 </plist>
