@@ -1,15 +1,7 @@
-import {
-  Accordion,
-  AccordionDetails,
-  AccordionSummary,
-  Grid,
-  Typography,
-  Box,
-} from "@mui/material";
-import { alpha, useTheme } from "@mui/material/styles";
+import { Grid, Typography, Box, Paper } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 import DynamicComponent from "./components/DynamicComponent";
 import ValidationProvider from "../context/ValidationContext";
-import ExpandIcon from "@mui/icons-material/ExpandMoreRounded";
 import CheckCircleOutlineRounded from "@mui/icons-material/CheckCircleOutlineRounded";
 import { useScoutData } from "../context/ScoutDataContext";
 import { useMemo } from "react";
@@ -20,52 +12,38 @@ import InputCard from "./InputCard";
  */
 interface SectionProps {
   section: SectionData;
-  submitted: boolean;
-  expanded: boolean;
-  onToggle: (isExpanded: boolean) => void;
+  /**
+   * Whether this section's fields should surface validation errors yet. True once
+   * the scout has tried to advance past this step (see Scout's attemptedSteps).
+   */
+  showErrors: boolean;
 }
 
+/**
+ * One schema section rendered as a flat panel — the wizard shows exactly one at a
+ * time, so there is no expand/collapse state here. Step navigation lives in Scout.
+ */
 export default function Section(props: SectionProps) {
-  const { section, submitted, expanded, onToggle } = props;
+  const { section, showErrors } = props;
   const theme = useTheme();
   const isWindowsXPTheme = theme.farmhandThemeId === "WindowsXPTheme";
-  const { errors, getMatchDataMap } = useScoutData();
+  const { errors } = useScoutData();
 
-  // Collect Match Number / Alliance / Position / Team Number values for display
-  // in the collapsed header. Only fields that exist in this section and have a
-  // non-empty value are included.
-  const matchDataMap = getMatchDataMap();
-  const headerInfoItems = (["Match Number", "Alliance", "Position", "Team Number"] as const).flatMap((name) => {
-    const field = section.fields.find((f) => f.name === name);
-    if (!field) return [];
-    const value = matchDataMap.get(field.id);
-    if (value == null || value === "") return [];
-    return [{ label: name, value: String(value) }];
-  });
-
-  // Check if any field in this section has an error
   const hasErrorInSection = useMemo(
-    () => section.fields.some((field) => errors.includes(field.name)),
+    () => section.fields.some((field) => errors.has(field.id)),
     [section.fields, errors]
   );
 
-  const showErrorHighlight = hasErrorInSection && !expanded && submitted;
-  const isSectionComplete = submitted && !hasErrorInSection;
+  const showErrorHighlight = hasErrorInSection && showErrors;
+  const isSectionComplete = !hasErrorInSection;
 
   return (
-    <Accordion
-      expanded={expanded}
-      onChange={(_, isExpanded) => onToggle(isExpanded)}
-      disableGutters
+    <Paper
       elevation={0}
       sx={{
         py: isWindowsXPTheme ? 2 : 3,
-        px: 1,
-        height: "100%",
+        px: { xs: 1.5, sm: 3 },
         width: "100%",
-        display: "flex",
-        alignContent: "center",
-        flexDirection: "column",
         backgroundColor: theme.palette.background.paper,
         borderRadius: isWindowsXPTheme ? 2 : 3,
         borderColor: showErrorHighlight
@@ -73,160 +51,74 @@ export default function Section(props: SectionProps) {
           : theme.palette.divider,
         borderWidth: 2,
         borderStyle: "solid",
-        transition: "all 0.3s ease",
+        transition: "border-color 0.3s ease",
         backgroundImage: isWindowsXPTheme
           ? `linear-gradient(180deg, #fdfdff, #e8eef8)`
           : undefined,
-        "&:before": {
-          display: "none",
-        },
-        "&:hover": !showErrorHighlight
-          ? {
-              borderColor: isWindowsXPTheme
-                ? alpha(theme.palette.primary.main, 0.7)
-                : theme.palette.primary.main,
-            }
-          : {},
       }}
     >
-      <AccordionSummary
-        expandIcon={
-          <ExpandIcon
-            sx={{
-              color: showErrorHighlight
-                ? theme.palette.error.main
-                : isWindowsXPTheme
-                ? "#103f91"
-                : theme.palette.secondary.main,
-              fontSize: 32,
-            }}
-          />
-        }
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+          mb: 2.5,
+        }}
       >
-        <Box
+        <Typography
+          variant="h5"
           sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 1,
-            width: "100%",
+            fontWeight: 600,
+            ...(isWindowsXPTheme && {
+              fontFamily: '"Trebuchet MS", "Tahoma", sans-serif',
+              fontSize: "1rem",
+              color: "#0f3fa6",
+            }),
           }}
         >
-          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Typography
-              variant="h5"
-              sx={{
-                fontWeight: 600,
-                ...(isWindowsXPTheme && {
-                  fontFamily: '"Trebuchet MS", "Tahoma", sans-serif',
-                  fontSize: "1rem",
-                  color: "#0f3fa6",
-                }),
-              }}
-            >
-              {section.title}
-            </Typography>
-            {isSectionComplete && (
-              <CheckCircleOutlineRounded
-                sx={{
-                  color: theme.palette.success.main,
-                  fontSize: 24,
-                  ml: 1,
-                }}
-              />
-            )}
-            {hasErrorInSection && submitted && (
-              <Box
-                sx={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: "50%",
-                  backgroundColor: theme.palette.error.main,
-                }}
-              />
-            )}
-          </Box>
-          {!expanded && headerInfoItems.length > 0 && (
-            <Box
-              sx={{
-                display: "flex",
-                flex: 1,
-                justifyContent: "space-evenly",
-                alignItems: "center",
-                ml: 2,
-                mr: 1,
-              }}
-            >
-              {headerInfoItems.map((item) => (
-                <Typography
-                  key={item.label}
-                  variant="body2"
-                  color="text.secondary"
-                >
-                  {item.label}: {item.value}
-                </Typography>
-              ))}
-            </Box>
-          )}
-        </Box>
-      </AccordionSummary>
-      <AccordionDetails>
-        <Grid container spacing={2}>
-          {section.fields.map((component, index) => (
-            <Grid
-              size={{
-                xs: component.doubleWidth ? 12 : 12,
-                sm: component.doubleWidth ? 12 : 6,
-                md: component.doubleWidth ? 8 : 4,
-                lg: component.doubleWidth ? 6 : 3,
-              }}
-              key={index}
-            >
-              <ValidationProvider key={component.id}>
-                <InputCard
-                  isFiller={component.type === "filler"}
-                  note={component.note}
-                  label={component.name}
-                  required={component.required ?? false}
-                  submitted={submitted}
-                >
-                  <DynamicComponent
-                    component={component}
-                    submitted={submitted}
-                  />
-                </InputCard>
-              </ValidationProvider>
-            </Grid>
-          ))}
-        </Grid>
-      </AccordionDetails>
-
-      {/* Bottom AccordionSummary for collapsing */}
-      <AccordionSummary
-        onClick={(e) => {
-          e.stopPropagation();
-          onToggle(!expanded);
-        }}
-        expandIcon={
-          <ExpandIcon
+          {section.title}
+        </Typography>
+        {isSectionComplete && (
+          <CheckCircleOutlineRounded
             sx={{
-              color: showErrorHighlight
-                ? theme.palette.error.main
-                : isWindowsXPTheme
-                ? "#103f91"
-                : theme.palette.secondary.main,
-              fontSize: 32,
-              transform: "rotate(180deg)",
+              color: theme.palette.success.main,
+              fontSize: 24,
+              ml: 1,
             }}
           />
-        }
-        sx={{
-          minHeight: 48,
-          borderTop: `1px solid ${
-            isWindowsXPTheme ? alpha("#000", 0.15) : theme.palette.divider
-          }`,
-          "& .MuiAccordionSummary-content": { margin: 0 },
-        }}
-      />
-    </Accordion>
+        )}
+      </Box>
+
+      <Grid container spacing={2}>
+        {section.fields.map((component) => (
+          <Grid
+            size={{
+              xs: 12,
+              sm: component.doubleWidth ? 12 : 6,
+              md: component.doubleWidth ? 8 : 4,
+              lg: component.doubleWidth ? 6 : 3,
+            }}
+            key={component.id}
+            // Scroll anchor for Scout's "jump to the first invalid field" behavior.
+            data-field-id={component.id}
+          >
+            <ValidationProvider>
+              <InputCard
+                isFiller={component.type === "filler"}
+                note={component.note}
+                label={component.name}
+                required={component.required ?? false}
+                submitted={showErrors}
+              >
+                <DynamicComponent
+                  component={component}
+                  submitted={showErrors}
+                />
+              </InputCard>
+            </ValidationProvider>
+          </Grid>
+        ))}
+      </Grid>
+    </Paper>
   );
 }

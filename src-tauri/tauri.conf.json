@@ -28,6 +28,10 @@
       "entitlements": "Entitlements.plist",
       "infoPlist": "Info.plist"
     },
+    "linux": {
+      "appimage": { "bundleMediaFramework": true },
+      "deb": { "depends": ["libwebkit2gtk-4.1-0", "libgtk-3-0", "xdg-utils"] }
+    },
     "iOS": { "minimumSystemVersion": "14.0", "bundleVersion": "0.2026.3" }
   }
 }

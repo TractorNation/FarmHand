@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Linux support. Releases now include an AppImage, a `.deb`, and an `.rpm`.
 - 'Persist' flag for fields that should keep their values during reset/completion of a scout report.
 - Automatic Team selection for built-in TBA-enabled schemas (using Match schedule data)
 - Match Number will automatically increment with each completed scout report.

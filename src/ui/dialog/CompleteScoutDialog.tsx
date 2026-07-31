@@ -1,19 +1,17 @@
 import {
   Dialog,
   DialogContent,
-  Stack,
   Typography,
   Button,
   useTheme,
   useMediaQuery,
   Box,
   DialogTitle,
-  Paper,
-  Divider,
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircleRounded";
 import CloseIcon from "@mui/icons-material/CloseRounded";
 import { saveQrCode } from "../../utils/QrUtils";
+import MatchDataReview from "../scout/MatchDataReview";
 
 interface CompleteScoutDialogProps {
   open: boolean;
@@ -42,36 +40,6 @@ export default function CompleteScoutDialog({
       await saveQrCode(qrCode);
     }
     onComplete();
-  };
-
-  // Format value for display
-  const formatValue = (value: any, fieldType: string): string => {
-    if (value === undefined || value === null || value === "") {
-      return "—";
-    }
-
-    if (fieldType === "checkbox") {
-      return value ? "Yes" : "No";
-    }
-
-    if (fieldType === "grid") {
-      if (typeof value === "string" && value.includes(":")) {
-        const parts = value.split(":");
-        if (parts.length > 1) {
-          const checked = parts[1];
-          if (checked === "[]") return "None selected";
-          const count = checked.split(",").filter((v) => v.trim()).length;
-          return `${count} cell${count !== 1 ? "s" : ""} selected`;
-        }
-      }
-      return String(value);
-    }
-
-    if (fieldType === "timer") {
-      return String(value);
-    }
-
-    return String(value);
   };
 
   return (
@@ -165,68 +133,7 @@ export default function CompleteScoutDialog({
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
             Match Data Overview
           </Typography>
-          <Stack spacing={2}>
-            {schema.sections.map((section, sectionIndex) => {
-              // Show all fields in this section, even if they don't have values
-              return (
-                <Paper
-                  key={sectionIndex}
-                  elevation={0}
-                  sx={{
-                    p: 2,
-                    border: `1px solid ${theme.palette.divider}`,
-                    borderRadius: 2,
-                    backgroundColor: theme.palette.background.default,
-                  }}
-                >
-                  <Typography
-                    variant="subtitle1"
-                    sx={{ fontWeight: 600, mb: 1.5 }}
-                    color="primary"
-                  >
-                    {section.title}
-                  </Typography>
-                  <Stack spacing={1.5}>
-                    {section.fields.map((field, fieldIndex) => {
-                      const value = matchData.get(field.id);
-                      return (
-                        <Box key={field.id}>
-                          <Stack
-                            direction="row"
-                            spacing={2}
-                            sx={{ alignItems: "flex-start" }}
-                          >
-                            <Typography
-                              variant="body2"
-                              sx={{
-                                fontWeight: 500,
-                                minWidth: "140px",
-                                color: theme.palette.text.secondary,
-                              }}
-                            >
-                              {field.name}:
-                            </Typography>
-                            <Typography
-                              variant="body2"
-                              sx={{
-                                flex: 1,
-                                wordBreak: "break-word",
-                              }}
-                            >
-                              {formatValue(value, field.type)}
-                            </Typography>
-                          </Stack>
-                          {fieldIndex < section.fields.length - 1 && (
-                            <Divider sx={{ mt: 1.5 }} />
-                          )}
-                        </Box>
-                      );
-                    })}
-                  </Stack>
-                </Paper>
-              );
-            })}
-          </Stack>
+          <MatchDataReview schema={schema} values={matchData} />
         </Box>
       </DialogContent>
 

@@ -3,6 +3,7 @@ import QrScanIcon from "@mui/icons-material/QrCodeScannerRounded";
 import SendIcon from "@mui/icons-material/SendRounded";
 import ExportIcon from "@mui/icons-material/IosShareRounded";
 import RemoveFromFolderIcon from "@mui/icons-material/RemoveCircleOutlineRounded";
+import BatchIcon from "@mui/icons-material/LayersRounded";
 
 interface Props {
   selecting: boolean;
@@ -10,6 +11,7 @@ interface Props {
   onScan: () => void;
   onSendTo: () => void;
   onExport: () => void;
+  onBatch?: () => void;
   showRemoveFromFolder?: boolean;
   onRemoveFromFolder?: () => void;
 }
@@ -20,6 +22,7 @@ export default function QrPageFab({
   onScan,
   onSendTo,
   onExport,
+  onBatch,
   showRemoveFromFolder,
   onRemoveFromFolder,
 }: Props) {
@@ -76,6 +79,17 @@ export default function QrPageFab({
           >
             <SendIcon sx={{ mr: 1 }} /> Send to
           </Fab>
+          {onBatch && (
+            <Fab
+              color="primary"
+              variant="extended"
+              size="large"
+              disabled={disabled}
+              onClick={onBatch}
+            >
+              <BatchIcon sx={{ mr: 1 }} /> Batch QR
+            </Fab>
+          )}
           <Fab
             color="primary"
             variant="extended"

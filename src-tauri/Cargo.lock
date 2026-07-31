@@ -21,6 +21,8 @@ dependencies = [
  "tauri-plugin-fs",
  "tauri-plugin-opener",
  "tauri-plugin-store",
+ "tempfile",
+ "webkit2gtk",
 ]
 
 [[package]]

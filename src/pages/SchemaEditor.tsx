@@ -248,6 +248,10 @@ export default function SchemaEditor() {
           !field.props?.options
         )
           return false;
+        // An autopath field with no actions can record where a robot went but not
+        // what it did, which is not a useful thing to ship to scouts.
+        if (field.type === "autopath" && !field.props?.pathActions?.length)
+          return false;
       }
     }
     return true;

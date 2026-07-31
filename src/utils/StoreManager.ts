@@ -25,32 +25,12 @@ const StoreManager = {
     }
   },
 
-  async getAll(keys: string[]): Promise<Map<string, string | undefined>> {
-    try {
-      await this.ensureInit();
-      if (!store) return new Map();
-
-      const result: Map<string, string | undefined> = new Map();
-      for (const key of keys) {
-        const value = await store.get(key);
-        result.set(key, value as string | undefined);
-      }
-      return result;
-    } catch (e) {
-      console.error("Failed to get all items", e);
-      throw e;
-    }
-  },
-
   async get(key: string): Promise<string | undefined> {
     try {
       await this.ensureInit();
-      console.log("What is being got", key);
-
       if (!store) return undefined;
 
       const value = await store.get(key);
-      console.log("Got this thingy from tha sto", value);
       return value as string | undefined;
     } catch (e) {
       console.error("Failed to get item from store", e);
@@ -63,7 +43,6 @@ const StoreManager = {
       await this.ensureInit();
       if (!store) throw new Error("Store not initialized");
       await store.set(key, value);
-      console.log("Item added to store", key, value);
     } catch (e) {
       console.error("Failed to set value in store", e);
       throw e;
@@ -93,7 +72,7 @@ const StoreManager = {
   },
 
   async getLastSchema(): Promise<string | undefined> {
-    let name = await this.get(StoreKeys.settings.LAST_SCHEMA_NAME);
+    const name = await this.get(StoreKeys.settings.LAST_SCHEMA_NAME);
     return name ?? undefined;
   },
 
@@ -140,25 +119,17 @@ const StoreManager = {
     await this.set(StoreKeys.tba.EVENT_DATA, JSON.stringify(eventData));
   },
 
-  async clearTbaEventData() {
-    await this.remove(StoreKeys.tba.EVENT_DATA);
-  },
-
   async getCachedEvents() {
     try {
       const data = await this.get(StoreKeys.tba.CACHED_EVENTS);
       return data ? JSON.parse(data) : null;
-    } catch (e) {
+    } catch {
       return null;
     }
   },
 
   async setCachedEvents(events: TbaEvent[]) {
     await this.set(StoreKeys.tba.CACHED_EVENTS, JSON.stringify(events));
-  },
-
-  async clearCachedEvents() {
-    await this.remove(StoreKeys.tba.CACHED_EVENTS);
   },
 
   async getFolders(): Promise<QrFolder[]> {
@@ -227,11 +198,11 @@ export const StoreKeys = {
     LEAD_SCOUT_ONLY: "settings::LEAD_SCOUT_ONLY",
     AUTOSAVE_ON_COMPLETE: "settings::AUTOSAVE_ON_COMPLETE",
     COLOR_THEME: "settings::COLOR_THEME",
+    FIELD_IMAGE_KEY: "settings::FIELD_IMAGE_KEY",
   },
   code: {
     archived: (name: string) => `code::${name}::archived`,
     scanned: (name: string) => `code::${name}::scanned`,
-    putInFolder: (name: string) => `code::${name}::folder`,
   },
   folders: {
     list: "folders::list",
@@ -239,6 +210,17 @@ export const StoreKeys = {
   },
   match: {
     field: (name: string) => `match::field::${name}`,
+  },
+  schema: {
+    /**
+     * Hash of a schema as it was on the device that produced it.
+     *
+     * Recorded when a schema is imported by QR. minifySchema is not byte-lossless
+     * (it normalizes key order and optional booleans), so recomputing the hash
+     * locally yields a different value than the origin device used — and every match
+     * code from that device is looked up by the origin's hash.
+     */
+    originHash: (name: string) => `schema::${name}::originHash`,
   },
   analysis: {
     byId: (id: number) => `analysis::${id}`,

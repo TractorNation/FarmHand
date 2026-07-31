@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
+import { orderedFields } from "../../utils/schemaFields";
 import { decodeQR } from "../../utils/QrUtils";
-import { getMatchSortKey } from "../../utils/GeneralUtils";
+import { getMatchSortKey } from "../../utils/valueFormat";
 import { Dialog, DialogTitle, DialogContent, Stack, Autocomplete, TextField, Typography, DialogActions, Button } from "@mui/material";
 
 export default function FilterDialog({
@@ -41,7 +42,7 @@ export default function FilterDialog({
       }
 
       // Find field indices for "Match Number" and "Team Number"
-      const allFields = schema.sections.flatMap((section) => section.fields);
+      const allFields = orderedFields(schema);
       const matchNumberIndex = allFields.findIndex(
         (field) => field.name === "Match Number"
       );
@@ -63,9 +64,10 @@ export default function FilterDialog({
       const decodedResults = await Promise.all(
         nonArchivedCodes.map(async (qr) => {
           try {
-            const decoded = await decodeQR(qr.data);
-            return decoded;
-          } catch (e) {
+            // The field indices below are this schema's, so only codes recorded
+            // with it are meaningful — and v2 needs it to decode at all.
+            return await decodeQR(qr.data, schema);
+          } catch {
             return null;
           }
         })

@@ -39,6 +39,8 @@ function NumberInput(props: NumberFieldProps) {
     required,
   } = props;
 
+  const labelId = React.useId();
+
   // State to hold the string value of the input for controlled behavior
   const [inputValue, setInputValue] = React.useState(
     value === null || value === undefined ? "" : String(value)
@@ -79,7 +81,10 @@ function NumberInput(props: NumberFieldProps) {
       )}
     >
       <SSRInitialFilled />
-      <InputLabel>{label}</InputLabel>
+      {/* This is a hand-built FormControl rather than a TextField, so the label and
+          the input are not associated automatically — without the explicit ids the
+          field renders a visible label that assistive tech cannot connect to it. */}
+      <InputLabel id={labelId}>{label}</InputLabel>
       <BaseNumberField.Input
         render={(props) => (
           <OutlinedInput
@@ -153,7 +158,12 @@ function NumberInput(props: NumberFieldProps) {
             onKeyDown={props.onKeyDown}
             onFocus={props.onFocus}
             slotProps={{
-              input: props,
+              // The aria attribute has to go here rather than in `inputProps`:
+              // `slotProps.input` wins over it, so anything set there is discarded.
+              input: {
+                ...props,
+                "aria-labelledby": label ? labelId : undefined,
+              },
             }}
             endAdornment={
               <InputAdornment

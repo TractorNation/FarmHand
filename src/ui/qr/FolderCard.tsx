@@ -70,8 +70,9 @@ export default function FolderCard(props: FolderCardProps) {
     setContextMenu(null);
   };
 
-  const handleLongPress = (e: TouchEvent | MouseEvent) => {
-    e.preventDefault();
+  // No preventDefault: this runs from a timer long after the pointer event was
+  // dispatched. The follow-up click is suppressed by longPressTriggered below.
+  const handleLongPress = () => {
     if (toggleSelectMode) {
       longPressTriggered.current = true;
       if (!selecting) {
@@ -86,7 +87,8 @@ export default function FolderCard(props: FolderCardProps) {
       longPressTriggered.current = false;
       return;
     }
-    selecting ? onSelect(folder) : onClickFolder(folder.id);
+    if (selecting) onSelect(folder);
+    else onClickFolder(folder.id);
   };
 
   const handleRename = () => {
@@ -109,11 +111,7 @@ export default function FolderCard(props: FolderCardProps) {
     onUnarchive?.(folder);
   };
 
-  const onLongPress = useLongPress(
-    500,
-    handleLongPress as (e: TouchEvent) => void,
-    handleLongPress as (e: MouseEvent) => void
-  );
+  const onLongPress = useLongPress(500, handleLongPress);
 
   return (
     <>

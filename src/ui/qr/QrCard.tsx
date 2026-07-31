@@ -2,7 +2,9 @@ import { Card, Stack, Typography, useTheme, Box } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircleRounded";
 import useLongPress from "../../hooks/useLongPress";
 import { useRef } from "react";
-import { getDataFromQrName } from "../../utils/QrUtils";
+import { getDataFromQrName, getSchemaHashFromQrString } from "../../utils/QrUtils";
+import { useSchema } from "../../context/SchemaContext";
+import SchemaHashChip from "../SchemaHashChip";
 
 interface QrCardProps {
   qr: QrCode;
@@ -19,9 +21,15 @@ export default function QrCard(props: QrCardProps) {
     props;
   const theme = useTheme();
   const longPressTriggered = useRef(false);
+  const { schemaNamesByHash } = useSchema();
 
-  const handleLongPress = (e: TouchEvent | MouseEvent) => {
-    e.preventDefault();
+  // Which schema produced this match. Read straight off the QR string so it stays
+  // correct even for codes whose schema this device does not have.
+  const schemaHash = getSchemaHashFromQrString(qr.data);
+
+  // No preventDefault: this runs from a timer long after the pointer event was
+  // dispatched. The follow-up click is suppressed by longPressTriggered below.
+  const handleLongPress = () => {
     if (toggleSelectMode && !disabled) {
       longPressTriggered.current = true;
       if (!selecting) {
@@ -36,14 +44,12 @@ export default function QrCard(props: QrCardProps) {
       longPressTriggered.current = false;
       return;
     }
-    selecting && !disabled ? onSelect(qr) : !disabled && onClickQr(qr);
+    if (disabled) return;
+    if (selecting) onSelect(qr);
+    else onClickQr(qr);
   };
 
-  const onLongPress = useLongPress(
-    500,
-    handleLongPress as (e: TouchEvent) => void,
-    handleLongPress as (e: MouseEvent) => void
-  );
+  const onLongPress = useLongPress(500, handleLongPress);
 
   return (
     <Card
@@ -111,6 +117,12 @@ export default function QrCard(props: QrCardProps) {
           <Typography variant="subtitle1" noWrap>
             Match: {getDataFromQrName(qr.name).MatchNumber}
           </Typography>
+          <Box sx={{ minWidth: 0 }}>
+            <SchemaHashChip
+              hash={schemaHash}
+              name={schemaHash ? schemaNamesByHash.get(schemaHash) : null}
+            />
+          </Box>
         </Stack>
       </Stack>
     </Card>

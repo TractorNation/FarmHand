@@ -33,9 +33,10 @@ import PushPinOutlinedIcon from "@mui/icons-material/PushPinOutlined";
 import { useAnalysis } from "../context/AnalysisContext";
 import { useSchema } from "../context/SchemaContext";
 import { useAsyncFetch } from "../hooks/useAsyncFetch";
-import { fetchQrCodes, decodeQR } from "../utils/QrUtils";
+import { fetchQrCodes } from "../utils/QrUtils";
 import { getSchemaFromHash } from "../utils/SchemaUtils";
-import { createSchemaHash } from "../utils/GeneralUtils";
+import { filterQrCodesForAnalysis } from "../utils/AnalysisUtils";
+import { createSchemaHash } from "../utils/SchemaWire";
 import useDialog from "../hooks/useDialog";
 import ChartRenderer from "../ui/ChartRenderer";
 import FilterDialog from "../ui/dialog/AnalysisFilterDialog";
@@ -168,71 +169,11 @@ export default function AnalysisViewer() {
     }
 
     const processData = async () => {
-      // Find field indices for Match Number and Team Number
-      const allFields = selectedSchema.sections.flatMap(
-        (section) => section.fields
+      const filtered = await filterQrCodesForAnalysis(
+        allQrCodes,
+        editingAnalysis,
+        selectedSchema
       );
-      const matchNumberIndex = allFields.findIndex(
-        (field) => field.name === "Match Number"
-      );
-      const teamNumberIndex = allFields.findIndex(
-        (field) => field.name === "Team Number"
-      );
-
-      const decoded = await Promise.all(
-        allQrCodes
-          .filter((qr) => !qr.archived)
-          .map(async (qr) => {
-            try {
-              const decoded = await decodeQR(qr.data);
-              // Only include QR codes that match the analysis schema
-              if (decoded.schemaHash !== editingAnalysis.schemaHash) {
-                return null;
-              }
-              return { qr, decoded };
-            } catch {
-              return null;
-            }
-          })
-      );
-
-      const filtered = decoded.filter((item) => {
-        if (!item || !item.decoded || !item.decoded.data) return false;
-
-        // Apply team filter (only if teams are explicitly selected)
-        if (editingAnalysis.selectedTeams.length > 0) {
-          if (teamNumberIndex === -1) {
-            // No team field in schema, can't filter by team - exclude this item
-            return false;
-          }
-          const teamField = item.decoded.data[teamNumberIndex];
-          if (teamField === undefined || teamField === null) return false;
-          const teamNum = Number(teamField);
-          if (
-            isNaN(teamNum) ||
-            !editingAnalysis.selectedTeams.includes(teamNum)
-          ) {
-            return false;
-          }
-        }
-
-        // Apply match filter (only if matches are explicitly selected)
-        // When selectedMatches.length === 0, include ALL matches (skip this filter)
-        if (editingAnalysis.selectedMatches.length > 0) {
-          if (matchNumberIndex === -1) {
-            // No match field in schema, can't filter by match - exclude this item
-            return false;
-          }
-          const matchField = item.decoded.data[matchNumberIndex];
-          if (matchField === undefined || matchField === null) return false;
-          if (!editingAnalysis.selectedMatches.includes(String(matchField))) {
-            return false;
-          }
-        }
-
-        // Item passes all filters (or no filters are applied)
-        return true;
-      });
 
       setFilteredData(filtered);
     };

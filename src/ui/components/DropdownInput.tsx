@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useId } from "react";
 import {
   InputLabel,
   Select,
@@ -6,6 +6,7 @@ import {
   SelectChangeEvent,
   FormControl,
 } from "@mui/material";
+import { UNSET_OPTION } from "../../utils/fieldValidation";
 
 type DropdownOption = string | { label: string; value: string };
 
@@ -25,11 +26,12 @@ interface DropdownInputProps {
  */
 function DropdownInput(props: DropdownInputProps) {
   const { label, options, onChange, value, error, disabled, allowUnset } = props;
+  const labelId = useId();
   
-  // Only include "Select an option..." if allowUnset is true
+  // Only include the unset sentinel if allowUnset is true
   const normalizedOptions = allowUnset
     ? [
-        { label: "Select an option...", value: "Select an option..." },
+        { label: UNSET_OPTION, value: UNSET_OPTION },
         ...options.map((option) =>
           typeof option === "string" ? { label: option, value: option } : option
         ),
@@ -39,14 +41,14 @@ function DropdownInput(props: DropdownInputProps) {
       );
 
   // Determine the fallback value based on allowUnset setting
-  const defaultFallbackValue = allowUnset 
-    ? "Select an option..." 
+  const defaultFallbackValue = allowUnset
+    ? UNSET_OPTION
     : (normalizedOptions.length > 0 ? normalizedOptions[0].value : "");
   const selectValue = value ?? defaultFallbackValue;
 
   const handleChange = (e: SelectChangeEvent) => {
-    // Don't allow selecting "Select an option..." when allowUnset is false
-    if (!allowUnset && e.target.value === "Select an option...") {
+    // Don't allow selecting the unset sentinel when allowUnset is false
+    if (!allowUnset && e.target.value === UNSET_OPTION) {
       return;
     }
     if (onChange) onChange(e.target.value);
@@ -54,8 +56,14 @@ function DropdownInput(props: DropdownInputProps) {
 
   return (
     <FormControl fullWidth variant="outlined" size="small">
-      <InputLabel color={error ? "error" : "secondary"}>{label}</InputLabel>
+      {/* `labelId` is what associates the two. A hand-built FormControl does not wire
+          it the way TextField does, so without it the dropdown renders a visible
+          label that assistive tech cannot connect to the control. */}
+      <InputLabel id={labelId} color={error ? "error" : "secondary"}>
+        {label}
+      </InputLabel>
       <Select
+        labelId={label ? labelId : undefined}
         value={selectValue}
         label={label}
         onChange={handleChange}
