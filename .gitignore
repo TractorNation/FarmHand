@@ -35,3 +35,6 @@ src-tauri/gen/android/keystore.properties
 
 # Build directories
 /src-tauri/target
+
+# Machine-local cargo build tuning (low-memory hosts); not shared with CI or teammates
+/src-tauri/.cargo/
