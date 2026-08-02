@@ -82,7 +82,12 @@ const corners = [
 
 async function getCameraDevices(): Promise<MediaDeviceInfo[]> {
   try {
-    await navigator.mediaDevices.getUserMedia({ video: true });
+    // enumerateDevices only fills in labels once camera permission has been granted, so
+    // we have to open a stream to get usable names - and release it straight away.
+    // WebKitGTK takes an exclusive V4L2 handle, so a probe stream left running keeps the
+    // device busy and the scanner's own stream then gets a lit camera but no frames.
+    const probe = await navigator.mediaDevices.getUserMedia({ video: true });
+    probe.getTracks().forEach((track) => track.stop());
     const devices = await navigator.mediaDevices.enumerateDevices();
     return devices.filter((device) => device.kind === "videoinput");
   } catch {
@@ -275,31 +280,39 @@ export default function QrScannerDialogue({
     const reader = new BrowserQRCodeReader();
     readerRef.current = reader;
 
-    let controls: IScannerControls;
+    let controls: IScannerControls | undefined;
+    let cancelled = false;
+
     (async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { deviceId: selectedCamera.deviceId },
-        });
-        const video = videoRef.current!;
-        video.srcObject = stream;
-        await video.play();
-
-        controls = await reader.decodeFromVideoDevice(
-          activeCamera?.id,
-          video,
+        // decodeFromVideoDevice opens the camera and attaches it to the element itself.
+        // Opening our own stream first leaves WebKitGTK holding two V4L2 handles on the
+        // same device, and a single-stream webcam then lights up without ever delivering
+        // frames. Pass the resolved device id rather than activeCamera.id, which is
+        // undefined on the first pass and would silently select a different camera.
+        const started = await reader.decodeFromVideoDevice(
+          selectedCamera.deviceId,
+          videoRef.current!,
           (result) => {
             if (result) addToList(result);
           }
         );
+
+        // Closing the dialog while this is still resolving used to leave the stream
+        // running with nothing holding a reference to stop it.
+        if (cancelled) {
+          started.stop();
+          return;
+        }
+        controls = started;
       } catch (err) {
         console.error("Camera error:", err);
       }
     })();
 
     return () => {
-      if (!controls) return;
-      controls.stop();
+      cancelled = true;
+      controls?.stop();
       readerRef.current = null;
     };
   }, [open, activeCamera, cameraState]);
