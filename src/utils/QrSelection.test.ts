@@ -10,24 +10,23 @@ import {
  * export/batch filter.
  *
  * The bug this replaces: selection filtered with `code.data.includes(selectedHash)`.
- * parseQrHeader normalizes the hash to lowercase, but v2 writes it uppercase on the
- * wire so the whole string stays inside the QR alphanumeric charset — so the
- * substring test matched nothing at all for v2 codes, and Select All silently
- * selected zero matches.
+ * parseQrHeader normalizes the hash to lowercase, but the wire writes it uppercase so
+ * the whole string stays inside the QR alphanumeric charset — so the substring test
+ * matched nothing at all, and Select All silently selected zero matches.
  */
 
 const HASH = "b0f68211";
 
 /** A real match string as saved by the app: uppercase prefix and hash. */
-const V2_CODE = `FRMHND:M2:${HASH.toUpperCase()}:6:%20M13O+14%5:639/RL`;
+const MATCH_CODE = `FRMHND:M:${HASH.toUpperCase()}:6:%20M13O+14%5:639/RL`;
 /** A schema-transfer code. */
-const SCHEMA_CODE = `FRMHND:S2:${HASH.toUpperCase()}:0:eJxLysxLBQAD1QIJ`;
-/** The retired v1 format: lowercase, and no version digit after the type. */
+const SCHEMA_CODE = `FRMHND:S:${HASH.toUpperCase()}:0:eJxLysxLBQAD1QIJ`;
+/** The retired v1 format: lowercase prefix and type. */
 const V1_CODE = `frmhnd:m:${HASH}:2:eJxLysxLBQAD1QIJ`;
 
 describe("schema hash extraction", () => {
   it("normalizes an uppercase wire hash to lowercase", () => {
-    expect(getSchemaHashFromQrString(V2_CODE)).toBe(HASH);
+    expect(getSchemaHashFromQrString(MATCH_CODE)).toBe(HASH);
   });
 
   it("reads a schema code's hash", () => {
@@ -39,20 +38,34 @@ describe("schema hash extraction", () => {
   });
 });
 
+describe("the type token is exactly one character", () => {
+  // There is one wire format, so nothing carries a version number. A token with
+  // anything after the type character is not one of ours and must fail at the parse
+  // boundary rather than half-decoding into values attributed to the wrong fields.
+  it("rejects a trailing version digit", () => {
+    expect(parseQrHeader(`FRMHND:M2:${HASH.toUpperCase()}:1:PAYLOAD`)).toBeNull();
+    expect(parseQrHeader(`FRMHND:B2:${HASH.toUpperCase()}:0:PAYLOAD`)).toBeNull();
+  });
+
+  it("rejects an empty type token", () => {
+    expect(parseQrHeader(`FRMHND::${HASH.toUpperCase()}:1:PAYLOAD`)).toBeNull();
+  });
+
+  it("rejects an unknown type character", () => {
+    expect(parseQrHeader(`FRMHND:X:${HASH.toUpperCase()}:1:PAYLOAD`)).toBeNull();
+  });
+});
+
 describe("retired v1 codes are rejected outright", () => {
-  // v1 support is gone. A v1 string must fail at the parse boundary rather than
-  // half-decoding into values attributed to the wrong fields.
+  // v1 support is gone, and with no version token on the wire the case-sensitive
+  // prefix is what separates the two: v1 codes are lowercase throughout.
   it("does not parse a v1 header", () => {
     expect(parseQrHeader(V1_CODE)).toBeNull();
     expect(getSchemaHashFromQrString(V1_CODE)).toBeNull();
   });
 
-  it("rejects a missing version token even with the current prefix", () => {
-    expect(parseQrHeader(`FRMHND:M:${HASH.toUpperCase()}:1:PAYLOAD`)).toBeNull();
-  });
-
-  it("rejects a version below the current one", () => {
-    expect(parseQrHeader(`FRMHND:M1:${HASH.toUpperCase()}:1:PAYLOAD`)).toBeNull();
+  it("rejects a lowercase prefix even with a current-shape token", () => {
+    expect(parseQrHeader(`frmhnd:M:${HASH.toUpperCase()}:1:PAYLOAD`)).toBeNull();
   });
 });
 
@@ -61,29 +74,29 @@ describe("selection filtering", () => {
   const matches = (data: string, selectedHash: string) =>
     getSchemaHashFromQrString(data) === selectedHash;
 
-  it("selects a v2 code whose wire hash is uppercase", () => {
-    // The regression: `V2_CODE.includes("b0f68211")` is false.
-    expect(V2_CODE.includes(HASH)).toBe(false);
-    expect(matches(V2_CODE, HASH)).toBe(true);
+  it("selects a code whose wire hash is uppercase", () => {
+    // The regression: `MATCH_CODE.includes("b0f68211")` is false.
+    expect(MATCH_CODE.includes(HASH)).toBe(false);
+    expect(matches(MATCH_CODE, HASH)).toBe(true);
   });
 
   it("does not select a code whose payload merely contains the hash text", () => {
     // Substring matching would have picked this up: a Base45 payload can happen to
     // contain another schema's 8-character hash.
-    const impostor = `FRMHND:M2:AAAAAAAA:1:XX${HASH.toUpperCase()}XX`;
+    const impostor = `FRMHND:M:AAAAAAAA:1:XX${HASH.toUpperCase()}XX`;
     expect(impostor.includes(HASH.toUpperCase())).toBe(true);
     expect(matches(impostor, HASH)).toBe(false);
   });
 
   it("excludes codes from a genuinely different schema", () => {
-    expect(matches(`FRMHND:M2:DEADBEEF:1:PAYLOAD`, HASH)).toBe(false);
+    expect(matches(`FRMHND:M:DEADBEEF:1:PAYLOAD`, HASH)).toBe(false);
   });
 
   it("parses the header of a payload containing colons and spaces", () => {
     // Base45's alphabet includes ':' and ' ', so the header must be parsed by offset.
-    const header = parseQrHeader(V2_CODE);
+    const header = parseQrHeader(MATCH_CODE);
+    expect(header?.type).toBe("match");
     expect(header?.deviceId).toBe(6);
-    expect(header?.version).toBe(2);
     expect(header?.payload).toBe("%20M13O+14%5:639/RL");
   });
 });

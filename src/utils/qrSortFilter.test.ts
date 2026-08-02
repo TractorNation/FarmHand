@@ -40,7 +40,7 @@ const code = (
   extra: Partial<QrCode> = {}
 ): QrCode => ({
   name: `${team}-${match}-${savedAt.getTime()}.svg`,
-  data: `FRMHND:M2:B0F68211:1:PAYLOAD`,
+  data: `FRMHND:M:B0F68211:1:PAYLOAD`,
   image: "<svg/>",
   ...extra,
 });

@@ -1,5 +1,5 @@
 /**
- * Minimal MSB-first bit writer/reader used by the v2 QR payload codecs.
+ * Minimal MSB-first bit writer/reader used by the QR payload codecs.
  *
  * Bit order is most-significant-bit-first within each byte, and multi-bit integers
  * are written most-significant-bit-first. This is the conventional choice and the

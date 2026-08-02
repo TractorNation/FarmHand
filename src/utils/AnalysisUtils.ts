@@ -26,7 +26,7 @@ export interface AnalysisDataItem {
 /**
  * Selects and decodes the QR codes an analysis covers.
  *
- * Codes are filtered by schema hash *before* decoding: a v2 payload can only be
+ * Codes are filtered by schema hash *before* decoding: a bit-packed payload can only be
  * decoded with the schema it was recorded against.
  */
 export async function filterQrCodesForAnalysis(

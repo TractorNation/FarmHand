@@ -31,7 +31,7 @@ export const BATCH_SIZE_BY_BREAKPOINT = {
  */
 export const QR_ALNUM_CAPACITY_V40_Q = 1852;
 
-/** `FRMHND:B2:<8 hex>:0:` — subtracted from capacity to size the payload budget. */
+/** `FRMHND:B:<8 hex>:0:` — subtracted from capacity to size the payload budget. */
 const BATCH_HEADER_CHARS = 20;
 
 /**

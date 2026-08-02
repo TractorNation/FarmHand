@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 /**
  * Resolving a match code's schema from the 8-character hash it carries.
  *
- * This is the single point where a wrong answer is worse than no answer: a v2 payload
+ * This is the single point where a wrong answer is worse than no answer: a payload
  * decoded against a structurally different schema does not error, it yields values
  * attributed to the wrong fields. Only the CRC and a layout-overrun check stand behind
  * it, and neither catches a schema that happens to have a compatible bit layout.

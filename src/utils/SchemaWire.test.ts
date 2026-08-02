@@ -10,7 +10,7 @@ import TBARebuilt from "../config/schema/2026RebuiltTBA.json";
 /**
  * Schema-over-QR round trips.
  *
- * These matter more under payload v2 than they used to: a v2 match code can only be
+ * These matter more under bit packing than they used to: a match code can only be
  * decoded with the exact schema it was recorded against, and the schema is
  * identified by a hash over the whole object. Anything minifySchema drops changes
  * the hash on the receiving device and orphans that device's match codes.

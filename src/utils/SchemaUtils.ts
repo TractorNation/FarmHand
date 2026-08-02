@@ -70,7 +70,7 @@ const REVISIONS_DIR = "schemas/revisions";
  * 2. **Locally computed hash** of each available schema.
  * 3. **The revision archive.** The hash covers the whole schema object, so any edit
  *    mints a new identity and strands codes recorded under the old one. The archive
- *    returns the *exact* revision that produced the hash — decoding a v2 payload
+ *    returns the *exact* revision that produced the hash — decoding a bit-packed payload
  *    against a structurally different schema yields silent garbage, so resolving an
  *    old hash onto the current schema would be worse than failing.
  */

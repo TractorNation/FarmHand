@@ -154,7 +154,7 @@ describe("corruption", () => {
   });
 
   it("rejects a string that is not a batch code", () => {
-    expect(() => expandBatchQr(`FRMHND:M2:${HASH.toUpperCase()}:1:ABC`)).toThrow(
+    expect(() => expandBatchQr(`FRMHND:M:${HASH.toUpperCase()}:1:ABC`)).toThrow(
       /not a farmhand batch/i
     );
     expect(() => expandBatchQr("https://example.com")).toThrow();
@@ -168,7 +168,7 @@ describe("rawMatchPayload guards", () => {
   });
 
   it("returns null for a schema code", () => {
-    expect(rawMatchPayload(`FRMHND:S2:${HASH.toUpperCase()}:0:eJxLysxLBQAD1QIJ`))
+    expect(rawMatchPayload(`FRMHND:S:${HASH.toUpperCase()}:0:eJxLysxLBQAD1QIJ`))
       .toBeNull();
   });
 

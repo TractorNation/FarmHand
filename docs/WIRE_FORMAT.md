@@ -10,26 +10,25 @@ Reference implementation: [`src/utils/`](../src/utils/) — `Base45.ts`,
 
 ## 1. QR string grammar
 
-```
-<PREFIX> ":" <TYPE><VERSION> ":" <SCHEMA_HASH> ":" <DEVICE_ID> ":" <PAYLOAD>
+```text
+<PREFIX> ":" <TYPE> ":" <SCHEMA_HASH> ":" <DEVICE_ID> ":" <PAYLOAD>
 ```
 
 | Field | Value |
 | --- | --- |
-| `PREFIX` | `FRMHND` |
-| `TYPE` | `M` `S` `T` `E` `B` |
-| `VERSION` | decimal integer, **always present** |
+| `PREFIX` | `FRMHND`, uppercase, compared case-sensitively |
+| `TYPE` | exactly one character: `M` `S` `T` `E` `B` |
 | `SCHEMA_HASH` | 8 uppercase hex |
 | `DEVICE_ID` | decimal integer (`0` for batch and schema codes) |
 | `PAYLOAD` | depends on type — see below |
 
 Type codes: `M`atch, `S`chema, `T`heme, `E`settings, `B`atch.
 
-| Code | Payload | Version |
-| --- | --- | --- |
-| `M2` | Base45 of a bit-packed match body (§4) | 2 |
-| `B2` | Base45 of a batch container (§6) | 2 |
-| `S2` | Base64 of zlib of the minified schema (§7) | 2 |
+| Code | Payload |
+| --- | --- |
+| `M` | Base45 of a bit-packed match body (§4) |
+| `B` | Base45 of a batch container (§6) |
+| `S` | Base64 of zlib of the minified schema (§7) |
 
 Match and schema payloads differ because their content does: a match has a known
 shape the schema defines, so bit packing wins; a schema is repetitive JSON of
@@ -48,22 +47,13 @@ QR alphanumeric charset (5.5 bits/char instead of byte mode's 8).
 
 Codes are rendered at **error-correction level Q** (~25% recoverable).
 
-### Version compatibility
-
-**The version token is mandatory.** A decoder must reject any string without one.
-
-The retired v1 format (`frmhnd:m:<hash>:<dev>:` + Base64(zlib(JSON array)), lowercase
-and unversioned) is **no longer readable** — support was removed deliberately rather
-than left to rot. Because it is rejected at the parse boundary, a v1 string reports as
-"not a FarmHand code" instead of half-decoding into values attributed to wrong fields.
-
 ---
 
 ## 2. Base45
 
 Per **RFC 9285**. Alphabet (index = value):
 
-```
+```text
 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:
 ```
 
@@ -94,9 +84,9 @@ least-significant group first. The continuation bit is 1 while more groups follo
 
 ---
 
-## 4. Match payload (`M2`)
+## 4. Match payload (`M`)
 
-```
+```text
 [flags: 1 byte][field data: bit-packed, zero-padded to a byte][crc8: 1 byte]
 ```
 
@@ -166,7 +156,7 @@ Schema properties on an `autopath` field:
 
 ### Bit layout
 
-```
+```text
 [present: 1]
 
   present == 0:
@@ -181,7 +171,7 @@ Schema properties on an `autopath` field:
 
 Token:
 
-```
+```text
 [type: 1]
 
   type == 0 (MOVE):
@@ -222,12 +212,12 @@ Base45-encoded — no flags byte and no CRC. Decode it with the same schema's
 
 ---
 
-## 6. Batch payload (`B2`)
+## 6. Batch payload (`B`)
 
 Carries many matches sharing one schema hash.
 
-```
-FRMHND:B2:<SCHEMA_HASH>:0:<BASE45>
+```text
+FRMHND:B:<SCHEMA_HASH>:0:<BASE45>
 
 body = [flags: 1 byte][matchCount: 1 byte]
        matchCount x { [deviceId: 1 byte][byteLength: varint][pad to byte boundary]
@@ -247,7 +237,7 @@ Consumers should not assume any particular count.
 
 ---
 
-## 7. Schema payload (`S2`)
+## 7. Schema payload (`S`)
 
 Base64 of zlib of JSON — not bit-packed, because a schema's shape is exactly what a
 bit-packed encoding would need to know in advance:
@@ -258,7 +248,7 @@ bit-packed encoding would need to know in advance:
 
 Each `field` is a positional array:
 
-```
+```json
 [ name, typeCode, requiredFlag, props, extras ]
 ```
 
@@ -411,7 +401,7 @@ Non-autopath fields carry their decoded value directly, or `null` when unset:
 
 ## 9. Reference decoder (Python)
 
-Handles `M2` and `B2`. Requires the schema as a Python dict.
+Handles `M` and `B` codes. Requires the schema as a Python dict.
 
 ```python
 import hashlib
@@ -429,13 +419,13 @@ def parse_qr(s: str):
         parts.append(s[start:i])
         start = i + 1
     prefix, type_token, schema_hash, device_id = parts
+    # Case-sensitive: the retired v1 format is lowercase and must be rejected here
+    # rather than guessed at.
     assert prefix == "FRMHND", "not a FarmHand code"
-    # The version token is mandatory. An unversioned token is the retired v1
-    # format, which must be rejected rather than guessed at.
-    assert len(type_token) > 1 and type_token[1:].isdigit(), "unversioned (v1) code"
+    # No version field. A longer token is not this format.
+    assert len(type_token) == 1, "unrecognised type token"
     return {
-        "type": type_token[0],
-        "version": int(type_token[1:]),
+        "type": type_token,
         "schema_hash": schema_hash.lower(),
         "device_id": int(device_id),
         "payload": s[start:],
@@ -637,10 +627,8 @@ def decode_batch_body(payload: bytes) -> list:
 
 
 def decode(qr_string: str, schema: dict):
-    """Returns a dict for M2, or a list of (device_id, dict) for B2."""
+    """Returns a dict for an M code, or a list of (device_id, dict) for a B code."""
     h = parse_qr(qr_string)
-    if h["version"] != 2:
-        raise ValueError("this decoder handles version 2 only")
     payload = b45_decode(h["payload"])
     if h["type"] == "M":
         return decode_match_body(schema, payload)
@@ -666,9 +654,9 @@ and a 30-character UTF-8 comment with an emoji:
 
 | Case | Body bytes | Payload chars | Full QR string chars |
 | --- | --- | --- | --- |
-| Fully populated match | 60 | 90 | 111 |
-| Empty match | 7 | 11 | 32 |
-| 3-match batch | — | 148 | 170 |
+| Fully populated match | 60 | 90 | 110 |
+| Empty match | 7 | 11 | 31 |
+| 3-match batch | — | 148 | 169 |
 
 For comparison, the retired v1 payload for the same populated match — Base64 of zlib
 of the JSON value array — ran several hundred characters. The bulk of the 60 bytes
@@ -681,10 +669,16 @@ These figures are reproducible: the fixtures were generated by the encoders in
 
 ## 11. Changelog
 
-| Version | Change |
+| Format | Change |
 | --- | --- |
-| ~~1~~ | ~~`frmhnd:<t>:<hash>:<dev>:` + Base64(zlib(JSON array of values))~~ — **retired, no longer readable** |
-| 2 | Uppercase prefix, mandatory version token, Base45, schema-driven bit packing, CRC-8, `autopath` field type, `B` batch container, error correction raised to level Q |
+| ~~v1~~ | ~~`frmhnd:<t>:<hash>:<dev>:` + Base64(zlib(JSON array of values))~~ — **retired, no longer readable** |
+| current | Uppercase prefix, Base45, schema-driven bit packing, CRC-8, `autopath` field type, `B` batch container, error correction raised to level Q |
+
+The current format briefly carried a version token (`M2`, `S2`, `B2`) during
+development. It never shipped in a release, and it was dropped before it did: with a
+single format defined, the digit was a constant on every code, and three separate
+"payload version" constants had to be kept in lockstep to express it. The type
+character is where an incompatible change would announce itself instead.
 
 The **wire format is unchanged** by the export revision below; only the representation
 of decoded values in CSV/JSON changed.
@@ -692,7 +686,7 @@ of decoded values in CSV/JSON changed.
 | App version | Change |
 | --- | --- |
 | 2026.3.3 | Unset fields export as `null` / empty instead of substituted defaults (`0`, `"No text provided"`). Batch codes now reuse each match's stored bytes verbatim rather than decoding and re-encoding, so batched records are byte-identical to their sources. |
-| 2026.3.4 | v1 decoding removed; the version token is now mandatory. Schema codes retagged from the unversioned `s` to `S2` — payload encoding unchanged, so only the header differs. |
+| 2026.3.4 | v1 decoding removed. Schema codes retagged from lowercase `s` to `S` and the prefix uppercased — payload encoding unchanged, so only the header differs. |
 
 ### Schema identity
 

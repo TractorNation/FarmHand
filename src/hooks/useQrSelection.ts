@@ -27,8 +27,8 @@ export function useQrSelection(qrCodes?: QrCode[]) {
     const valid: QrCode[] = [];
     const invalid: QrCode[] = [];
     qrCodes.forEach((code) => {
-      // Parsed rather than split(":") so v1 and v2 codes for the same schema
-      // compare equal — v2 uppercases the hash on the wire.
+      // Parsed rather than split(":"): the hash is uppercase on the wire and the
+      // payload can itself contain colons, so neither end of a raw split is the hash.
       const hash = getSchemaHashFromQrString(code.data);
       (hash === selectedHash ? valid : invalid).push(code);
     });
@@ -57,10 +57,10 @@ export function useQrSelection(qrCodes?: QrCode[]) {
   const selectAllCodes = (useHash: boolean) => {
     if (!qrCodes) return;
 
-    // Compare parsed hashes rather than substring-matching the raw string. v2 writes
-    // the hash uppercase so the whole code stays QR-alphanumeric, while parseQrHeader
-    // normalizes to lowercase — so `data.includes(selectedHash)` matched nothing at
-    // all for v2 codes. Substring matching was also a latent false positive: an
+    // Compare parsed hashes rather than substring-matching the raw string. The wire
+    // writes the hash uppercase so the whole code stays QR-alphanumeric, while
+    // parseQrHeader normalizes to lowercase — so `data.includes(selectedHash)` matched
+    // nothing at all. Substring matching was also a latent false positive: an
     // 8-hex-char run can occur inside an unrelated code's Base45 payload.
     if (useHash && selectedHash) {
       setSelectedCodes(

@@ -2,7 +2,7 @@ import { BitReader, BitWriter } from "./BitStream";
 import { crc8 } from "./Base45";
 
 /**
- * Multi-match batch container (QR type token "B2").
+ * Multi-match batch container (QR type token "B").
  *
  * At roughly 30-50 Base45 characters per match, one QR carries dozens, which turns
  * end-of-event transfer from one scan per match into two or three scans total.
@@ -16,8 +16,6 @@ import { crc8 } from "./Base45";
  * without re-deriving each record's width from the schema. Device id is per record
  * because the QR page may hold codes imported from other devices.
  */
-
-export const BATCH_PAYLOAD_VERSION = 2;
 
 /** matchCount is a single byte. */
 export const MAX_BATCH_MATCHES = 255;

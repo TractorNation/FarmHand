@@ -165,8 +165,8 @@ export default function ShareDialog(props: ShareDialogProps) {
     if (mode !== "match" || !currentQrCode || !allQrCodes.length) return [];
 
     try {
-      // Parsed via parseQrHeader rather than split(":") — a v2 Base45 payload can
-      // itself contain colons, and v2 uppercases the prefix and hash.
+      // Parsed via parseQrHeader rather than split(":") — a Base45 payload can
+      // itself contain colons, and the prefix and hash are uppercase.
       const current = parseQrHeader(currentQrCode.data);
       if (!current) return [];
 

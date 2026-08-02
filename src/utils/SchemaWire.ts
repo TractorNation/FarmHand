@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 /**
  * How a schema is represented on the wire, and how it is identified.
  *
- * A schema QR (`S2`) carries `base64(zlib(minifySchema(schema)))`. Unlike a match
+ * A schema QR (`S`) carries `base64(zlib(minifySchema(schema)))`. Unlike a match
  * payload it is not bit-packed, because a schema's shape is exactly what a bit-packed
  * encoding would need to know in advance — general-purpose compression is the right
  * tool for repetitive JSON of unbounded shape.

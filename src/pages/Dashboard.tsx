@@ -135,8 +135,8 @@ export default function LeadScoutDashboard() {
       for (const qr of nonArchivedQrCodes) {
         try {
           if (!validateQR(qr.data)) continue;
-          // Match the schema hash before decoding, not after: a v2 payload can only
-          // be decoded with the schema it was recorded against.
+          // Match the schema hash before decoding, not after: a bit-packed payload
+          // can only be decoded with the schema it was recorded against.
           if (getSchemaHashFromQrString(qr.data) !== currentSchemaHash) continue;
           const decoded = await decodeQR(qr.data, schema);
           if (decoded && decoded.schemaHash) {

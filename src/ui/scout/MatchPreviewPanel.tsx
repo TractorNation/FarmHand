@@ -104,8 +104,7 @@ export default function MatchPreviewPanel({ qrCode }: MatchPreviewPanelProps) {
         </Alert>
       )}
       <Typography variant="caption" color="text.secondary" sx={{ display: "block", mb: 1.5 }}>
-        Device {state.decoded.deviceId} · schema {state.decoded.schemaHash} · format
-        v{state.decoded.version}
+        Device {state.decoded.deviceId} · schema {state.decoded.schemaHash}
       </Typography>
       <MatchDataReview schema={state.schema} values={state.values} />
     </Box>

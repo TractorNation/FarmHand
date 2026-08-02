@@ -6,8 +6,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * Two filter conventions meet here and they are easy to invert: an **empty** team or
  * match selection means "no filter", not "match nothing" — getting that backwards
  * empties every chart in the app. Codes are also filtered by schema hash *before*
- * decoding, because a v2 payload can only be read with the schema it was recorded
- * against.
+ * decoding, because a bit-packed payload can only be read with the schema it was
+ * recorded against.
  *
  * Only `decodeQR` is mocked; `getSchemaHashFromQrString` stays real so the hash
  * filtering is exercised against genuine wire strings.
@@ -50,7 +50,7 @@ const NO_TEAM_SCHEMA: Schema = {
 
 const code = (name: string, hash = HASH, archived = false): QrCode => ({
   name,
-  data: `FRMHND:M2:${hash.toUpperCase()}:1:PAYLOAD`,
+  data: `FRMHND:M:${hash.toUpperCase()}:1:PAYLOAD`,
   image: "<svg/>",
   archived,
 });
@@ -60,7 +60,6 @@ const decoded = (match: unknown, team: unknown, points = 10) => ({
   deviceId: 1,
   type: "match" as const,
   schemaHash: HASH,
-  version: 2,
   checksumOk: true,
   data: [match, team, points],
 });

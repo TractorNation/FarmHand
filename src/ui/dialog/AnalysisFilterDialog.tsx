@@ -65,7 +65,7 @@ export default function FilterDialog({
         nonArchivedCodes.map(async (qr) => {
           try {
             // The field indices below are this schema's, so only codes recorded
-            // with it are meaningful — and v2 needs it to decode at all.
+            // with it are meaningful — and the payload needs it to decode at all.
             return await decodeQR(qr.data, schema);
           } catch {
             return null;

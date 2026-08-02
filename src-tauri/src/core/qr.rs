@@ -43,7 +43,7 @@ mod tests {
 
     #[test]
     fn encodes_a_match_payload_to_svg() {
-        let svg = encode_to_svg(&"FRMHND:M2:B0F68211:6:%20M13O+14%5:639/RL".to_string()).unwrap();
+        let svg = encode_to_svg(&"FRMHND:M:B0F68211:6:%20M13O+14%5:639/RL".to_string()).unwrap();
         assert!(svg.contains("<svg"));
         assert!(svg.contains("</svg>"));
     }

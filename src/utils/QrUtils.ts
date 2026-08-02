@@ -13,13 +13,9 @@ import {
 import StoreManager, { StoreKeys } from "./StoreManager";
 import { removeQrFromAllFolders } from "./FolderUtils";
 import { decodeBase45, encodeBase45 } from "./Base45";
-import {
-  MATCH_PAYLOAD_VERSION,
-  decodeMatchBody,
-  encodeMatchBody,
-} from "./MatchCodec";
+import { decodeMatchBody, encodeMatchBody } from "./MatchCodec";
 import { getSchemaFromHash } from "./SchemaUtils";
-import { BATCH_PAYLOAD_VERSION, decodeBatchBody } from "./BatchCodec";
+import { decodeBatchBody } from "./BatchCodec";
 
 export type QrType = "match" | "schema" | "theme" | "settings" | "batch";
 export type EncodedQr = string;
@@ -35,27 +31,21 @@ export interface DecodedQr {
    * stays a transport concern and never reaches the charting layer.
    */
   data: any;
-  /** Payload format version. */
-  version: number;
   /** Whether the payload's CRC-8 verified. */
   checksumOk: boolean;
 }
 
 type FieldValue = string | number | boolean | null;
 
-/** Uppercase so the entire string sits inside the QR alphanumeric charset. */
+/**
+ * Uppercase so the entire string sits inside the QR alphanumeric charset.
+ *
+ * Case-sensitive on the way in, which is also what rejects the retired v1 format:
+ * v1 codes are lowercase `frmhnd:…` and fail the prefix comparison outright.
+ */
 const APP_PREFIX = "FRMHND";
 
-/**
- * Version token for schema-transfer codes.
- *
- * Independent of MATCH_PAYLOAD_VERSION: the two carry different payloads and can
- * evolve separately. It is explicit so the parser has one uniform rule — there is no
- * unversioned code shape left.
- */
-export const SCHEMA_PAYLOAD_VERSION = 2;
-
-/** Raised when a v2 match code cannot be decoded because its schema is unavailable. */
+/** Raised when a match code cannot be decoded because its schema is unavailable. */
 export class SchemaRequiredError extends Error {
   constructor(public readonly schemaHash: string) {
     super(
@@ -72,7 +62,7 @@ export const QrCodeBuilder = {
   buildFileName: (qrNameInfo: string[]) => generateQrFileName(qrNameInfo),
   build: {
     /**
-     * Encodes a scouted match as a v2 bit-packed code.
+     * Encodes a scouted match as a bit-packed code.
      *
      * Takes the schema because every bit width is derived from it; the reader
      * recovers the same widths via the schema hash.
@@ -85,13 +75,7 @@ export const QrCodeBuilder = {
       deviceId: number
     ) => {
       const payload = encodeBase45(encodeMatchBody(schema, values));
-      const qrString = buildQrString(
-        "match",
-        MATCH_PAYLOAD_VERSION,
-        schemaHash,
-        deviceId,
-        payload
-      );
+      const qrString = buildQrString("match", schemaHash, deviceId, payload);
       return await renderQrCode(qrString, generateQrFileName(qrNameInfo));
     },
     /**
@@ -107,13 +91,7 @@ export const QrCodeBuilder = {
       const fileName = `Schema_${schema.name.replace(/[^a-zA-Z0-9_-]/g, "_")}`;
       const minifiedSchema = minifySchema(schema);
       const compressed = await compressData(minifiedSchema);
-      const qrString = buildQrString(
-        "schema",
-        SCHEMA_PAYLOAD_VERSION,
-        schemaHash,
-        0,
-        compressed
-      );
+      const qrString = buildQrString("schema", schemaHash, 0, compressed);
       return await renderQrCode(qrString, generateQrFileName([fileName]));
     },
   },
@@ -121,7 +99,6 @@ export const QrCodeBuilder = {
 
 interface QrHeader {
   type: QrType;
-  version: number;
   /** Normalized to lowercase hex so it compares against createSchemaHash output. */
   schemaHash: string;
   deviceId: number;
@@ -151,9 +128,11 @@ const CODE_BY_TYPE: Record<QrType, string> = {
  * and ' ', and every punctuation character in the QR alphanumeric set is also a
  * Base45 character, so no delimiter can avoid this. Parse by offset instead.
  *
- * A version token is mandatory. The retired v1 format had none (`frmhnd:m:…`), so
- * such a string is rejected here as simply not one of ours — it fails at the boundary
- * with a clear message rather than half-decoding into wrong values.
+ * The type token is exactly one character. There is a single wire format, so a
+ * version number would be a constant on every code and is not transmitted; a token
+ * carrying anything more than the type is not one of ours and is rejected here rather
+ * than half-decoding into values attributed to the wrong fields. The retired v1
+ * format is excluded by the case-sensitive prefix check above it.
  */
 export function parseQrHeader(qrString: string): QrHeader | null {
   let start = 0;
@@ -169,17 +148,13 @@ export function parseQrHeader(qrString: string): QrHeader | null {
   const payload = qrString.slice(start);
 
   if (prefix !== APP_PREFIX) return null;
-  if (!typeToken || !schemaHash || !payload) return null;
+  if (typeToken.length !== 1 || !schemaHash || !payload) return null;
 
-  const type = TYPE_BY_CODE[typeToken.charAt(0)];
+  const type = TYPE_BY_CODE[typeToken];
   if (!type) return null;
-
-  const version = Number(typeToken.slice(1));
-  if (!Number.isInteger(version) || version < 2) return null;
 
   return {
     type,
-    version,
     schemaHash: schemaHash.toLowerCase(),
     deviceId: Number.parseInt(deviceId, 10) || 0,
     payload,
@@ -222,12 +197,11 @@ export function reconstructMatchDataFromArray(
 /** Assembles a QR string. Uppercase throughout so it stays QR-alphanumeric. */
 function buildQrString(
   type: QrType,
-  version: number,
   schemaHash: string,
   deviceId: number,
   payload: string
 ): EncodedQr {
-  return `${APP_PREFIX}:${CODE_BY_TYPE[type]}${version}:${schemaHash.toUpperCase()}:${deviceId}:${payload}`;
+  return `${APP_PREFIX}:${CODE_BY_TYPE[type]}:${schemaHash.toUpperCase()}:${deviceId}:${payload}`;
 }
 
 /**
@@ -246,19 +220,13 @@ export async function decodeQR(
   const header = parseQrHeader(qrString);
   if (!header) throw new Error("Invalid or unrecognized QR code");
 
-  const { type, version, schemaHash, deviceId, payload } = header;
+  const { type, schemaHash, deviceId, payload } = header;
 
   if (type === "schema") {
-    if (version !== SCHEMA_PAYLOAD_VERSION) {
-      throw new Error(
-        `Unsupported schema QR version ${version}. Update FarmHand to read this code.`
-      );
-    }
     return {
       deviceId,
       type,
       schemaHash,
-      version,
       /*
         `true` here means "there is no checksum to fail", not "the checksum passed".
         Match codes carry a CRC-8; schema codes carry nothing.
@@ -279,12 +247,6 @@ export async function decodeQR(
     throw new Error(`decodeQR does not handle "${type}" codes`);
   }
 
-  if (version !== MATCH_PAYLOAD_VERSION) {
-    throw new Error(
-      `Unsupported QR payload version ${version}. Update FarmHand to read this code.`
-    );
-  }
-
   if (!schema) throw new SchemaRequiredError(schemaHash);
 
   const { values, checksumOk } = decodeMatchBody(schema, decodeBase45(payload));
@@ -293,7 +255,7 @@ export async function decodeQR(
   // slot so field indices line up with orderedFields.
   const data = orderedFields(schema).map((field) => values.get(field.id) ?? null);
 
-  return { deviceId, type, schemaHash, version, checksumOk, data };
+  return { deviceId, type, schemaHash, checksumOk, data };
 }
 
 /**
@@ -357,14 +319,13 @@ async function renderQrCode(
  * comment becomes the literal string "No text provided" — corrupting the data and
  * inflating the payload against the capacity budget.
  *
- * Returns null for anything that is not a current match code.
+ * Returns null for anything that is not a match code.
  */
 export function rawMatchPayload(
   qrString: string
 ): { deviceId: number; payload: Uint8Array } | null {
   const header = parseQrHeader(qrString);
   if (!header || header.type !== "match") return null;
-  if (header.version !== MATCH_PAYLOAD_VERSION) return null;
 
   return {
     deviceId: header.deviceId,
@@ -380,21 +341,15 @@ export function buildBatchQrString(
   schemaHash: string,
   base45Payload: string
 ): EncodedQr {
-  return buildQrString(
-    "batch",
-    BATCH_PAYLOAD_VERSION,
-    schemaHash,
-    0,
-    base45Payload
-  );
+  return buildQrString("batch", schemaHash, 0, base45Payload);
 }
 
 /**
  * Decodes a batch code into the individual match strings it carries.
  *
- * Each entry is re-emitted as a standalone v2 match QR string so the import path
- * can reuse createQrCodeFromImportedData and every batched match lands on disk as
- * an ordinary saved match.
+ * Each entry is re-emitted as a standalone match QR string so the import path can
+ * reuse createQrCodeFromImportedData and every batched match lands on disk as an
+ * ordinary saved match.
  */
 export function expandBatchQr(qrString: string): {
   schemaHash: string;
@@ -411,7 +366,6 @@ export function expandBatchQr(qrString: string): {
   const matchStrings = entries.map((entry) =>
     buildQrString(
       "match",
-      MATCH_PAYLOAD_VERSION,
       header.schemaHash,
       entry.deviceId,
       encodeBase45(entry.payload)

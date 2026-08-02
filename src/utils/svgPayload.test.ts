@@ -12,7 +12,7 @@ const SVG =
   '<?xml version="1.0" standalone="yes"?><svg xmlns="http://www.w3.org/2000/svg" width="265" height="265"><rect x="0" y="0" width="10" height="10"/></svg>';
 
 /** A real match string as the app writes it. */
-const MATCH_DATA = "FRMHND:M2:B0F68211:6:%20M13O+14%5:639/RL";
+const MATCH_DATA = "FRMHND:M:B0F68211:6:%20M13O+14%5:639/RL";
 
 const code = (data: string, image = SVG): QrCode => ({
   name: "254-Qual-1-1700000000000.svg",
@@ -35,7 +35,7 @@ describe("round trip", () => {
   });
 
   it("round-trips a schema code, whose payload is base64 rather than Base45", () => {
-    const schemaData = "FRMHND:S2:B0F68211:0:eJxLysxLBQAD1QIJ+a/w==";
+    const schemaData = "FRMHND:S:B0F68211:0:eJxLysxLBQAD1QIJ+a/w==";
     const saved = EmbedDataInSvg(code(schemaData));
     expect(GetDescFromSvg(saved)).toBe(schemaData);
   });
@@ -45,10 +45,10 @@ describe("round trip", () => {
     // an SVG that already carries a payload. Two desc blocks would make the reader
     // return whichever came first — silently the stale one.
     const once = EmbedDataInSvg(code(MATCH_DATA));
-    const twice = EmbedDataInSvg(code("FRMHND:M2:DEADBEEF:1:UPDATED", once));
+    const twice = EmbedDataInSvg(code("FRMHND:M:DEADBEEF:1:UPDATED", once));
 
     expect(twice.match(/<desc>/g)).toHaveLength(1);
-    expect(GetDescFromSvg(twice)).toBe("FRMHND:M2:DEADBEEF:1:UPDATED");
+    expect(GetDescFromSvg(twice)).toBe("FRMHND:M:DEADBEEF:1:UPDATED");
   });
 });
 
@@ -68,9 +68,9 @@ describe("payload charset", () => {
       expect(alphabet).not.toContain(">");
     }
 
-    const saved = EmbedDataInSvg(code(`FRMHND:M2:AAAAAAAA:0:${BASE45_ALPHABET}`));
+    const saved = EmbedDataInSvg(code(`FRMHND:M:AAAAAAAA:0:${BASE45_ALPHABET}`));
     expect(GetDescFromSvg(saved)).toBe(
-      `FRMHND:M2:AAAAAAAA:0:${BASE45_ALPHABET}`
+      `FRMHND:M:AAAAAAAA:0:${BASE45_ALPHABET}`
     );
   });
 });

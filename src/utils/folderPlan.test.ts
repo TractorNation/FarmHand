@@ -29,7 +29,7 @@ const folder = (
 
 const code = (name: string, archived = false): QrCode => ({
   name,
-  data: `FRMHND:M2:B0F68211:1:PAYLOAD`,
+  data: `FRMHND:M:B0F68211:1:PAYLOAD`,
   image: "<svg/>",
   archived,
 });

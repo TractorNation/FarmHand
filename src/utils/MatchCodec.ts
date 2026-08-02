@@ -12,15 +12,12 @@ import { formatTime, parseTime } from "./valueFormat";
 import { orderedFields } from "./schemaFields";
 
 /**
- * Schema-driven bit packing for a match's field values (QR payload version 2).
+ * Schema-driven bit packing for a match's field values (QR type token "M").
  *
  * Both sides derive every bit width from the schema, which the QR's schema hash
  * pins, so the payload carries values only — no names, no types, no lengths beyond
  * what is genuinely variable. See docs/WIRE_FORMAT.md for the authoritative spec.
  */
-
-/** Payload format version, carried in the QR type token as "M2". */
-export const MATCH_PAYLOAD_VERSION = 2;
 
 /** Flag bits in the leading header byte. */
 const FLAG_NONE = 0;
