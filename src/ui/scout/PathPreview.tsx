@@ -3,11 +3,15 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   asAutoPathValue,
   dequantizePoint,
+  flipPoint,
   pathStatus,
   pathToSummary,
   pathVocabulary,
 } from "../../utils/PathCodec";
-import { resolveFieldImage } from "../../utils/FieldImage";
+import {
+  DEFAULT_FIELD_IMAGE_URL,
+  resolveFieldImage,
+} from "../../utils/FieldImage";
 import { useSettings } from "../../context/SettingsContext";
 
 interface PathPreviewProps {
@@ -32,8 +36,11 @@ export default function PathPreview({
   const { settings } = useSettings();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const imageRef = useRef<HTMLImageElement | null>(null);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageUrl, setImageUrl] = useState(DEFAULT_FIELD_IMAGE_URL);
   const [aspect, setAspect] = useState(2);
+
+  // Matches whatever orientation the scout drew in, so review is not upside down.
+  const flipped = settings.FIELD_FLIPPED;
 
   const path = useMemo(() => asAutoPathValue(value), [value]);
   const vocab = useMemo(() => pathVocabulary(fieldProps), [fieldProps]);
@@ -44,17 +51,13 @@ export default function PathPreview({
     let cancelled = false;
     resolveFieldImage(fieldProps?.fieldImageKey, settings.FIELD_IMAGE_KEY)
       .then((r) => !cancelled && setImageUrl(r.url))
-      .catch(() => !cancelled && setImageUrl(null));
+      .catch(() => !cancelled && setImageUrl(DEFAULT_FIELD_IMAGE_URL));
     return () => {
       cancelled = true;
     };
   }, [fieldProps?.fieldImageKey, settings.FIELD_IMAGE_KEY]);
 
   useEffect(() => {
-    if (!imageUrl) {
-      imageRef.current = null;
-      return;
-    }
     const img = new Image();
     img.onload = () => {
       imageRef.current = img;
@@ -84,13 +87,23 @@ export default function PathPreview({
     ctx.clearRect(0, 0, w, h);
 
     if (imageRef.current) {
+      ctx.save();
+      if (flipped) {
+        // A half turn about the centre — both axes negated, so the markers drawn
+        // after the restore stay upright.
+        ctx.translate(w, h);
+        ctx.rotate(Math.PI);
+      }
       ctx.drawImage(imageRef.current, 0, 0, w, h);
+      ctx.restore();
     } else {
       ctx.fillStyle = theme.palette.background.default;
       ctx.fillRect(0, 0, w, h);
     }
 
-    const points = path.points.map((p) => dequantizePoint(p, w, h));
+    const points = path.points.map((p) =>
+      dequantizePoint(flipped ? flipPoint(p) : p, w, h)
+    );
     if (points.length > 1) {
       ctx.strokeStyle = theme.palette.primary.main;
       ctx.lineWidth = 3;

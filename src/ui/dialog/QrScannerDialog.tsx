@@ -306,7 +306,12 @@ export default function QrScannerDialogue({
         }
         controls = started;
       } catch (err) {
+        // The device id is requested with `exact`, so a camera that is missing or
+        // already held by another app rejects outright rather than degrading. Leaving
+        // the state at "ready" would show the live scanner chrome over a black
+        // rectangle with nothing to act on.
         console.error("Camera error:", err);
+        if (!cancelled) setCameraState("unavailable");
       }
     })();
 

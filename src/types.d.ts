@@ -180,9 +180,15 @@ interface Settings {
   COLOR_THEME: string;
   /**
    * Filename of the default playing field image under
-   * $APPLOCALDATA/field-images/. Empty string means "use the bundled placeholder".
+   * $APPLOCALDATA/field-images/. Empty string means "use the bundled default field".
    */
   FIELD_IMAGE_KEY: string;
+  /**
+   * True when the Auto path canvas is drawn rotated 180°, for scouts sitting on the
+   * far side of the arena. Purely a view setting — recorded points are always stored
+   * in the unrotated field frame.
+   */
+  FIELD_FLIPPED: boolean;
 }
 
 /** Options for filtering qr codes */

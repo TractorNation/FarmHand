@@ -2,6 +2,7 @@ import { invoke, convertFileSrc } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { appLocalDataDir, resolve } from "@tauri-apps/api/path";
 import { BaseDirectory, exists, readDir } from "@tauri-apps/plugin-fs";
+import defaultFieldUrl from "../assets/images/FieldDefault.png?url";
 
 /**
  * Playing field images used as the backdrop for auto-path drawing.
@@ -13,6 +14,15 @@ import { BaseDirectory, exists, readDir } from "@tauri-apps/plugin-fs";
  */
 
 export const FIELD_IMAGE_DIR = "field-images";
+
+/**
+ * Field bundled with the app, drawn when no stored image resolves.
+ *
+ * Being a build asset rather than a file in app storage is what lets it back every
+ * failure path — a fresh install, a cleared setting, or a schema naming an image this
+ * device has never seen all still get a real field to draw on.
+ */
+export const DEFAULT_FIELD_IMAGE_URL: string = defaultFieldUrl;
 
 const ALLOWED_EXTENSIONS = ["png", "jpg", "jpeg", "webp", "gif", "bmp"];
 
@@ -84,10 +94,10 @@ export async function fieldImageUrl(key: string): Promise<string | null> {
 }
 
 export interface ResolvedFieldImage {
-  /** Renderable URL, or null when neither key resolved and no image is available. */
-  url: string | null;
+  /** Renderable URL. Never empty — the bundled default backs every other case. */
+  url: string;
   /** Which key actually supplied the image. */
-  source: "schema" | "global" | "none";
+  source: "schema" | "global" | "default";
   /**
    * True when the schema asked for an image this device does not have and we fell
    * back. The UI surfaces this so the discrepancy is visible rather than silent.
@@ -96,7 +106,7 @@ export interface ResolvedFieldImage {
 }
 
 /**
- * Three-step resolution: schema override → global setting → nothing.
+ * Three-step resolution: schema override → global setting → bundled default.
  *
  * The fallback is the point. Schemas move between devices by QR code, so a
  * fieldImageKey routinely names a file the reader has never seen; the Auto screen
@@ -107,18 +117,26 @@ export async function resolveFieldImage(
   globalKey: string | undefined
 ): Promise<ResolvedFieldImage> {
   if (schemaKey && (await fieldImageExists(schemaKey))) {
-    return { url: await fieldImageUrl(schemaKey), source: "schema", fellBack: false };
+    return {
+      url: (await fieldImageUrl(schemaKey)) ?? DEFAULT_FIELD_IMAGE_URL,
+      source: "schema",
+      fellBack: false,
+    };
   }
 
   const requestedButMissing = Boolean(schemaKey);
 
   if (globalKey && (await fieldImageExists(globalKey))) {
     return {
-      url: await fieldImageUrl(globalKey),
+      url: (await fieldImageUrl(globalKey)) ?? DEFAULT_FIELD_IMAGE_URL,
       source: "global",
       fellBack: requestedButMissing,
     };
   }
 
-  return { url: null, source: "none", fellBack: requestedButMissing };
+  return {
+    url: DEFAULT_FIELD_IMAGE_URL,
+    source: "default",
+    fellBack: requestedButMissing,
+  };
 }

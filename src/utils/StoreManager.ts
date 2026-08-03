@@ -199,6 +199,7 @@ export const StoreKeys = {
     AUTOSAVE_ON_COMPLETE: "settings::AUTOSAVE_ON_COMPLETE",
     COLOR_THEME: "settings::COLOR_THEME",
     FIELD_IMAGE_KEY: "settings::FIELD_IMAGE_KEY",
+    FIELD_FLIPPED: "settings::FIELD_FLIPPED",
   },
   code: {
     archived: (name: string) => `code::${name}::archived`,

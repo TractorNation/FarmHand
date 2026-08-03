@@ -8,6 +8,7 @@ import {
   decodePath,
   dequantizePoint,
   encodePath,
+  flipPoint,
   pathStatus,
   pathToSummary,
   quantizePoint,
@@ -124,6 +125,35 @@ describe("quantization", () => {
       const back = dequantizePoint(q, w, h);
       expect(Math.abs(back.x - px)).toBeLessThanOrEqual(w / PATH_GRID);
       expect(Math.abs(back.y - py)).toBeLessThanOrEqual(h / PATH_GRID);
+    }
+  });
+});
+
+describe("flipPoint", () => {
+  it("is a 180 degree rotation, not a mirror", () => {
+    // A mirror would move one axis and leave the other alone. Both must move, or a
+    // path drawn from the far side of the arena lands on the wrong half of the field.
+    expect(flipPoint({ x: 10, y: 30 })).toEqual({ x: 117, y: 97 });
+  });
+
+  it("maps opposite corners onto each other", () => {
+    expect(flipPoint({ x: 0, y: 0 })).toEqual({ x: 127, y: 127 });
+    expect(flipPoint({ x: 127, y: 0 })).toEqual({ x: 0, y: 127 });
+  });
+
+  it("fixes the centre of the grid", () => {
+    const centre = (PATH_GRID - 1) / 2;
+    expect(flipPoint({ x: centre, y: centre })).toEqual({ x: centre, y: centre });
+  });
+
+  it("is its own inverse, so one call serves both directions", () => {
+    for (const point of [
+      { x: 0, y: 0 },
+      { x: 127, y: 127 },
+      { x: 12, y: 99 },
+      { x: 64, y: 3 },
+    ]) {
+      expect(flipPoint(flipPoint(point))).toEqual(point);
     }
   });
 });

@@ -12,6 +12,7 @@ import ImageIcon from "@mui/icons-material/ImageRounded";
 import ClearIcon from "@mui/icons-material/ClearRounded";
 import { useCallback, useEffect, useState } from "react";
 import {
+  DEFAULT_FIELD_IMAGE_URL,
   fieldImageUrl,
   listFieldImages,
   pickFieldImage,
@@ -35,7 +36,7 @@ export default function FieldImageSetting({
 }: FieldImageSettingProps) {
   const theme = useTheme();
   const [available, setAvailable] = useState<string[]>([]);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState(DEFAULT_FIELD_IMAGE_URL);
   const [error, setError] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
@@ -52,13 +53,15 @@ export default function FieldImageSetting({
 
   useEffect(() => {
     let cancelled = false;
+    // No selection means auto paths fall back to the bundled field, so preview that
+    // rather than nothing — what is shown here is what the scout will draw on.
     if (!value) {
-      setPreviewUrl(null);
+      setPreviewUrl(DEFAULT_FIELD_IMAGE_URL);
       return;
     }
     fieldImageUrl(value)
-      .then((url) => !cancelled && setPreviewUrl(url))
-      .catch(() => !cancelled && setPreviewUrl(null));
+      .then((url) => !cancelled && setPreviewUrl(url ?? DEFAULT_FIELD_IMAGE_URL))
+      .catch(() => !cancelled && setPreviewUrl(DEFAULT_FIELD_IMAGE_URL));
     return () => {
       cancelled = true;
     };
@@ -120,23 +123,21 @@ export default function FieldImageSetting({
         )}
       </Stack>
 
-      {previewUrl && (
-        <Box
-          component="img"
-          src={previewUrl}
-          alt="Playing field"
-          sx={{
-            width: "100%",
-            maxWidth: 320,
-            borderRadius: 2,
-            border: `1px solid ${theme.palette.divider}`,
-          }}
-        />
-      )}
+      <Box
+        component="img"
+        src={previewUrl}
+        alt="Playing field"
+        sx={{
+          width: "100%",
+          maxWidth: 320,
+          borderRadius: 2,
+          border: `1px solid ${theme.palette.divider}`,
+        }}
+      />
 
       {!value && (
         <Typography variant="caption" color="text.secondary">
-          No image set. Auto paths will be drawn on a plain background.
+          No image chosen. Auto paths use the field built into the app.
         </Typography>
       )}
 

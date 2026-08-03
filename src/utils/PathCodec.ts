@@ -107,6 +107,19 @@ export function quantizePoint(
   };
 }
 
+/**
+ * Rotates a point 180° about the centre of the grid — both axes negated, never one.
+ *
+ * A scout on the far side of the arena sees the field upside down, so the canvas can
+ * be drawn rotated to match. Points are still stored in the unrotated field frame so
+ * that startZone and startX/startY stay comparable between scouts on opposite sides;
+ * this converts between that frame and what is on screen. The rotation is its own
+ * inverse, so one function serves both directions.
+ */
+export function flipPoint(point: PathPoint): PathPoint {
+  return { x: PATH_GRID - 1 - point.x, y: PATH_GRID - 1 - point.y };
+}
+
 /** Inverse of quantizePoint, for redrawing a decoded path. */
 export function dequantizePoint(
   point: PathPoint,

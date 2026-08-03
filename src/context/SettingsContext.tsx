@@ -21,6 +21,7 @@ export const defaultSettings: Settings = {
   LEAD_SCOUT_ONLY: false,
   COLOR_THEME: "TractorTheme",
   FIELD_IMAGE_KEY: "",
+  FIELD_FLIPPED: false,
 };
 
 interface SettingsContextType {

@@ -41,7 +41,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
 
       - name: Extract version from package.json
         id: version
@@ -112,10 +112,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Node 22 is a floor, not a preference: react-router declares
+      # `engines: node >=22.22.0`, and this single step feeds every platform in the
+      # matrix, so dropping back would put all four builds outside a dependency's
+      # supported range at once.
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: "npm"
 
       - name: Install dependencies

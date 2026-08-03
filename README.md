@@ -130,13 +130,14 @@ For more detailed instructions, check out the **Help** page within the app!
 
 ## Troubleshooting
 
-### Linux: the window opens blank or black
+### Linux: the window opens blank, black or torn
 
-WebKitGTK's DMA-BUF renderer misbehaves on some NVIDIA drivers and Wayland sessions.
-Launch with the renderer disabled:
+FarmHand turns WebKitGTK's DMA-BUF renderer off at startup, since it paints shredded
+or empty content wherever the GPU driver and compositor disagree on buffer formats.
+If your setup handles DMA-BUF correctly, you can opt back into the faster path:
 
 ```shell
-WEBKIT_DISABLE_DMABUF_RENDERER=1 ./farmhand-*.AppImage
+WEBKIT_DISABLE_DMABUF_RENDERER=0 ./farmhand-*.AppImage
 ```
 
 ### Linux: the QR scanner cannot see the camera

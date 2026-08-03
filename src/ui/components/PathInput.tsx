@@ -15,6 +15,7 @@ import UndoIcon from "@mui/icons-material/UndoRounded";
 import ClearIcon from "@mui/icons-material/DeleteSweepRounded";
 import FullscreenIcon from "@mui/icons-material/FullscreenRounded";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExitRounded";
+import FlipFieldIcon from "@mui/icons-material/Rotate90DegreesCwRounded";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AutoPathValue,
@@ -24,11 +25,15 @@ import {
   PathPoint,
   asAutoPathValue,
   dequantizePoint,
+  flipPoint,
   quantizePoint,
   simplifyPath,
 } from "../../utils/PathCodec";
 import { resolvePathIcon } from "../../config/pathIcons";
-import { resolveFieldImage } from "../../utils/FieldImage";
+import {
+  DEFAULT_FIELD_IMAGE_URL,
+  resolveFieldImage,
+} from "../../utils/FieldImage";
 import { useSettings } from "../../context/SettingsContext";
 import useDialog from "../../hooks/useDialog";
 import WarningDialog from "../dialog/WarningDialog";
@@ -43,7 +48,7 @@ interface PathInputProps {
 /** Movement in CSS pixels before a press counts as a drag rather than a tap. */
 const DRAG_THRESHOLD = 4;
 
-/** Fallback aspect ratio when no field image is available (roughly an FRC field). */
+/** Aspect ratio used until the field image reports its own (roughly an FRC field). */
 const FALLBACK_ASPECT = 2;
 
 export default function PathInput({
@@ -52,7 +57,16 @@ export default function PathInput({
   props: fieldProps,
 }: PathInputProps) {
   const theme = useTheme();
-  const { settings } = useSettings();
+  const { settings, setSetting } = useSettings();
+
+  /**
+   * Draw the field rotated 180° for scouts working the far side of the arena.
+   *
+   * Lives in settings rather than local state so the choice carries from one match to
+   * the next (PathInput remounts on every form reset) and stays shared with the
+   * PathPreview on the review step, which is mounted at the same time.
+   */
+  const flipped = settings.FIELD_FLIPPED;
 
   const actions = fieldProps?.pathActions ?? [];
   const pieces = fieldProps?.gamePieces ?? [];
@@ -68,9 +82,9 @@ export default function PathInput({
   const [showClearWarning, openClearWarning, closeClearWarning] = useDialog();
 
   const [fieldImage, setFieldImage] = useState<{
-    url: string | null;
+    url: string;
     fellBack: boolean;
-  }>({ url: null, fellBack: false });
+  }>({ url: DEFAULT_FIELD_IMAGE_URL, fellBack: false });
   const [aspect, setAspect] = useState(FALLBACK_ASPECT);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -93,7 +107,9 @@ export default function PathInput({
         }
       })
       .catch(() => {
-        if (!cancelled) setFieldImage({ url: null, fellBack: false });
+        if (!cancelled) {
+          setFieldImage({ url: DEFAULT_FIELD_IMAGE_URL, fellBack: false });
+        }
       });
     return () => {
       cancelled = true;
@@ -101,11 +117,6 @@ export default function PathInput({
   }, [fieldProps?.fieldImageKey, settings.FIELD_IMAGE_KEY]);
 
   useEffect(() => {
-    if (!fieldImage.url) {
-      imageRef.current = null;
-      setAspect(FALLBACK_ASPECT);
-      return;
-    }
     const img = new Image();
     img.onload = () => {
       imageRef.current = img;
@@ -142,27 +153,27 @@ export default function PathInput({
     ctx.clearRect(0, 0, cssWidth, cssHeight);
 
     if (imageRef.current) {
+      ctx.save();
+      if (flipped) {
+        // Translate to the far corner and rotate a half turn, which negates both axes.
+        // Restoring afterwards leaves the markers and their numbers upright.
+        ctx.translate(cssWidth, cssHeight);
+        ctx.rotate(Math.PI);
+      }
       ctx.drawImage(imageRef.current, 0, 0, cssWidth, cssHeight);
+      ctx.restore();
     } else {
+      // Only reached before the image decodes, or if it fails to.
       ctx.fillStyle = theme.palette.background.default;
       ctx.fillRect(0, 0, cssWidth, cssHeight);
-      // A centre line gives some spatial reference without a real field image.
-      ctx.strokeStyle = theme.palette.divider;
-      ctx.lineWidth = 2;
-      ctx.setLineDash([6, 6]);
-      ctx.beginPath();
-      ctx.moveTo(cssWidth / 2, 0);
-      ctx.lineTo(cssWidth / 2, cssHeight);
-      ctx.stroke();
-      ctx.setLineDash([]);
     }
 
-    const committed = path.points.map((p) =>
-      dequantizePoint(p, cssWidth, cssHeight)
-    );
-    const live = strokeRef.current.map((p) =>
-      dequantizePoint(p, cssWidth, cssHeight)
-    );
+    // Points are held in the unrotated field frame; the flip is applied on the way out.
+    const toView = (p: PathPoint) =>
+      dequantizePoint(flipped ? flipPoint(p) : p, cssWidth, cssHeight);
+
+    const committed = path.points.map(toView);
+    const live = strokeRef.current.map(toView);
     const all = [...committed, ...live];
 
     if (all.length > 1) {
@@ -207,17 +218,27 @@ export default function PathInput({
       ctx.textBaseline = "middle";
       ctx.fillText(String(index + 1), anchor.x, anchor.y);
     });
-  }, [path, theme]);
+  }, [path, theme, flipped]);
 
   useEffect(() => {
     draw();
   }, [draw, fullscreen]);
 
   useEffect(() => {
-    const onResize = () => draw();
-    window.addEventListener("resize", onResize);
-    return () => window.removeEventListener("resize", onResize);
-  }, [draw]);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    /*
+      The Scout wizard keeps every section mounted and hides the inactive ones, so this
+      canvas is 0x0 while the field image decodes and draw() has nowhere to paint. Only
+      the element itself knows when it gains a size — a window resize listener never
+      fires for a display change, nor for entering full screen.
+    */
+    const observer = new ResizeObserver(() => draw());
+    observer.observe(canvas);
+    return () => observer.disconnect();
+    // fullscreen re-parents the canvas, so the observer has to re-attach to the new one.
+  }, [draw, fullscreen]);
 
   // --- editing -----------------------------------------------------------
 
@@ -237,6 +258,17 @@ export default function PathInput({
     };
   };
 
+  /** Canvas coordinates to a grid point in the unrotated field frame. */
+  const capturePoint = (
+    px: number,
+    py: number,
+    width: number,
+    height: number
+  ) => {
+    const point = quantizePoint(px, py, width, height);
+    return flipped ? flipPoint(point) : point;
+  };
+
   const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (path.noAuto || atTokenLimit) return;
     e.currentTarget.setPointerCapture(e.pointerId);
@@ -244,7 +276,7 @@ export default function PathInput({
     movedRef.current = false;
     const { px, py, width, height } = canvasPoint(e);
     startRef.current = { x: px, y: py };
-    strokeRef.current = [quantizePoint(px, py, width, height)];
+    strokeRef.current = [capturePoint(px, py, width, height)];
     draw();
   };
 
@@ -259,7 +291,7 @@ export default function PathInput({
       movedRef.current = true;
     }
 
-    strokeRef.current.push(quantizePoint(px, py, width, height));
+    strokeRef.current.push(capturePoint(px, py, width, height));
     draw();
   };
 
@@ -414,13 +446,7 @@ export default function PathInput({
       {fieldImage.fellBack && (
         <Alert severity="info" sx={{ borderRadius: 2 }}>
           This schema asks for a playing field image that isn't on this device.
-          Using the default from Settings.
-        </Alert>
-      )}
-      {!fieldImage.url && !fieldImage.fellBack && (
-        <Alert severity="info" sx={{ borderRadius: 2 }}>
-          No playing field image set. Choose one in Settings to draw over the real
-          field.
+          Using the default field instead.
         </Alert>
       )}
 
@@ -590,6 +616,21 @@ export default function PathInput({
               Full screen
             </Button>
           )}
+          {/*
+            Deliberately still enabled when the no-autonomous switch is on: this
+            changes the view, not the recording, and a scout should be able to set
+            their side of the arena before a robot has done anything.
+          */}
+          <Button
+            size="small"
+            variant={flipped ? "contained" : "outlined"}
+            startIcon={<FlipFieldIcon />}
+            aria-label="Rotate the field view 180 degrees"
+            onClick={() => setSetting("FIELD_FLIPPED", !flipped)}
+            sx={{ borderRadius: 2, minHeight: 44 }}
+          >
+            Flip field
+          </Button>
           <Box sx={{ flex: 1 }} />
           <Typography variant="caption" color="text.secondary" sx={{ alignSelf: "center" }}>
             {path.points.length} point{path.points.length !== 1 ? "s" : ""} ·{" "}
