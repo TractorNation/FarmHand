@@ -1,5 +1,5 @@
 import { save } from "@tauri-apps/plugin-dialog";
-import { writeTextFile } from "@tauri-apps/plugin-fs";
+import { writeTextFile, BaseDirectory } from "@tauri-apps/plugin-fs";
 import {
   decodeQR,
   getSchemaHashFromQrString,
@@ -26,16 +26,43 @@ const SAVE_FILTERS: Record<string, { name: string; extensions: string[] }> = {
 };
 
 /**
+ * Detects the iOS WKWebView the app runs inside on iPhone/iPad.
+ *
+ * The `maxTouchPoints` arm covers an iPad reporting the desktop-class user agent,
+ * where the string says "Macintosh" and only the touch capability gives it away.
+ */
+function isIOS(): boolean {
+  return (
+    /iphone|ipad|ipod/i.test(navigator.userAgent) ||
+    (/macintosh/i.test(navigator.userAgent) && navigator.maxTouchPoints > 1)
+  );
+}
+
+/**
  * Saves text through the native save dialog.
  *
  * The filter is derived from `defaultName`'s extension rather than passed in: every
  * caller already supplies a correctly-suffixed name, so deriving it removes the
  * chance of a caller and its filter disagreeing.
+ *
+ * iOS returns before `save()` is reached on purpose. The dialog plugin does implement
+ * a save dialog there, but it works by exporting an *empty* placeholder file through
+ * a document picker and handing back the destination the user chose — so calling it
+ * first would show a picker and drop a 0-byte file wherever the user pointed it.
+ * Writing straight to the app's Documents directory is what actually reaches the user:
+ * `UIFileSharingEnabled` surfaces that folder in the Files app.
  */
 export async function saveFileWithDialog(
   fileData: string,
   defaultName: string
 ) {
+  if (isIOS()) {
+    await writeTextFile(defaultName, fileData, {
+      baseDir: BaseDirectory.Document,
+    });
+    return defaultName;
+  }
+
   const extension = defaultName.split(".").pop()?.toLowerCase() ?? "";
   const filter = SAVE_FILTERS[extension];
 
