@@ -1,7 +1,7 @@
 {
   "name": "farmhand",
   "private": true,
-  "version": "2026.4.0",
+  "version": "26.4.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
