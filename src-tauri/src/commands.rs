@@ -3,7 +3,6 @@ use crate::core::{
     qr, schema, util,
 };
 use serde::{Deserialize, Serialize};
-use tauri::Error;
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct TbaDataResponse {
@@ -19,7 +18,7 @@ pub fn generate_qr_code(data: String) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub fn save_qr_svg(svg: String, file_path: String) -> Result<(), Error> {
+pub fn save_qr_svg(svg: String, file_path: String) -> Result<(), String> {
     qr::save_as_svg(&svg, &file_path)
 }
 
@@ -39,18 +38,27 @@ pub fn decompress_data(data: String) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub fn delete_qr_code(path: String) -> Result<(), Error> {
+pub fn delete_qr_code(path: String) -> Result<(), String> {
     qr::delete_code(&path)
 }
 
 #[tauri::command]
-pub fn save_schema(schema: String, file_path: String) -> Result<(), Error> {
+pub fn save_schema(schema: String, file_path: String) -> Result<(), String> {
     schema::save(&schema, &file_path)
 }
 
 #[tauri::command]
-pub fn delete_schema(path: String) -> Result<(), Error> {
+pub fn delete_schema(path: String) -> Result<(), String> {
     schema::delete(&path)
+}
+
+#[tauri::command]
+pub fn import_field_image(
+    src_path: String,
+    dest_dir: String,
+    dest_name: String,
+) -> Result<String, String> {
+    schema::import_field_image(&src_path, &dest_dir, &dest_name)
 }
 
 #[tauri::command]

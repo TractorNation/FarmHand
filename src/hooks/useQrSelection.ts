@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import useToggle from "../hooks/useToggle";
+import { getSchemaHashFromQrString } from "../utils/QrUtils";
 
 export function useQrSelection(qrCodes?: QrCode[]) {
   const [selecting, switchSelecting] = useToggle(false);
@@ -26,7 +27,9 @@ export function useQrSelection(qrCodes?: QrCode[]) {
     const valid: QrCode[] = [];
     const invalid: QrCode[] = [];
     qrCodes.forEach((code) => {
-      const [, , hash] = code.data.split(":");
+      // Parsed rather than split(":"): the hash is uppercase on the wire and the
+      // payload can itself contain colons, so neither end of a raw split is the hash.
+      const hash = getSchemaHashFromQrString(code.data);
       (hash === selectedHash ? valid : invalid).push(code);
     });
 
@@ -42,8 +45,7 @@ export function useQrSelection(qrCodes?: QrCode[]) {
         : [...prev, code];
 
       if (newList.length === 1) {
-        const [, , hash] = newList[0].data.split(":");
-        setSelectedHash(hash);
+        setSelectedHash(getSchemaHashFromQrString(newList[0].data));
       } else if (newList.length === 0) {
         setSelectedHash(null);
       }
@@ -55,21 +57,29 @@ export function useQrSelection(qrCodes?: QrCode[]) {
   const selectAllCodes = (useHash: boolean) => {
     if (!qrCodes) return;
 
-    if (useHash) {
+    // Compare parsed hashes rather than substring-matching the raw string. The wire
+    // writes the hash uppercase so the whole code stays QR-alphanumeric, while
+    // parseQrHeader normalizes to lowercase — so `data.includes(selectedHash)` matched
+    // nothing at all. Substring matching was also a latent false positive: an
+    // 8-hex-char run can occur inside an unrelated code's Base45 payload.
+    if (useHash && selectedHash) {
       setSelectedCodes(
-        qrCodes && selectedHash
-          ? [...qrCodes.filter((c) => c.data.includes(selectedHash || ""))]
-          : []
+        qrCodes.filter((c) => getSchemaHashFromQrString(c.data) === selectedHash)
       );
-    } else {
-      setSelectedCodes(qrCodes);
+      return;
     }
+
+    // No hash established yet (nothing selected), so there is nothing to filter by —
+    // select everything rather than appearing to do nothing.
+    setSelectedCodes(qrCodes);
   };
 
+  // Clears the selection only. Leaving/entering selection mode is composed on top
+  // of this by useQrManager.toggleSelectionMode, which calls resetSelection() and
+  // then toggleSelecting() — so this must NOT toggle, or the two would cancel out.
   const resetSelection = () => {
     setSelectedCodes([]);
     setSelectedHash(null);
-    toggleSelecting;
   };
 
   const noCodesSelected = useMemo(

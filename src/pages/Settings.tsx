@@ -47,6 +47,8 @@ import { invoke } from "@tauri-apps/api/core";
 import { useScoutData } from "../context/ScoutDataContext";
 import AutocompleteInput from "../ui/components/AutocompleteInput";
 import StoreManager, { StoreKeys } from "../utils/StoreManager";
+import { clearAllQrCodes } from "../utils/QrUtils";
+import FieldImageSetting from "../ui/settings/FieldImageSetting";
 import { version } from "../../package.json";
 
 // Type definition for TBA data response from Rust backend
@@ -77,6 +79,9 @@ export default function Settings() {
     useDialog();
   const [licenseDialogOpen, openLicenseDialog, closeLicenseDialog] =
     useDialog();
+  const [clearDataDialogOpen, openClearDataDialog, closeClearDataDialog] =
+    useDialog();
+  const [isClearingData, setIsClearingData] = useState(false);
   const isLandscape = useMediaQuery("(orientation: landscape)");
   const [isInitialized, setIsInitialized] = useState(false);
   const [tbaEvents, setTbaEvents] = useState<TbaEvent[]>([]);
@@ -164,7 +169,7 @@ export default function Settings() {
           setTbaEvents(events);
 
           await StoreManager.setCachedEvents(events);
-        } catch (error) {
+        } catch {
           const cachedEvents = await StoreManager.getCachedEvents();
           if (cachedEvents && cachedEvents.length > 0) {
             setTbaEvents(cachedEvents);
@@ -319,6 +324,32 @@ export default function Settings() {
     }
   };
 
+  const handleClearAllData = async () => {
+    closeClearDataDialog();
+    setIsClearingData(true);
+
+    try {
+      const deleted = await clearAllQrCodes();
+      setSnackbarState({
+        open: true,
+        message:
+          deleted === 0
+            ? "No saved match data to clear"
+            : `Cleared ${deleted} saved match${deleted !== 1 ? "es" : ""}`,
+        severity: deleted === 0 ? "info" : "success",
+      });
+    } catch (error) {
+      console.error("Failed to clear scouting data:", error);
+      setSnackbarState({
+        open: true,
+        message: `Failed to clear data: ${error}`,
+        severity: "error",
+      });
+    } finally {
+      setIsClearingData(false);
+    }
+  };
+
   const handleNavigateToSchemas = () => {
     if (hasUnsavedChanges) {
       openUnsavedChangesDialog();
@@ -357,6 +388,14 @@ export default function Settings() {
           checked: editingSettings.AUTOSAVE_ON_COMPLETE ?? true,
           onChange: (checked: boolean) =>
             handleChange("AUTOSAVE_ON_COMPLETE", checked),
+        },
+        {
+          type: "fieldImage",
+          label: "Playing field image",
+          description:
+            "Background for drawing Auto paths. Used by every schema unless a schema names its own image, and used as the fallback when a schema names one this device doesn't have.",
+          value: editingSettings.FIELD_IMAGE_KEY ?? "",
+          onChange: (key: string) => handleChange("FIELD_IMAGE_KEY", key),
         },
       ],
     },
@@ -450,9 +489,13 @@ export default function Settings() {
         {
           type: "button",
           label: "Clear All Data",
-          description: "Remove all scouting data from this device",
-          buttonText: "Clear Data",
+          description:
+            "Permanently delete every saved match code — active and archived — plus the folders holding them. Schemas and settings are kept.",
+          buttonText: isClearingData ? "Clearing..." : "Clear Data",
           buttonColor: "error" as const,
+          disabled: isClearingData,
+          loading: isClearingData,
+          onClick: openClearDataDialog,
         },
       ],
     },
@@ -503,12 +546,23 @@ export default function Settings() {
             max={setting.inputProps.max}
           />
         );
+      case "fieldImage":
+        return (
+          <FieldImageSetting
+            value={setting.value}
+            onChange={setting.onChange}
+          />
+        );
       case "button":
         return (
           <Button
             variant="contained"
             color={setting.buttonColor}
             onClick={setting.onClick}
+            disabled={setting.disabled}
+            startIcon={
+              setting.loading ? <CircularProgress size={20} /> : undefined
+            }
             sx={{ borderRadius: 2 }}
           >
             {setting.buttonText}
@@ -846,6 +900,16 @@ export default function Settings() {
         message="Would you like to reset all settings to default?"
         cancelText="Cancel"
         confirmText="Continue Reset"
+      />
+
+      <WarningDialog
+        open={clearDataDialogOpen}
+        onClose={closeClearDataDialog}
+        onConfirm={handleClearAllData}
+        title="Clear all scouting data?"
+        message="This permanently deletes every saved match code on this device — both the QR codes list and the archive — along with the folders holding them. Codes that have not been scanned or exported cannot be recovered. Schemas and settings are not affected."
+        cancelText="Cancel"
+        confirmText="Delete Everything"
       />
 
       <UnsavedChangesDialog

@@ -1,3 +1,4 @@
+import { orderedFields } from "../utils/schemaFields";
 import {
   Accordion,
   AccordionSummary,
@@ -32,13 +33,15 @@ import {
   validateQR,
   decodeQR,
   getDataFromQrName,
+  getSchemaHashFromQrString,
   DecodedQr,
 } from "../utils/QrUtils";
 import StoreManager, { StoreKeys } from "../utils/StoreManager";
 import { useAnalysis } from "../context/AnalysisContext";
 import ChartRenderer from "../ui/ChartRenderer";
 import { getSchemaFromHash } from "../utils/SchemaUtils";
-import { getMatchSortKey } from "../utils/GeneralUtils";
+import { filterQrCodesForAnalysis } from "../utils/AnalysisUtils";
+import { getMatchSortKey } from "../utils/valueFormat";
 import { useScoutData } from "../context/ScoutDataContext";
 
 interface PinnedChart {
@@ -114,7 +117,7 @@ export default function LeadScoutDashboard() {
       >();
 
       // Get all fields from the current schema
-      const allFields = schema.sections.flatMap((section) => section.fields);
+      const allFields = orderedFields(schema);
 
       const matchNumberIndex = allFields.findIndex(
         (field) => field.name === "Match Number"
@@ -132,11 +135,11 @@ export default function LeadScoutDashboard() {
       for (const qr of nonArchivedQrCodes) {
         try {
           if (!validateQR(qr.data)) continue;
-          const decoded = await decodeQR(qr.data);
+          // Match the schema hash before decoding, not after: a bit-packed payload
+          // can only be decoded with the schema it was recorded against.
+          if (getSchemaHashFromQrString(qr.data) !== currentSchemaHash) continue;
+          const decoded = await decodeQR(qr.data, schema);
           if (decoded && decoded.schemaHash) {
-            // Only process QR codes that match the current schema
-            if (decoded.schemaHash !== currentSchemaHash) continue;
-
             // Exclude data from the host device (ID 0)
             if (decoded.deviceId === 0) continue;
 
@@ -327,72 +330,11 @@ export default function LeadScoutDashboard() {
 
                 if (!schema) continue;
 
-                // Process QR codes data the same way AnalysisViewer does
-                const allFields = schema.sections.flatMap(
-                  (section) => section.fields
+                const filtered = await filterQrCodesForAnalysis(
+                  qrCodes,
+                  analysis,
+                  schema
                 );
-                const matchNumberIndex = allFields.findIndex(
-                  (field) => field.name === "Match Number"
-                );
-                const teamNumberIndex = allFields.findIndex(
-                  (field) => field.name === "Team Number"
-                );
-
-                const decoded = await Promise.all(
-                  qrCodes
-                    .filter((qr) => !qr.archived)
-                    .map(async (qr) => {
-                      try {
-                        const decoded = await decodeQR(qr.data);
-                        // Only include QR codes that match the analysis schema
-                        if (decoded.schemaHash !== analysis.schemaHash) {
-                          return null;
-                        }
-                        return { qr, decoded };
-                      } catch {
-                        return null;
-                      }
-                    })
-                );
-
-                const filtered = decoded.filter((item) => {
-                  if (!item || !item.decoded || !item.decoded.data)
-                    return false;
-
-                  // Apply team filter (only if teams are explicitly selected)
-                  if (analysis.selectedTeams.length > 0) {
-                    if (teamNumberIndex === -1) {
-                      return false;
-                    }
-                    const teamField = item.decoded.data[teamNumberIndex];
-                    if (teamField === undefined || teamField === null)
-                      return false;
-                    const teamNum = Number(teamField);
-                    if (
-                      isNaN(teamNum) ||
-                      !analysis.selectedTeams.includes(teamNum)
-                    ) {
-                      return false;
-                    }
-                  }
-
-                  // Apply match filter (only if matches are explicitly selected)
-                  if (analysis.selectedMatches.length > 0) {
-                    if (matchNumberIndex === -1) {
-                      return false;
-                    }
-                    const matchField = item.decoded.data[matchNumberIndex];
-                    if (matchField === undefined || matchField === null)
-                      return false;
-                    if (
-                      !analysis.selectedMatches.includes(String(matchField))
-                    ) {
-                      return false;
-                    }
-                  }
-
-                  return true;
-                });
 
                 pinned.push({
                   chartId: chart.id,

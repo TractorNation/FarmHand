@@ -9,6 +9,8 @@ import CloseIcon from "@mui/icons-material/CloseRounded";
 interface CheckboxInputProps {
   value: boolean;
   onChange?: (value: boolean) => void;
+  /** Accessible name. The visible label lives on the surrounding InputCard. */
+  label?: string;
 }
 
 /**
@@ -18,10 +20,15 @@ interface CheckboxInputProps {
  * @returns a checkbox component
  */
 function CheckboxInput(props: CheckboxInputProps) {
-  const { value, onChange } = props;
+  const { value, onChange, label } = props;
 
   return (
     <Button
+      // A toggle button, not a checkbox: `aria-pressed` is what carries the on/off
+      // state. Without it the control announces as a plain button and a screen-reader
+      // user cannot tell whether the answer is yes or no — the icon is the only cue.
+      aria-pressed={value}
+      aria-label={label}
       onClick={() => {
         const newValue = !value;
         if (onChange) onChange(newValue);

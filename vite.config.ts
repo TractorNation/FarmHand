@@ -35,4 +35,30 @@ export default defineConfig({
       ignored: ["**/src-tauri/**"],
     },
   },
+
+  test: {
+    // Two projects rather than one jsdom environment for everything: the logic suites
+    // (codecs, parsers, aggregation) need no DOM and run in well under a second, and
+    // paying jsdom startup per file would give that up for nothing.
+    //
+    // The `.tsx` glob is what makes component tests run at all — the include used to
+    // be `.ts` only, so a `Foo.test.tsx` was silently skipped rather than reported.
+    projects: [
+      {
+        test: {
+          name: "logic",
+          include: ["src/**/*.test.ts"],
+          environment: "node",
+        },
+      },
+      {
+        test: {
+          name: "ui",
+          include: ["src/**/*.test.tsx"],
+          environment: "jsdom",
+          setupFiles: ["./src/test/setup.ts"],
+        },
+      },
+    ],
+  },
 });

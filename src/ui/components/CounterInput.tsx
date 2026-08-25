@@ -44,6 +44,9 @@ function CounterInput(props: CounterInputProps) {
       sx={{ width: "100%", maxWidth: 300 }}
     >
       <Button
+        // Icon-only, so without a name this announces as just "button" — and there
+        // are two of them. The field's own name comes from the surrounding group.
+        aria-label="Decrease"
         onClick={decrement}
         variant="outlined"
         color="secondary"
@@ -64,6 +67,9 @@ function CounterInput(props: CounterInputProps) {
       </Button>
       <Typography
         variant="h4"
+        // The count is the only feedback that a press registered, and it is not
+        // focusable, so it has to announce itself when it changes.
+        aria-live="polite"
         sx={{
           textAlign: "center",
           color: "text.primary",
@@ -74,6 +80,7 @@ function CounterInput(props: CounterInputProps) {
         {value}
       </Typography>
       <Button
+        aria-label="Increase"
         onClick={increment}
         variant="contained"
         color="secondary"

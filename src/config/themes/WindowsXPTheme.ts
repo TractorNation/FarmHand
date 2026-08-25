@@ -529,7 +529,7 @@ const buildXpTheme = (mode: PaletteMode) => {
     },
   };
 
-  let theme = createTheme({
+  const theme = createTheme({
     palette,
     shape: {
       borderRadius: 0,

@@ -4,12 +4,14 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
 } from "react";
 import StoreManager, { StoreKeys } from "../utils/StoreManager";
+import { coerceSetting } from "../utils/settingsCodec";
 
 export const defaultSettings: Settings = {
-  LAST_SCHEMA_NAME: "2025 Reefscape",
+  LAST_SCHEMA_NAME: "2025 Reefscape", // Update this seasonally to current game
   THEME: "system",
   TBA_API_KEY: "",
   TBA_EVENT_KEY: "",
@@ -18,6 +20,8 @@ export const defaultSettings: Settings = {
   EXPECTED_DEVICES_COUNT: 6,
   LEAD_SCOUT_ONLY: false,
   COLOR_THEME: "TractorTheme",
+  FIELD_IMAGE_KEY: "",
+  FIELD_FLIPPED: false,
 };
 
 interface SettingsContextType {
@@ -53,21 +57,15 @@ export default function SettingsProvider({
       const storedValue = await StoreManager.get(storeKey);
       const defaultValue = defaultSettings[key as keyof Settings];
 
-      if (storedValue === null || storedValue === undefined) {
-        if (defaultValue !== undefined) {
-          await StoreManager.set(storeKey, String(defaultValue));
-        }
-        newSettings.set(key, defaultValue);
-      } else {
-        if (typeof defaultValue === "boolean") {
-          newSettings.set(key, storedValue === "true" ? true : false);
-        } else if (typeof defaultValue === "number") {
-          const num = parseInt(storedValue, 10);
-          newSettings.set(key, isNaN(num) ? defaultValue : num);
-        } else {
-          newSettings.set(key, storedValue as any);
-        }
+      // Seed the store on first run so the file reflects what the app is using.
+      if (
+        (storedValue === null || storedValue === undefined) &&
+        defaultValue !== undefined
+      ) {
+        await StoreManager.set(storeKey, String(defaultValue));
       }
+
+      newSettings.set(key, coerceSetting(storedValue, defaultValue));
     }
 
     setSettings(Object.fromEntries(newSettings) as Settings);
@@ -90,7 +88,7 @@ export default function SettingsProvider({
     }));
   }, []);
 
-  const resetToDefaults = async () => {
+  const resetToDefaults = useCallback(async () => {
     setSettingsLoading(true);
     const newSettings = new Map<string, any>();
     const settingKeys = Object.keys(defaultSettings) as Array<keyof Settings>;
@@ -108,18 +106,21 @@ export default function SettingsProvider({
 
     setSettings(Object.fromEntries(newSettings) as Settings);
     setSettingsLoading(false);
-  };
+  }, []);
+
+  const value = useMemo(
+    () => ({
+      settings,
+      setSetting,
+      loadSettings,
+      settingsLoading,
+      resetToDefaults,
+    }),
+    [settings, setSetting, loadSettings, settingsLoading, resetToDefaults]
+  );
 
   return (
-    <SettingsContext.Provider
-      value={{
-        settings,
-        setSetting,
-        loadSettings,
-        settingsLoading,
-        resetToDefaults,
-      }}
-    >
+    <SettingsContext.Provider value={value}>
       {children}
     </SettingsContext.Provider>
   );

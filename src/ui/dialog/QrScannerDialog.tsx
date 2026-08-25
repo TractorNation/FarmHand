@@ -22,14 +22,18 @@ import QrCodeIcon from "@mui/icons-material/QrCodeRounded";
 import SchemaIcon from "@mui/icons-material/DescriptionRounded";
 import DeleteIcon from "@mui/icons-material/DeleteRounded";
 import ErrorIcon from "@mui/icons-material/ErrorOutlineRounded";
+import BatchIcon from "@mui/icons-material/LayersRounded";
+import NoCameraIcon from "@mui/icons-material/NoPhotographyRounded";
 import {
   createQrCodeFromImportedData,
   decodeSchemaQR,
+  expandBatchQr,
   getQRType,
+  getSchemaHashFromQrString,
   saveQrCode,
   validateQR,
 } from "../../utils/QrUtils";
-import { saveSchema } from "../../utils/SchemaUtils";
+import { getSchemaFromHash, saveSchema } from "../../utils/SchemaUtils";
 import { useSchema } from "../../context/SchemaContext";
 import StoreManager, { StoreKeys } from "../../utils/StoreManager";
 
@@ -41,7 +45,7 @@ interface QrScannerDialogueProps {
 
 interface ScannedItem {
   data: string;
-  type: "MATCH" | "SCHEMA" | "UNKNOWN";
+  type: "MATCH" | "SCHEMA" | "BATCH" | "UNKNOWN";
   displayName?: string;
 }
 
@@ -78,7 +82,12 @@ const corners = [
 
 async function getCameraDevices(): Promise<MediaDeviceInfo[]> {
   try {
-    await navigator.mediaDevices.getUserMedia({ video: true });
+    // enumerateDevices only fills in labels once camera permission has been granted, so
+    // we have to open a stream to get usable names - and release it straight away.
+    // WebKitGTK takes an exclusive V4L2 handle, so a probe stream left running keeps the
+    // device busy and the scanner's own stream then gets a lit camera but no frames.
+    const probe = await navigator.mediaDevices.getUserMedia({ video: true });
+    probe.getTracks().forEach((track) => track.stop());
     const devices = await navigator.mediaDevices.enumerateDevices();
     return devices.filter((device) => device.kind === "videoinput");
   } catch {
@@ -91,13 +100,17 @@ export default function QrScannerDialogue({
   onClose,
   onImport,
 }: QrScannerDialogueProps) {
-  const { schema, refreshSchemas } = useSchema();
+  const { schema, availableSchemas, refreshSchemas } = useSchema();
   const [activeCamera, setActiveCamera] = useState<{
     index: number;
     id: string;
   }>();
   const [cameraDevices, setCameraDevices] = useState<MediaDeviceInfo[]>([]);
-  const [hasCamera, setHasCamera] = useState(false);
+  // "checking" and "unavailable" used to be the same `false`, which left a machine with
+  // no usable camera showing the loading skeleton forever with nothing to act on.
+  const [cameraState, setCameraState] = useState<
+    "checking" | "ready" | "unavailable"
+  >("checking");
   const [scannedItems, setScannedItems] = useState<ScannedItem[]>([]);
   const [hasMixedTypes, setHasMixedTypes] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -121,6 +134,16 @@ export default function QrScannerDialogue({
       }
 
       let displayName = text;
+      if (qrType === "BATCH") {
+        try {
+          const { matchStrings } = expandBatchQr(text);
+          displayName = `Batch of ${matchStrings.length} match${
+            matchStrings.length !== 1 ? "es" : ""
+          }`;
+        } catch {
+          displayName = "Batch (unreadable)";
+        }
+      }
       if (qrType === "SCHEMA") {
         // Try to decode to get schema name
         decodeSchemaQR(text).then((decodedSchema) => {
@@ -172,13 +195,48 @@ export default function QrScannerDialogue({
           await saveQrCode(savedCode);
         })
       );
+    } else if (firstType === "BATCH") {
+      // Expand each batch into standalone match codes and save them individually,
+      // so a batched match is indistinguishable from one scanned on its own.
+      const matchStrings = scannedItems.flatMap((item) => {
+        try {
+          const { matchStrings, checksumOk } = expandBatchQr(item.data);
+          return checksumOk ? matchStrings : [];
+        } catch {
+          return [];
+        }
+      });
+
+      // Re-scanning a page of a batch must not double up the matches.
+      const seen = new Set<string>();
+      for (const matchString of matchStrings) {
+        const hash = getSchemaHashFromQrString(matchString);
+        if (!hash) continue;
+        const codeSchema = await getSchemaFromHash(hash, availableSchemas);
+        if (!codeSchema) continue;
+
+        const savedCode = await createQrCodeFromImportedData(
+          matchString,
+          codeSchema
+        );
+        // The generated filename is <team>-<match>-<timestamp>; key on the
+        // identifying part so the same match from the same device dedupes.
+        const key = `${savedCode.name.split("-").slice(0, 2).join("-")}::${matchString}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+
+        await saveQrCode(savedCode);
+      }
     } else if (firstType === "SCHEMA") {
       // Import as schemas
       await Promise.all(
         scannedItems.map(async (item) => {
           const decodedSchema = await decodeSchemaQR(item.data);
           if (decodedSchema) {
-            await saveSchema(decodedSchema);
+            // Record the sending device's hash: match codes from that device are
+            // stamped with it, and our locally recomputed hash will not match.
+            const originHash = getSchemaHashFromQrString(item.data) ?? undefined;
+            await saveSchema(decodedSchema, originHash);
           }
         })
       );
@@ -192,6 +250,7 @@ export default function QrScannerDialogue({
   // Initialize cameras, restoring the previously selected camera when available
   useEffect(() => {
     if (!open) return;
+    setCameraState("checking");
     async function init() {
       const devices = await getCameraDevices();
       setCameraDevices(devices);
@@ -199,9 +258,9 @@ export default function QrScannerDialogue({
         const savedId = await StoreManager.get(StoreKeys.preferences.CAMERA_DEVICE_ID);
         const index = Math.max(devices.findIndex((d) => d.deviceId === savedId), 0);
         setActiveCamera({ index, id: devices[index].deviceId });
-        setHasCamera(true);
+        setCameraState("ready");
       } else {
-        setHasCamera(false);
+        setCameraState("unavailable");
       }
     }
     init();
@@ -209,41 +268,59 @@ export default function QrScannerDialogue({
 
   // Start scanning
   useEffect(() => {
-    if (!open || !hasCamera || cameraDevices.length === 0 || !videoRef.current)
+    if (
+      !open ||
+      cameraState !== "ready" ||
+      cameraDevices.length === 0 ||
+      !videoRef.current
+    )
       return;
 
     const selectedCamera = cameraDevices[activeCamera?.index ?? 0];
     const reader = new BrowserQRCodeReader();
     readerRef.current = reader;
 
-    let controls: IScannerControls;
+    let controls: IScannerControls | undefined;
+    let cancelled = false;
+
     (async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { deviceId: selectedCamera.deviceId },
-        });
-        const video = videoRef.current!;
-        video.srcObject = stream;
-        await video.play();
-
-        controls = await reader.decodeFromVideoDevice(
-          activeCamera?.id,
-          video,
+        // decodeFromVideoDevice opens the camera and attaches it to the element itself.
+        // Opening our own stream first leaves WebKitGTK holding two V4L2 handles on the
+        // same device, and a single-stream webcam then lights up without ever delivering
+        // frames. Pass the resolved device id rather than activeCamera.id, which is
+        // undefined on the first pass and would silently select a different camera.
+        const started = await reader.decodeFromVideoDevice(
+          selectedCamera.deviceId,
+          videoRef.current!,
           (result) => {
             if (result) addToList(result);
           }
         );
+
+        // Closing the dialog while this is still resolving used to leave the stream
+        // running with nothing holding a reference to stop it.
+        if (cancelled) {
+          started.stop();
+          return;
+        }
+        controls = started;
       } catch (err) {
+        // The device id is requested with `exact`, so a camera that is missing or
+        // already held by another app rejects outright rather than degrading. Leaving
+        // the state at "ready" would show the live scanner chrome over a black
+        // rectangle with nothing to act on.
         console.error("Camera error:", err);
+        if (!cancelled) setCameraState("unavailable");
       }
     })();
 
     return () => {
-      if (!controls) return;
-      controls.stop();
+      cancelled = true;
+      controls?.stop();
       readerRef.current = null;
     };
-  }, [open, activeCamera, hasCamera]);
+  }, [open, activeCamera, cameraState]);
 
   const handleSwitchCamera = () => {
     if (cameraDevices.length <= 1) return;
@@ -258,21 +335,27 @@ export default function QrScannerDialogue({
     switch (type) {
       case "MATCH":
         return <QrCodeIcon color="primary" />;
+      case "BATCH":
+        return <BatchIcon color="info" />;
       case "SCHEMA":
         return <SchemaIcon color="secondary" />;
-      case "UNKNOWN":
+      default:
         return <ErrorIcon color="error" />;
     }
   };
 
+  // Returns a palette key, so the default branch matters: an unhandled type would
+  // otherwise yield undefined and index the palette with it.
   const getItemColor = (type: ScannedItem["type"]) => {
     switch (type) {
       case "MATCH":
-        return "primary";
+        return "primary" as const;
+      case "BATCH":
+        return "info" as const;
       case "SCHEMA":
-        return "secondary";
-      case "UNKNOWN":
-        return "error";
+        return "secondary" as const;
+      default:
+        return "error" as const;
     }
   };
 
@@ -316,7 +399,7 @@ export default function QrScannerDialogue({
           alignItems: "center",
         }}
       >
-        {!hasCamera ? (
+        {cameraState === "checking" ? (
           <Skeleton
             variant="rounded"
             width="100%"
@@ -326,6 +409,33 @@ export default function QrScannerDialogue({
               maxHeight: isLandscape ? "none" : "50vh",
             }}
           />
+        ) : cameraState === "unavailable" ? (
+          <Paper
+            elevation={0}
+            sx={{
+              width: "100%",
+              aspectRatio: "1/1",
+              maxHeight: isLandscape ? "none" : "50vh",
+              borderRadius: 3,
+              border: `2px dashed ${theme.palette.divider}`,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              textAlign: "center",
+              gap: 1,
+              p: 3,
+            }}
+          >
+            <NoCameraIcon sx={{ fontSize: 48, color: "text.disabled" }} />
+            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+              No camera available
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Connect a camera and reopen this dialog, or check that FarmHand is
+              allowed to use it.
+            </Typography>
+          </Paper>
         ) : (
           <>
             <Box

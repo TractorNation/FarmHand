@@ -5,25 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep A Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [26.3.3]
+## [2026.4.0]
 
 ### Fixed
- - Performance/efficiency improvements
- - Other minor logistical/"best practice" adjustments
- - Refactoring to remove duplicative code
- - Updated schemas for better usability. (some minor additional changes required still)
- - Resolved bug with teams not autofilling correctly upon completing a form.
- - 
-### Added
- - Automatically move to the correct area to begin a new form based on TBA-enabling of Match Number, for different behavior between complete built-in match scouting, pit scouting, custom forms, etc.
- - Supporting changes across QR code filename generation, analysis tools, assessment of TBA event  data response, etc.
- - Disabled Team Number when autofilled to minimize opportunity for human error
- - Visibility of Match Info data when section collapsed in a scouting form
- - Remembered sorting methods and camera selection on QR code screen
 
-### Changed
- - Version number from 2026 to 26
- - Match Numbers changed to indicate "Comp Level" for scouting more of the event (primarily useful for larger events like Worlds)
+- Too many things to count, this was mostly feature updates.
+
+### Added
+
+- Linux support
+- Area Pathing
 
 ## [2026.3.2]
 
@@ -33,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Linux support. Releases now include an AppImage, a `.deb`, and an `.rpm`.
 - 'Persist' flag for fields that should keep their values during reset/completion of a scout report.
 - Automatic Team selection for built-in TBA-enabled schemas (using Match schedule data)
 - Match Number will automatically increment with each completed scout report.

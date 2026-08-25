@@ -45,7 +45,7 @@ import AnalysisProvider from "./context/AnalysisContext";
 import ScoutDataProvider from "./context/ScoutDataContext";
 import { useSettings } from "./context/SettingsContext";
 import { themeRegistry, type ThemeRegistryKey } from "./config/themes";
-import { getLatestGitHubVersion } from "./utils/GeneralUtils";
+import { getLatestGitHubVersion } from "./utils/appUpdate";
 import { version } from "../package.json";
 const Home = React.lazy(() => import("./pages/Home"));
 const Settings = React.lazy(() => import("./pages/Settings"));
@@ -126,7 +126,6 @@ function Layout({ children }: { children: React.ReactNode }) {
   const { drawerOpen, toggleDrawer } = useDrawer();
   const navigate = useNavigate();
   const theme = useTheme();
-  const isRuneTheme = theme.farmhandThemeId === "RuneScapeTheme";
   const isWindowsXpTheme = theme.farmhandThemeId === "WindowsXPTheme";
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const location = useLocation();
@@ -195,22 +194,6 @@ function Layout({ children }: { children: React.ReactNode }) {
 
   const menuButtonStyles = {
     mr: 2,
-    ...(isRuneTheme && {
-      backgroundImage: `linear-gradient(135deg, ${alpha(
-        theme.palette.common.white,
-        0.25
-      )}, ${alpha(theme.palette.primary.dark ?? "#0d0f17", 0.9)})`,
-      border: `1px solid ${alpha("#000000", 0.6)}`,
-      color: theme.palette.common.white,
-      boxShadow: `0 6px 14px ${alpha("#000000", 0.6)}`,
-      "&:hover": {
-        backgroundImage: `linear-gradient(135deg, ${alpha(
-          theme.palette.primary.light ?? "#d2b676",
-          0.25
-        )}, ${alpha(theme.palette.primary.main, 0.95)})`,
-        boxShadow: `0 10px 20px ${alpha("#000000", 0.65)}`,
-      },
-    }),
     ...(isWindowsXpTheme && {
       backgroundImage: "linear-gradient(180deg, #2a6ad9 0%, #0f3fa6 90%)",
       border: "1px solid rgba(7, 32, 96, 0.65)",

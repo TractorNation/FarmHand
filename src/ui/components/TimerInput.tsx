@@ -4,7 +4,7 @@ import PauseIcon from "@mui/icons-material/PauseRounded";
 import ResetIcon from "@mui/icons-material/ReplayRounded";
 import useToggle from "../../hooks/useToggle";
 import { memo, useEffect, useRef, useState } from "react";
-import { parseTime } from "../../utils/GeneralUtils";
+import { formatTime, parseTime } from "../../utils/valueFormat";
 
 /**
  * Props for the timer input
@@ -88,17 +88,6 @@ function TimerInput(props: TimerInputProps) {
     togglePlaying();
   };
 
-  const formatTime = (timeInTenths: number) => {
-    const totalSeconds = (timeInTenths || 0) / 10;
-    const minutes = Math.floor(totalSeconds / 60);
-    const seconds = totalSeconds % 60;
-
-    if (minutes > 0) {
-      return `${minutes}:${seconds.toFixed(1).padStart(4, "0")}`;
-    }
-    return totalSeconds.toFixed(1);
-  };
-
   const handleReset = () => {
     if (playing) togglePlaying();
     setLocalTime(0);
@@ -114,8 +103,11 @@ function TimerInput(props: TimerInputProps) {
         {formatTime(localTime)}
       </Typography>
       <Stack direction={"row"} spacing={2}>
+        {/* Icon-only controls: each needs its own action name. The field's name comes
+            from the surrounding group. */}
         {playing ? (
           <Button
+            aria-label="Pause timer"
             variant="outlined"
             color="secondary"
             onClick={handlePlayPause}
@@ -124,6 +116,7 @@ function TimerInput(props: TimerInputProps) {
           </Button>
         ) : (
           <Button
+            aria-label="Start timer"
             variant="outlined"
             color="secondary"
             onClick={handlePlayPause}
@@ -131,7 +124,12 @@ function TimerInput(props: TimerInputProps) {
             <PlayIcon />
           </Button>
         )}
-        <Button variant="outlined" color="secondary" onClick={handleReset}>
+        <Button
+          aria-label="Reset timer"
+          variant="outlined"
+          color="secondary"
+          onClick={handleReset}
+        >
           <ResetIcon />
         </Button>
       </Stack>

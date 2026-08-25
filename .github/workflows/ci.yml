@@ -1,0 +1,78 @@
+name: CI
+
+# The release workflow builds with `build:ci`, which skips `tsc`, so a type error can
+# reach main unnoticed. This job is the gate that catches that.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  frontend:
+    name: Typecheck, lint, test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Production build
+        run: npm run build
+
+  rust:
+    name: Cargo check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Tauri system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libayatana-appindicator3-dev \
+            libxdo-dev \
+            librsvg2-dev \
+            patchelf \
+            libssl-dev
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      # `generate_context!` embeds the frontend at compile time and hard-errors if
+      # `frontendDist` is missing. `dist/` is gitignored, so the Rust job cannot
+      # compile at all without building the frontend first.
+      - name: Build frontend
+        run: |
+          npm ci
+          npm run build:ci
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      # `cargo test` compiles everything `cargo check` did and then actually runs it,
+      # so this replaces the check rather than adding a step. Nothing in CI executed
+      # Rust code before.
+      - name: Cargo test
+        working-directory: src-tauri
+        run: cargo test --all-targets

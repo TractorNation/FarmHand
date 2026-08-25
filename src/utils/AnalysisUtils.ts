@@ -1,3 +1,4 @@
+import { orderedFields } from "./schemaFields";
 import {
   BaseDirectory,
   exists,
@@ -7,10 +8,78 @@ import {
 } from "@tauri-apps/plugin-fs";
 import { appLocalDataDir, resolve } from "@tauri-apps/api/path";
 import { invoke } from "@tauri-apps/api/core";
+import {
+  DecodedQr,
+  decodeQR,
+  getSchemaHashFromQrString,
+} from "./QrUtils";
 
 /**
  * Fetch all analyses from the analyses directory
  */
+/** One decoded QR paired with its source, as the chart pipeline consumes it. */
+export interface AnalysisDataItem {
+  qr: QrCode;
+  decoded: DecodedQr;
+}
+
+/**
+ * Selects and decodes the QR codes an analysis covers.
+ *
+ * Codes are filtered by schema hash *before* decoding: a bit-packed payload can only be
+ * decoded with the schema it was recorded against.
+ */
+export async function filterQrCodesForAnalysis(
+  qrCodes: QrCode[],
+  analysis: Pick<Analysis, "schemaHash" | "selectedTeams" | "selectedMatches">,
+  schema: Schema
+): Promise<AnalysisDataItem[]> {
+  const allFields = orderedFields(schema);
+  const matchNumberIndex = allFields.findIndex((f) => f.name === "Match Number");
+  const teamNumberIndex = allFields.findIndex((f) => f.name === "Team Number");
+
+  const decoded = await Promise.all(
+    qrCodes
+      .filter((qr) => !qr.archived)
+      .map(async (qr) => {
+        try {
+          if (getSchemaHashFromQrString(qr.data) !== analysis.schemaHash) {
+            return null;
+          }
+          return { qr, decoded: await decodeQR(qr.data, schema) };
+        } catch {
+          return null;
+        }
+      })
+  );
+
+  return decoded.filter((item): item is AnalysisDataItem => {
+    if (!item || !item.decoded || !item.decoded.data) return false;
+
+    // An empty selection means "no filter", not "match nothing".
+    if (analysis.selectedTeams.length > 0) {
+      // Without a Team Number field there is no way to honour a team filter, so
+      // excluding is the safe reading.
+      if (teamNumberIndex === -1) return false;
+      const teamField = item.decoded.data[teamNumberIndex];
+      if (teamField === undefined || teamField === null) return false;
+      const teamNum = Number(teamField);
+      if (isNaN(teamNum) || !analysis.selectedTeams.includes(teamNum)) {
+        return false;
+      }
+    }
+
+    if (analysis.selectedMatches.length > 0) {
+      if (matchNumberIndex === -1) return false;
+      const matchField = item.decoded.data[matchNumberIndex];
+      if (matchField === undefined || matchField === null) return false;
+      if (!analysis.selectedMatches.includes(String(matchField))) return false;
+    }
+
+    return true;
+  });
+}
+
 export async function fetchAnalyses(): Promise<Analysis[]> {
   // Create directory if it doesn't exist
   const folderExists = await exists("analyses", {
@@ -93,62 +162,4 @@ export async function deleteAnalysis(analysisId: number): Promise<void> {
   await invoke("delete_schema", { path: filePath });
 }
 
-/**
- * Extract SVG from a chart container element
- * @param containerElement The container element that holds the chart
- * @returns The SVG string or null if not found
- */
-export function extractSvgFromChart(containerElement: HTMLElement | null): string | null {
-  if (!containerElement) return null;
-
-  // Find the SVG element within the container
-  const svgElement = containerElement.querySelector("svg");
-  if (!svgElement) return null;
-
-  // Clone the SVG to avoid modifying the original
-  const clonedSvg = svgElement.cloneNode(true) as SVGElement;
-  
-  // Get the actual rendered dimensions of the SVG
-  const rect = svgElement.getBoundingClientRect();
-  const renderedWidth = rect.width;
-  const renderedHeight = rect.height;
-  
-  // Get existing viewBox - Nivo charts should have this
-  let viewBox = clonedSvg.getAttribute("viewBox");
-  const existingWidth = clonedSvg.getAttribute("width");
-  const existingHeight = clonedSvg.getAttribute("height");
-  
-  // If no viewBox exists, try to create one from existing dimensions or rendered size
-  if (!viewBox) {
-    let vbWidth = renderedWidth;
-    let vbHeight = renderedHeight;
-    
-    // Try to use existing width/height attributes if they're numeric
-    if (existingWidth && !isNaN(parseFloat(existingWidth))) {
-      vbWidth = parseFloat(existingWidth);
-    }
-    if (existingHeight && !isNaN(parseFloat(existingHeight))) {
-      vbHeight = parseFloat(existingHeight);
-    }
-    
-    if (vbWidth > 0 && vbHeight > 0) {
-      viewBox = `0 0 ${vbWidth} ${vbHeight}`;
-      clonedSvg.setAttribute("viewBox", viewBox);
-    }
-  }
-  
-  // Remove fixed width/height attributes - let CSS control the size
-  // This allows the SVG to scale properly within its container
-  clonedSvg.removeAttribute("width");
-  clonedSvg.removeAttribute("height");
-  
-  // Ensure preserveAspectRatio is set for proper scaling
-  if (!clonedSvg.hasAttribute("preserveAspectRatio")) {
-    clonedSvg.setAttribute("preserveAspectRatio", "xMidYMid meet");
-  }
-
-  // Serialize the SVG to string
-  const serializer = new XMLSerializer();
-  return serializer.serializeToString(clonedSvg);
-}
 

@@ -37,14 +37,26 @@ export function useQrManager({ qrCodes }: UseQrManagerParams) {
     loadSortPreferences();
   }, []);
 
+  /*
+    Sort preferences are deliberately not awaited — the list must reorder on the tap,
+    not after a disk write. But `StoreManager.set` rethrows, so an unhandled rejection
+    was reaching the window whenever the store was unavailable. Failing to remember a
+    sort order is not worth interrupting scouting for, so it is logged and dropped.
+  */
+  const rememberPreference = (key: string, value: string) => {
+    StoreManager.set(key, value).catch((e) =>
+      console.error("Failed to save sort preference", e)
+    );
+  };
+
   const handleSetSortMode = useCallback((mode: SortMode) => {
     setSortMode(mode);
-    StoreManager.set(StoreKeys.preferences.SORT_MODE, mode);
+    rememberPreference(StoreKeys.preferences.SORT_MODE, mode);
   }, []);
 
   const handleSetSortDirection = useCallback((direction: SortDirection) => {
     setSortDirection(direction);
-    StoreManager.set(StoreKeys.preferences.SORT_DIRECTION, direction);
+    rememberPreference(StoreKeys.preferences.SORT_DIRECTION, direction);
   }, []);
 
   // Apply filtering and sorting
