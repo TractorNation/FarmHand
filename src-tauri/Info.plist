@@ -12,5 +12,12 @@
     <!-- Localhost permissions to connect to internal server -->
     <key>NSLocalNetworkUsageDescription</key>
     <string>Allows connecting to local development servers for testing.</string>
+
+    <!-- Exposes the app's Documents directory in the Files app, which is where
+         exports land on iOS (see saveFileWithDialog in src/utils/exportMatches.ts) -->
+    <key>UIFileSharingEnabled</key>
+    <true/>
+    <key>LSSupportsOpeningDocumentsInPlace</key>
+    <true/>
 </dict>
 </plist>

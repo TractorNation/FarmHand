@@ -26,6 +26,13 @@ import { CSS } from "@dnd-kit/utilities";
 import RenameDialog from "./dialog/RenameDialog";
 import DeleteDialog from "./dialog/DeleteDialog";
 import TextInput from "./components/TextInput";
+import AutoPathPropsEditor from "./schema/AutoPathPropsEditor";
+import {
+  COMPONENT_TYPE_LABELS,
+  componentTypeFromLabel,
+  componentTypeLabel,
+  isFullWidthType,
+} from "../config/componentTypes";
 
 /* Properties for the Component Card*/
 interface ComponentCardProps {
@@ -134,7 +141,9 @@ export default function EditableComponentCard(props: ComponentCardProps) {
       const values = Array.isArray(defaultValue)
         ? defaultValue
         : [defaultValue, defaultValue];
-      if (values.length === 2) {
+      // Guarded the same way as the single-value branch below: a boolean default on
+      // a range slider is nonsense to compare, and `false < 0` would quietly pass.
+      if (values.length === 2 && values.every((v) => typeof v === "number")) {
         if (values[0] < minVal || values[1] > maxVal || values[0] > values[1]) {
           error = `Range must be within ${min ?? "min"}-${
             max ?? "max"
@@ -358,6 +367,13 @@ export default function EditableComponentCard(props: ComponentCardProps) {
             />
           </Stack>
         );
+      case "autopath":
+        return (
+          <AutoPathPropsEditor
+            props={editedComponent.props}
+            onChange={handleFieldChange}
+          />
+        );
       case "grid":
         return (
           <>
@@ -571,30 +587,12 @@ export default function EditableComponentCard(props: ComponentCardProps) {
             )}
             <DropdownInput
               label="Type"
-              value={
-                editedComponent.type === "multiplechoice"
-                  ? "Multiple Choice"
-                  : editedComponent.type.charAt(0).toUpperCase() +
-                    editedComponent.type.slice(1)
-              }
+              value={componentTypeLabel(editedComponent.type)}
               disabled={isProtected}
-              onChange={(value) => {
-                const type =
-                  value === "Multiple Choice" ? "multiplechoice" : value.toLowerCase();
-                handleFieldChange("type", type);
-              }}
-              options={[
-                "Checkbox",
-                "Counter",
-                "Dropdown",
-                "Multiple Choice",
-                "Text",
-                "Number",
-                "Slider",
-                "Timer",
-                "Grid",
-                "Filler",
-              ]}
+              onChange={(value) =>
+                handleFieldChange("type", componentTypeFromLabel(value))
+              }
+              options={COMPONENT_TYPE_LABELS}
               allowUnset={false}
             />
             <FormControlLabel
@@ -609,18 +607,22 @@ export default function EditableComponentCard(props: ComponentCardProps) {
               }
               label="Required?"
             />
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={editedComponent.doubleWidth || false}
-                  disabled={isProtected}
-                  onChange={(e) =>
-                    handleFieldChange("doubleWidth", e.target.checked)
-                  }
-                />
-              }
-              label="Double Wide?"
-            />
+            {!isFullWidthType(editedComponent.type) && (
+              // Types that always span the whole row ignore doubleWidth, so offering
+              // the toggle would only promise a layout change that never happens.
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={editedComponent.doubleWidth || false}
+                    disabled={isProtected}
+                    onChange={(e) =>
+                      handleFieldChange("doubleWidth", e.target.checked)
+                    }
+                  />
+                }
+                label="Double Wide?"
+              />
+            )}
             {!isProtected && (
               // This is structured differently so the button won't appear (even as disabled) on
               // Match Num or Team Num fields, as they have special behavior & should never

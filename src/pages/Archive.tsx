@@ -27,89 +27,62 @@ import QrGrid from "../ui/qr/QrGrid";
 import RenameDialog from "../ui/dialog/RenameDialog";
 import DeleteFolderDialog from "../ui/dialog/DeleteFolderDialog";
 import ArchiveFab from "../ui/qr/ArchiveFab";
-import { useMemo, useState } from "react";
-import { useAsyncFetch } from "../hooks/useAsyncFetch";
 import useDialog from "../hooks/useDialog";
-import { useQrManager } from "../hooks/useQrManager";
-import { fetchQrCodes, unarchiveQrCode, deleteQrCode } from "../utils/QrUtils";
+import { useQrPage } from "../hooks/useQrPage";
+import { unarchiveQrCode, deleteQrCode } from "../utils/QrUtils";
 import SortFilterMenu from "../ui/SortFilterMenu";
-import { useFolderManager } from "../hooks/useFolderManager";
 import CreateDialog from "../ui/dialog/CreateDialog";
 
 export default function ArchivePage() {
   const theme = useTheme();
-  const [allQrCodes, loading, error, refetch] = useAsyncFetch(fetchQrCodes);
-  const [qrDialogOpen, openQrDialog, closeQrDialog] = useDialog();
-  const [sendToDialogOpen, openSendToDialog, closeSendToDialog] = useDialog();
+  const {
+    visibleQrCodes: archivedQrCodes,
+    loading,
+    error,
+    refetch,
+    qrManager,
+    folderManager,
+    activeQrCode,
+    setActiveQrCode,
+    activeFolderForAction,
+    setActiveFolderForAction,
+    qrDialogOpen,
+    openQrDialog,
+    closeQrDialog,
+    sendToDialogOpen,
+    openSendToDialog,
+    closeSendToDialog,
+    folderDialogOpen,
+    openFolderDialog,
+    closeFolderDialog,
+    renameFolderDialogOpen,
+    closeRenameFolderDialog,
+    deleteFolderDialogOpen,
+    openDeleteFolderDialog,
+    closeDeleteFolderDialog,
+    folderContainingAllSelected,
+    handleRemoveFromFolder,
+    executeMoveToFolder,
+    handleRenameFolder,
+    executeRenameFolder,
+    handleDeleteFolder,
+    executeDeleteFolder,
+    handleSelectFolder,
+  } = useQrPage({ archived: true });
+
   const [unarchiveDialogOpen, openUnarchiveDialog, closeUnarchiveDialog] =
     useDialog();
-  const [folderDialogOpen, openFolderDialog, closeFolderDialog] = useDialog();
   const [deleteDialogOpen, openDeleteDialog, closeDeleteDialog] = useDialog();
-  const [renameFolderDialogOpen, openRenameFolderDialog, closeRenameFolderDialog] = useDialog();
-  const [deleteFolderDialogOpen, openDeleteFolderDialog, closeDeleteFolderDialog] = useDialog();
-  const [unarchiveFolderDialogOpen, openUnarchiveFolderDialog, closeUnarchiveFolderDialog] = useDialog();
-  
-  const [activeQrCode, setActiveQrCode] = useState<QrCode | null>(null);
-  const [activeFolderForAction, setActiveFolderForAction] = useState<QrFolder | null>(null);
+  const [
+    unarchiveFolderDialogOpen,
+    openUnarchiveFolderDialog,
+    closeUnarchiveFolderDialog,
+  ] = useDialog();
 
-  const archivedQrCodes = useMemo(
-    () => allQrCodes?.filter((code) => code.archived) || [],
-    [allQrCodes]
-  );
-  const folderManager = useFolderManager({ showArchived: true });
-
-  const displayQrCodes = useMemo(() => {
-    if (!folderManager.currentFolder) {
-      return archivedQrCodes.filter((qr) => {
-        return !folderManager.folders.some((folder) =>
-          folder.qrCodes.includes(qr.name)
-        );
-      });
-    }
-
-    const folderData = folderManager.currentFolderData;
-    if (!folderData) return [];
-
-    return archivedQrCodes.filter((qr) => folderData.qrCodes.includes(qr.name));
-  }, [folderManager.currentFolder, folderManager.folders, archivedQrCodes]);
-
-  const qrManager = useQrManager({ qrCodes: displayQrCodes });
-  
-  // Find the folder that contains all selected codes (if any)
-  const folderContainingAllSelected = useMemo(() => {
-    if (qrManager.selectedCodes.length === 0) return null;
-    
-    const selectedNames = new Set(qrManager.selectedCodes.map((c) => c.name));
-    
-    // Find folders that contain all selected codes
-    const matchingFolders = folderManager.folders.filter((folder) => {
-      const folderCodes = new Set(folder.qrCodes);
-      return [...selectedNames].every((name) => folderCodes.has(name));
-    });
-    
-    // Return the folder if exactly one folder contains all codes
-    return matchingFolders.length === 1 ? matchingFolders[0] : null;
-  }, [qrManager.selectedCodes, folderManager.folders]);
-
-  const handleRemoveFromFolder = async () => {
-    if (!folderContainingAllSelected || qrManager.selectedCodes.length === 0)
-      return;
-
-    const qrNames = qrManager.selectedCodes.map((c) => c.name);
-    await folderManager.removeQrCodesFromFolder(
-      qrNames,
-      folderContainingAllSelected.id
-    );
-    
-    qrManager.resetSelection();
-    qrManager.toggleSelectionMode();
-    refetch();
-  };
-  
   const handleMassUnarchive = async () => {
     // Unarchive all selected codes
     await Promise.all(
-      qrManager.selectedCodes.map(async (c) => await unarchiveQrCode(c))
+      qrManager.selectedCodes.map(async (c) => await unarchiveQrCode(c.name))
     );
     // Unarchive selected folders (and their codes)
     await Promise.all(
@@ -126,7 +99,7 @@ export default function ArchivePage() {
 
   const handleMassDelete = async () => {
     await Promise.all(
-      qrManager.selectedCodes.map(async (c) => await deleteQrCode(c))
+      qrManager.selectedCodes.map(async (c) => await deleteQrCode(c.name))
     );
     qrManager.resetSelection();
     closeDeleteDialog();
@@ -134,89 +107,9 @@ export default function ArchivePage() {
     refetch();
   };
 
-  // Folder action handlers
-  const handleRenameFolder = (folder: QrFolder) => {
-    setActiveFolderForAction(folder);
-    openRenameFolderDialog();
-  };
-
-  const handleDeleteFolder = async (folder: QrFolder) => {
-    // Always show dialog to give user options (delete codes only or codes + folder)
-    // Even if folder is empty, showing dialog is clearer
-    setActiveFolderForAction(folder);
-    openDeleteFolderDialog();
-  };
-
   const handleUnarchiveFolder = (folder: QrFolder) => {
     setActiveFolderForAction(folder);
     openUnarchiveFolderDialog();
-  };
-
-  const executeRenameFolder = async (newName: string) => {
-    if (!activeFolderForAction) return;
-    await folderManager.renameFolder(activeFolderForAction.id, newName);
-    closeRenameFolderDialog();
-    setActiveFolderForAction(null);
-  };
-
-  const executeDeleteFolder = async (deleteOption: "codes" | "folder") => {
-    if (!activeFolderForAction) return;
-    
-    if (deleteOption === "codes") {
-      // Delete only the codes inside the folder
-      if (activeFolderForAction.qrCodes.length > 0) {
-        // Only try to delete codes that actually exist in archivedQrCodes
-        const codesToDelete = archivedQrCodes.filter((qr) =>
-          activeFolderForAction.qrCodes.includes(qr.name)
-        );
-        
-        // Delete codes with error handling - continue even if some fail
-        await Promise.allSettled(
-          codesToDelete.map(async (c) => {
-            try {
-              await deleteQrCode(c);
-            } catch (error) {
-              console.warn(`Failed to delete QR code ${c.name}:`, error);
-              // Continue with other deletions even if one fails
-            }
-          })
-        );
-        
-        // Remove codes from folder (folder becomes empty)
-        // Remove all codes that were in the folder, even if some weren't deleted
-        await folderManager.removeQrCodesFromFolder(
-          activeFolderForAction.qrCodes,
-          activeFolderForAction.id
-        );
-      }
-    } else {
-      // Delete folder and all codes inside (or just folder if empty)
-      if (activeFolderForAction.qrCodes.length > 0) {
-        // Only try to delete codes that actually exist
-        const codesToDelete = archivedQrCodes.filter((qr) =>
-          activeFolderForAction.qrCodes.includes(qr.name)
-        );
-        
-        // Delete codes with error handling
-        await Promise.allSettled(
-          codesToDelete.map(async (c) => {
-            try {
-              await deleteQrCode(c);
-            } catch (error) {
-              console.warn(`Failed to delete QR code ${c.name}:`, error);
-              // Continue with other deletions even if one fails
-            }
-          })
-        );
-      }
-      
-      // Delete the folder itself
-      await folderManager.deleteFolder(activeFolderForAction.id, false);
-    }
-    
-    closeDeleteFolderDialog();
-    setActiveFolderForAction(null);
-    refetch();
   };
 
   const executeUnarchiveFolder = async () => {
@@ -224,38 +117,6 @@ export default function ArchivePage() {
     await folderManager.unarchiveFolder(activeFolderForAction.id);
     closeUnarchiveFolderDialog();
     setActiveFolderForAction(null);
-    refetch();
-  };
-
-  // Move codes to folder (and remove from source folders when moving)
-  const executeMoveToFolder = async (folderId: string) => {
-    if (qrManager.selectedCodes.length === 0 && folderManager.selectedFolders.length === 0)
-      return;
-
-    // Collect all codes to move (from individual selection + folder selection)
-    const qrNames =
-      qrManager.selectedCodes.length > 0
-        ? qrManager.selectedCodes.map((c) => c.name)
-        : folderManager.selectedFolders.flatMap((f) => f.qrCodes);
-    const uniqueQrNames = [...new Set(qrNames)];
-
-    if (uniqueQrNames.length === 0) return;
-
-    // Remove from source folders (any folder that contains them, except target)
-    for (const folder of folderManager.folders) {
-      if (folder.id === folderId) continue;
-      const toRemove = uniqueQrNames.filter((n) => folder.qrCodes.includes(n));
-      if (toRemove.length > 0) {
-        await folderManager.removeQrCodesFromFolder(toRemove, folder.id);
-      }
-    }
-
-    await folderManager.addQrCodesToFolder(uniqueQrNames, folderId);
-
-    qrManager.resetSelection();
-    folderManager.resetFolderSelection();
-    qrManager.toggleSelectionMode();
-    closeSendToDialog();
     refetch();
   };
 
@@ -281,30 +142,6 @@ export default function ArchivePage() {
     
     folderManager.resetFolderSelection();
     refetch();
-  };
-
-  // Handle folder selection - select all valid QR codes in the folder
-  const handleSelectFolder = (folder: QrFolder, qrCodesInFolder: QrCode[]) => {
-    // Filter to only include archived codes
-    const validCodes = qrCodesInFolder.filter((qr) => qr.archived);
-    
-    // If folder is already selected, deselect all its codes
-    if (folderManager.isFolderSelected(folder)) {
-      validCodes.forEach((qr) => {
-        if (qrManager.codeIsSelected(qr)) {
-          qrManager.updateSelectedCodes(qr);
-        }
-      });
-      folderManager.toggleFolderSelection(folder);
-    } else {
-      // Select all valid codes from the folder
-      validCodes.forEach((qr) => {
-        if (!qrManager.codeIsSelected(qr)) {
-          qrManager.updateSelectedCodes(qr);
-        }
-      });
-      folderManager.toggleFolderSelection(folder);
-    }
   };
 
   if (loading) return <Typography>Loading...</Typography>;

@@ -27,8 +27,14 @@ Available for:
 
 - **Windows** - MSI installer or portable EXE
 - **Android** - APK file
+- **Linux** - AppImage, `.deb`, or `.rpm`
 - **macOS** - Coming soon
-- **Linux** - Coming soon
+
+On Linux, the **AppImage** is the one to grab if you are unsure: it carries its own
+WebKit and media libraries, so it runs on any distro without installing anything. Mark it
+executable first (`chmod +x farmhand-*.AppImage`), then run it. The `.deb` and `.rpm` are
+much smaller but rely on your distro providing WebKitGTK 4.1 (Ubuntu 22.04+, Debian 12+,
+Fedora 36+).
 
 ## Getting Started
 
@@ -41,6 +47,18 @@ For mobile development:
 
 - **iOS**: Xcode and CocoaPods (Only on MacOS)
 - **Android**: Android Studio and Android SDK
+
+On **Linux**, Tauri needs system libraries that are not installed by default. On Debian
+or Ubuntu:
+
+```shell
+sudo apt update
+sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget file \
+  libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev
+```
+
+See the [Tauri prerequisites page](https://v2.tauri.app/start/prerequisites/) for the
+Arch and Fedora equivalents.
 
 ### Building Locally
 
@@ -109,6 +127,32 @@ For mobile development:
 ![Dashboard Screenshot](screenshots/DashboardPage.png) 
 
 For more detailed instructions, check out the **Help** page within the app!
+
+## Troubleshooting
+
+### Linux: the window opens blank, black or torn
+
+FarmHand turns WebKitGTK's DMA-BUF renderer off at startup, since it paints shredded
+or empty content wherever the GPU driver and compositor disagree on buffer formats.
+If your setup handles DMA-BUF correctly, you can opt back into the faster path:
+
+```shell
+WEBKIT_DISABLE_DMABUF_RENDERER=0 ./farmhand-*.AppImage
+```
+
+### Linux: the QR scanner cannot see the camera
+
+First confirm the camera works elsewhere (`cheese`, or a browser). If it does but
+FarmHand's scanner reports no camera, try forcing an X11 session — WebKitGTK's media
+capture is unreliable on some Wayland compositors:
+
+```shell
+GDK_BACKEND=x11 ./farmhand-*.AppImage
+```
+
+If you installed the `.deb` or `.rpm` and the camera still does not appear, your distro's
+WebKitGTK may have been built without media-stream support. The AppImage bundles its own
+media stack and is the reliable option in that case.
 
 ## Tech Stack
 

@@ -7,7 +7,7 @@ import CounterInput from "./CounterInput";
 import DropdownInput from "./DropdownInput";
 import CheckboxInput from "./CheckboxInput";
 import TextInput from "./TextInput";
-import { isFieldInvalid } from "../../utils/GeneralUtils";
+import { UNSET_OPTION, isFieldInvalid } from "../../utils/fieldValidation";
 import { useAsyncFetch } from "../../hooks/useAsyncFetch";
 import GridInput from "./GridInput";
 import SliderInput from "./SliderInput";
@@ -15,6 +15,7 @@ import NumberInput from "./NumberInput";
 import TimerInput from "./TimerInput";
 import AutocompleteInput from "./AutocompleteInput";
 import RadioButtonInput from "./RadioButtonInput";
+import PathInput from "./PathInput";
 
 /* Props for the dynamic component
  */
@@ -53,9 +54,9 @@ export default function DynamicComponent(props: DynamicComponentProps) {
     if (name === "Match Number") {
       setWatchedMatchNumber(val !== null && val !== undefined ? String(val) : null);
     } else if (name === "Alliance") {
-      setWatchedAlliance(val && val !== "Select an option..." ? String(val) : null);
+      setWatchedAlliance(val && val !== UNSET_OPTION ? String(val) : null);
     } else if (name === "Position") {
-      setWatchedPosition(val && val !== "Select an option..." ? String(val) : null);
+      setWatchedPosition(val && val !== UNSET_OPTION ? String(val) : null);
     }
   }, [setWatchedMatchNumber, setWatchedAlliance, setWatchedPosition]);
 
@@ -85,7 +86,7 @@ export default function DynamicComponent(props: DynamicComponentProps) {
         break;
       case "multiplechoice":
       case "dropdown":
-        emptyStateValue = component.props?.default ?? "Select an option...";
+        emptyStateValue = component.props?.default ?? UNSET_OPTION;
         break;
       case "number":
         emptyStateValue =
@@ -113,8 +114,18 @@ export default function DynamicComponent(props: DynamicComponentProps) {
       case "timer":
         emptyStateValue = component.props?.default ?? "0.0";
         break;
-      case "grid":
-        emptyStateValue = component.props?.default ?? "3x3[]";
+      case "grid": {
+        // Must match GridInput.formatGridValue's "<rows>x<cols>:[...]" shape and use
+        // the field's real dimensions — parseGridData requires the colon and returns
+        // null without it, which silently broke dimension parsing in analysis.
+        const gridRows = component.props?.rows ?? 3;
+        const gridCols = component.props?.cols ?? 3;
+        emptyStateValue =
+          component.props?.default ?? `${gridRows}x${gridCols}:[]`;
+        break;
+      }
+      case "autopath":
+        emptyStateValue = { noAuto: false, points: [], events: [] };
         break;
       default:
         emptyStateValue = undefined;
@@ -151,13 +162,13 @@ export default function DynamicComponent(props: DynamicComponentProps) {
     if (component.required) {
       setValid(!isInvalid);
       if (isInvalid) {
-        addError(component.name);
+        addError(component.id, component.name);
       }
     }
 
     return () => {
       if (component.required) {
-        removeError(component.name);
+        removeError(component.id);
       }
       if (debounceTimeout.current) {
         clearTimeout(debounceTimeout.current);
@@ -191,9 +202,9 @@ export default function DynamicComponent(props: DynamicComponentProps) {
 
     setValid(!isInvalid);
     if (isInvalid) {
-      addError(component.name);
+      addError(component.id, component.name);
     } else {
-      removeError(component.name);
+      removeError(component.id);
     }
 
     // Keep the context's watched states in sync so getTeamForCurrentSlot() stays current.
@@ -223,8 +234,8 @@ export default function DynamicComponent(props: DynamicComponentProps) {
 
     const isInvalid = isFieldInvalid(component.required!, component.type, derived);
     setValid(!isInvalid);
-    if (isInvalid) addError(component.name);
-    else removeError(component.name);
+    if (isInvalid) addError(component.id, component.name);
+    else removeError(component.id);
   }, [
     getTeamForCurrentSlot,
     component.name,
@@ -249,6 +260,15 @@ export default function DynamicComponent(props: DynamicComponentProps) {
       );
     }
 
+    /**
+     * Accessible name for the control.
+     *
+     * A schema-authored `props.label` wins, but falls back to the field name so a
+     * control always has one. Most built-in schemas never set `props.label`, so
+     * passing it alone leaves the form unnamed for assistive tech.
+     */
+    const fieldLabel = component.props?.label ?? component.name;
+
     // Check if this is a protected field (Match Number or Team Number) with TBA enabled
     const isPullFromTBAEnabled = component.props?.pullFromTBA === true;
     const isProtectedField =
@@ -263,7 +283,7 @@ export default function DynamicComponent(props: DynamicComponentProps) {
             value={value}
             options={matchNumbers}
             onChange={handleChange}
-            label={component.name}
+            label={fieldLabel}
             loading={!tbaMatchData}
             placeholder="Select or enter match number"
           />
@@ -271,14 +291,14 @@ export default function DynamicComponent(props: DynamicComponentProps) {
       }
 
       if (component.name === "Team Number") {
-        let teamNumbers: string[] = getAllTeamNumbers();
+        const teamNumbers: string[] = getAllTeamNumbers();
 
         return (
           <AutocompleteInput
             value={value}
             options={teamNumbers}
             onChange={handleChange}
-            label={component.name}
+            label={fieldLabel}
             loading={!tbaMatchData}
             placeholder="Select or enter team number"
             disabled={!!getTeamForCurrentSlot()}
@@ -293,8 +313,8 @@ export default function DynamicComponent(props: DynamicComponentProps) {
         return (
           <CounterInput
             value={Number(value)}
-            max={component.props?.max!}
-            min={component.props?.min!}
+            max={component.props?.max}
+            min={component.props?.min}
             onChange={handleChange}
           />
         );
@@ -304,10 +324,10 @@ export default function DynamicComponent(props: DynamicComponentProps) {
         const dropdownOptions = component.props?.options || [];
         const normalizedDropdownValue =
           value === null || value === undefined ? undefined : String(value);
-        // Validate the value is in the options list (including "Select an option...")
+        // Validate the value is in the options list (including the unset sentinel)
         const isValidDropdownValue =
           normalizedDropdownValue === undefined ||
-          normalizedDropdownValue === "Select an option..." ||
+          normalizedDropdownValue === UNSET_OPTION ||
           dropdownOptions.some((opt) => {
             const optionValue =
               typeof opt === "string" ? opt : "Error fetching value";
@@ -322,7 +342,7 @@ export default function DynamicComponent(props: DynamicComponentProps) {
             value={safeDropdownValue}
             options={dropdownOptions}
             onChange={handleChange}
-            label={component.props?.label}
+            label={fieldLabel}
             error={showError}
             allowUnset
           />
@@ -332,21 +352,30 @@ export default function DynamicComponent(props: DynamicComponentProps) {
         return (
           <RadioButtonInput
             value={value}
-            options={component.props?.options!}
+            options={component.props?.options ?? []}
             onChange={handleChange}
-            label={component.props?.label}
+            label={fieldLabel}
           />
         );
       case "checkbox":
-        return <CheckboxInput value={Boolean(value)} onChange={handleChange} />;
+        return (
+          <CheckboxInput
+            value={Boolean(value)}
+            onChange={handleChange}
+            label={fieldLabel}
+          />
+        );
 
       case "text":
         return (
           <TextInput
-            value={String(value)}
+            // Not `String(value)`: `value` is null on the render between the stored
+            // value resolving and the hydration effect running, and String(null)
+            // puts the literal text "null" in the box.
+            value={value == null ? "" : String(value)}
             onChange={handleChange}
             multiline={component.props?.multiline}
-            label={component.name}
+            label={fieldLabel}
             error={showError}
           />
         );
@@ -366,7 +395,7 @@ export default function DynamicComponent(props: DynamicComponentProps) {
           <NumberInput
             value={value}
             onChange={handleChange}
-            label={component.name}
+            label={fieldLabel}
             error={showError}
             min={component.props?.min}
             max={component.props?.max}
@@ -382,6 +411,14 @@ export default function DynamicComponent(props: DynamicComponentProps) {
             rows={component.props?.rows}
             cols={component.props?.cols}
             showCoordinates={component.props?.cellLabel === "coordinates"}
+          />
+        );
+      case "autopath":
+        return (
+          <PathInput
+            value={value}
+            onChange={handleChange}
+            props={component.props}
           />
         );
       case "filler":

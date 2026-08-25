@@ -29,6 +29,7 @@ import RenameDialog from "../ui/dialog/RenameDialog";
 import DeleteDialog from "../ui/dialog/DeleteDialog";
 import DuplicateNameDialog from "../ui/dialog/DuplicateNameDialog";
 import ShareDialog from "../ui/dialog/ShareDialog";
+import SchemaHashChip from "../ui/SchemaHashChip";
 
 export default function Schemas() {
   const theme = useTheme();
@@ -36,7 +37,11 @@ export default function Schemas() {
   const location = useLocation();
   const { showWarning } = location.state || {};
 
-  const { availableSchemas, refreshSchemas } = useSchema();
+  const {
+    availableSchemas,
+    refreshSchemas,
+    schemaHashesByName: hashesByName,
+  } = useSchema();
   const [shareDialogOpen, openShareDialog, closeShareDialog] = useDialog();
   const [schemaToShare, setSchemaToShare] = useState<Schema | null>(null);
   const [warningOpen, , closeWarning] = useDialog(showWarning || false);
@@ -238,10 +243,18 @@ export default function Schemas() {
                   <Typography variant="h6" noWrap>
                     {s.name}
                   </Typography>
-                  <Stack direction={"row"} spacing={2}>
+                  <Stack
+                    direction={"row"}
+                    spacing={2}
+                    alignItems={"center"}
+                    sx={{ flexWrap: "wrap", rowGap: 0.5 }}
+                  >
                     <Typography variant="body1" color="text.secondary">
                       {s.schema.sections?.length || 0} sections
                     </Typography>
+                    {/* The hash is this schema's identity on the wire: it is what
+                        saved match codes carry, and it changes with any edit. */}
+                    <SchemaHashChip hash={hashesByName.get(s.name) ?? null} />
                     {s.type === "default" && (
                       <Box>
                         {s.type === "default" && (

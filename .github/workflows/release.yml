@@ -13,10 +13,12 @@ name: Build and Release
 on:
   workflow_dispatch:
     inputs:
+      # Not wired to anything yet: no job or step reads this, so every entry in the
+      # build matrix (android, windows, macos, linux) runs regardless of what is set.
       platforms:
-        description: "Platforms to build (comma-separated: android, windows, macos, linux). Leave empty for all."
+        description: "Unused. Every platform in the build matrix is always built."
         required: false
-        default: "android,windows"
+        default: "android,windows,macos,linux"
   push:
     branches:
       - main
@@ -39,7 +41,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
 
       - name: Extract version from package.json
         id: version
@@ -98,19 +100,26 @@ jobs:
             runs-on: macos-latest
             target: aarch64-apple-darwin
             artifact-name: macos-arm64
-          # In the future i can add linux maybe
-          # - platform: linux
-          #   runs-on: ubuntu-latest
-          #   target: x86_64-unknown-linux-gnu
-          #   artifact-name: linux-x64
+          # Pinned to 22.04 rather than ubuntu-latest on purpose. The runner's glibc is
+          # the floor for every distro that can run the result, and 24.04's 2.39 shuts
+          # out anything older. 22.04 gives glibc 2.35 and is the oldest image that
+          # still ships libwebkit2gtk-4.1.
+          - platform: linux
+            runs-on: ubuntu-22.04
+            target: x86_64-unknown-linux-gnu
+            artifact-name: linux-x64
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      # Node 22 is a floor, not a preference: react-router declares
+      # `engines: node >=22.22.0`, and this single step feeds every platform in the
+      # matrix, so dropping back would put all four builds outside a dependency's
+      # supported range at once.
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: "npm"
 
       - name: Install dependencies
@@ -351,6 +360,71 @@ jobs:
         shell: bash
         id: macos_artifacts
 
+      # Linux build steps
+      - name: Setup Rust (Linux)
+        if: matrix.platform == 'linux'
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install Tauri system dependencies (Linux)
+        if: matrix.platform == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            build-essential \
+            curl \
+            wget \
+            file \
+            libxdo-dev \
+            libssl-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev
+
+      - name: Build Linux
+        if: matrix.platform == 'linux'
+        run: npm run tauri build -- --target ${{ matrix.target }} --bundles deb,rpm,appimage
+
+      - name: Prepare Linux artifacts
+        if: matrix.platform == 'linux'
+        run: |
+          VERSION="${{ needs.prepare.outputs.version }}"
+          BUNDLE_PATH="src-tauri/target/${{ matrix.target }}/release/bundle"
+
+          mkdir -p linux-artifacts
+
+          # Tauri names these from productName and its own version formatting, which
+          # differs per format (farmhand_0.2026.3_amd64.deb vs farmhand-0.2026.3-1.x86_64.rpm).
+          # Take whatever it produced and rename to match the other platforms.
+          copy_first() {
+            local dir="$1" ext="$2" out="$3"
+            local found
+            found=$(find "$BUNDLE_PATH/$dir" -maxdepth 1 -name "*.$ext" -type f 2>/dev/null | head -n 1)
+            if [ -n "$found" ]; then
+              cp "$found" "linux-artifacts/$out"
+              echo "Created: $out"
+            else
+              echo "Warning: no .$ext found in $BUNDLE_PATH/$dir"
+            fi
+          }
+
+          copy_first appimage AppImage "farmhand-v${VERSION}-x64.AppImage"
+          copy_first deb deb "farmhand-v${VERSION}-x64.deb"
+          copy_first rpm rpm "farmhand-v${VERSION}-x64.rpm"
+
+          if [ -z "$(ls -A linux-artifacts)" ]; then
+            echo "Error: No Linux artifacts created"
+            echo "Bundle path contents:"
+            ls -R "$BUNDLE_PATH" || echo "Bundle path not found"
+            exit 1
+          fi
+
+          echo "Final artifacts:"
+          ls -lh linux-artifacts/
+        shell: bash
+        id: linux_artifacts
+
       # Upload artifacts (not releases yet)
       - name: Upload Android APK artifact
         if: matrix.platform == 'android'
@@ -376,6 +450,15 @@ jobs:
         with:
           name: ${{ matrix.artifact-name }}
           path: macos-artifacts/**
+          retention-days: 1
+          if-no-files-found: error
+
+      - name: Upload Linux artifacts
+        if: matrix.platform == 'linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact-name }}
+          path: linux-artifacts/**
           retention-days: 1
           if-no-files-found: error
 

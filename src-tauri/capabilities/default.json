@@ -25,6 +25,14 @@
       ],
       "deny": []
     },
+    "fs:allow-document-write",
+    {
+      "identifier": "fs:scope-document",
+      "allow": [
+        "$DOCUMENT/**/*"
+      ],
+      "deny": []
+    },
     "dialog:default"
   ]
 }

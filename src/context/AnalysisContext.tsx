@@ -3,6 +3,7 @@ import {
   ReactNode,
   useCallback,
   useContext,
+  useMemo,
   useState,
   useEffect,
 } from "react";
@@ -123,10 +124,13 @@ export default function AnalysisProvider({
     loadAnalyses();
   }, [loadAnalyses]);
 
+  const value = useMemo(
+    () => ({ analyses, loadAnalyses, saveAnalysis, deleteAnalysis }),
+    [analyses, loadAnalyses, saveAnalysis, deleteAnalysis]
+  );
+
   return (
-    <AnalysisContext.Provider
-      value={{ analyses, loadAnalyses, saveAnalysis, deleteAnalysis }}
-    >
+    <AnalysisContext.Provider value={value}>
       {children}
     </AnalysisContext.Provider>
   );

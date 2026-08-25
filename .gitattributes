@@ -1,2 +1,23 @@
 # Auto detect text files and perform LF normalization
-* text=auto
+* text eol=LF
+
+# Binary assets are exempt from the line-ending normalization above.
+#
+# `* text` (rather than `* text=auto`) marks every file as text, binaries included,
+# so committing one rewrites its bytes. Specific binary files identified below to
+# avoid corruption
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.icns binary
+*.ttf binary
+*.otf binary
+*.woff binary
+*.woff2 binary
+*.pdf binary
+*.keystore binary
+*.wasm binary
+*.mp4 binary

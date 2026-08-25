@@ -7,20 +7,20 @@ import {
   RadioGroup,
 } from "@mui/material";
 
-interface DropdownInputProps {
+interface RadioButtonInputProps {
   label?: string;
-  options: String[];
+  options: string[];
   value?: string;
   onChange?: (value: string) => void;
   error?: boolean;
   disabled?: boolean;
 }
 
-function RadioButtonInput(props: DropdownInputProps) {
+function RadioButtonInput(props: RadioButtonInputProps) {
   const { label, options, value, onChange, error, disabled } = props;
 
   return (
-    <FormControl disabled={disabled}>
+    <FormControl disabled={disabled} error={error}>
       <FormLabel>{label}</FormLabel>
       <RadioGroup
         value={value}

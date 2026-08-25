@@ -27,7 +27,7 @@ import { useSchema } from "../context/SchemaContext";
 import useDialog from "../hooks/useDialog";
 import DeleteDialog from "../ui/dialog/DeleteDialog";
 import { useState, useEffect } from "react";
-import { createSchemaHash } from "../utils/GeneralUtils";
+import { createSchemaHash } from "../utils/SchemaWire";
 
 export default function Analyses() {
   const theme = useTheme();

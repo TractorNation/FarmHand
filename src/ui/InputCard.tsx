@@ -1,6 +1,6 @@
 import { Card, CardContent, Typography, Box } from "@mui/material";
 import { alpha, useTheme } from "@mui/material/styles";
-import { ReactNode, memo } from "react";
+import { ReactNode, memo, useId } from "react";
 import { useValidation } from "../context/ValidationContext";
 
 /**
@@ -27,6 +27,27 @@ function InputCard(props: InputCardProps) {
   const isWindowsXPTheme = theme.farmhandThemeId === "WindowsXPTheme";
 
   const showError = required && !valid && (touched || submitted);
+
+  /**
+   * The visible label text, or null when this card shows none.
+   *
+   * A filler with no `required` flag is pure layout and gets no heading.
+   */
+  const labelText =
+    isFiller && required ? label : !isFiller ? `${label}${required ? " *" : ""}` : null;
+
+  /**
+   * Field inputs are wrapped in a labelled group rather than each control carrying an
+   * `aria-label`.
+   *
+   * Most field types are composite — the counter is two buttons around a number, the
+   * timer is play plus reset, the grid is a mesh of cells — so naming every control
+   * after the field would announce the same name several times and still not say what
+   * each control does. A group names the field once; the controls inside keep their
+   * own action names.
+   */
+  const labelId = useId();
+  const errorId = useId();
 
   return (
     <Card
@@ -80,11 +101,17 @@ function InputCard(props: InputCardProps) {
         }}
       >
         {showError && (
-          <Typography variant="subtitle1" sx={{ mb: 1 }} color="error">
+          <Typography
+            id={errorId}
+            variant="subtitle1"
+            sx={{ mb: 1 }}
+            color="error"
+          >
             This field is required
           </Typography>
         )}
         <Typography
+          id={labelId}
           variant="h6"
           sx={{
             mb: 2,
@@ -96,15 +123,12 @@ function InputCard(props: InputCardProps) {
             }),
           }}
         >
-          {isFiller && required
-            ? label
-            : !isFiller && required
-            ? `${label} *`
-            : !isFiller && !required
-            ? label
-            : null}
+          {labelText}
         </Typography>
         <Box
+          role="group"
+          aria-labelledby={labelText ? labelId : undefined}
+          aria-describedby={showError ? errorId : undefined}
           sx={{
             display: "flex",
             flexDirection: "column",

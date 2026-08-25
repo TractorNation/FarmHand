@@ -3,21 +3,29 @@ import {
   ReactNode,
   useCallback,
   useContext,
+  useMemo,
   useState,
   useRef,
   useEffect,
 } from "react";
 import StoreManager, { StoreKeys } from "../utils/StoreManager";
-import { getMatchSortKey, MATCH_PREFIX } from "../utils/GeneralUtils";
+import { MATCH_PREFIX, getMatchSortKey } from "../utils/valueFormat";
 
 interface ScoutDataContextType {
   getMatchDataMap: () => Map<number, any>;
   addMatchData: (key: number, val: any) => void;
   getMatchData: (key: number) => any;
   clearMatchData: (persistedEntries?: { key: number; value: any }[]) => Promise<void>;
-  errors: string[];
-  addError: (error: string) => void;
-  removeError: (error: string) => void;
+  /**
+   * Invalid fields, keyed by field id → field display name.
+   *
+   * Keyed by id rather than name because field names are not unique across a
+   * schema (2025Reefscape has "Coral L2 Scored" in both Autonomous and Teleop),
+   * and per-section validation needs to know exactly which field is at fault.
+   */
+  errors: Map<number, string>;
+  addError: (id: number, name: string) => void;
+  removeError: (id: number) => void;
   clearErrors: () => void;
   submitted: boolean;
   setSubmitted: (submitted: boolean) => void;
@@ -31,6 +39,10 @@ interface ScoutDataContextType {
   setWatchedAlliance: (val: string | null) => void;
   setWatchedPosition: (val: string | null) => void;
   getTeamForCurrentSlot: () => string | null;
+  /** Reactive mirrors of the three slot fields, for UI that must re-render on change. */
+  watchedMatchNumber: string | null;
+  watchedAlliance: string | null;
+  watchedPosition: string | null;
 }
 
 interface ScoutDataProviderProps {
@@ -44,7 +56,7 @@ export const ScoutDataContext = createContext<ScoutDataContextType | null>(
 export default function ScoutDataProvider(props: ScoutDataProviderProps) {
   const matchData = useRef<Map<number, any>>(new Map());
 
-  const [errors, setErrors] = useState<string[]>([]);
+  const [errors, setErrors] = useState<Map<number, string>>(new Map());
   const [submitted, setSubmitted] = useState(false);
   const [tbaMatchData, setTbaMatchData] = useState<ProcessedMatchData | null>(
     null
@@ -78,7 +90,7 @@ export default function ScoutDataProvider(props: ScoutDataProviderProps) {
       } else {
         setTbaMatchData(null);
       }
-    } catch (error) {
+    } catch {
       setTbaMatchData(null);
     }
   }, []);
@@ -276,41 +288,78 @@ export default function ScoutDataProvider(props: ScoutDataProviderProps) {
     return teams[allianceOffset + posIndex] ?? null;
   }, [tbaMatchData, watchedMatchNumber, watchedAlliance, watchedPosition]);
 
-  const addError = useCallback((error: string) => {
-    setErrors((prev) => [...prev, error]);
+  // Both setters return the previous map unchanged when nothing would change.
+  // DynamicComponent calls addError from an effect on mount, so bailing out on a
+  // no-op is what keeps that from looping.
+  const addError = useCallback((id: number, name: string) => {
+    setErrors((prev) => {
+      if (prev.get(id) === name) return prev;
+      const next = new Map(prev);
+      next.set(id, name);
+      return next;
+    });
   }, []);
 
-  const removeError = useCallback((error: string) => {
-    setErrors((prevErrors) => prevErrors.filter((e) => e !== error));
+  const removeError = useCallback((id: number) => {
+    setErrors((prev) => {
+      if (!prev.has(id)) return prev;
+      const next = new Map(prev);
+      next.delete(id);
+      return next;
+    });
   }, []);
 
   const clearErrors = useCallback(() => {
-    setErrors([]);
+    setErrors((prev) => (prev.size === 0 ? prev : new Map()));
   }, []);
 
+  const value = useMemo(
+    () => ({
+      getMatchDataMap,
+      addMatchData,
+      getMatchData,
+      clearMatchData,
+      errors,
+      addError,
+      removeError,
+      clearErrors,
+      submitted,
+      setSubmitted,
+      tbaMatchData,
+      loadTbaMatchData,
+      getAllMatchNumbers,
+      getAllTeamNumbers,
+      setWatchedMatchNumber,
+      setWatchedAlliance,
+      setWatchedPosition,
+      getTeamForCurrentSlot,
+      watchedMatchNumber,
+      watchedAlliance,
+      watchedPosition,
+    }),
+    [
+      getMatchDataMap,
+      addMatchData,
+      getMatchData,
+      clearMatchData,
+      errors,
+      addError,
+      removeError,
+      clearErrors,
+      submitted,
+      tbaMatchData,
+      loadTbaMatchData,
+      getAllMatchNumbers,
+      getAllTeamNumbers,
+      getTeamForCurrentSlot,
+      watchedMatchNumber,
+      watchedAlliance,
+      watchedPosition,
+    ]
+  );
+
   return (
-    <ScoutDataContext.Provider
-      value={{
-        getMatchDataMap,
-        addMatchData,
-        getMatchData,
-        clearMatchData,
-        errors,
-        addError,
-        removeError,
-        clearErrors,
-        submitted,
-        setSubmitted,
-        tbaMatchData,
-        loadTbaMatchData,
-        getAllMatchNumbers,
-        getAllTeamNumbers,
-        setWatchedMatchNumber,
-        setWatchedAlliance,
-        setWatchedPosition,
-        getTeamForCurrentSlot,
-      }}
-    >
+    <ScoutDataContext.Provider value={value}>
       {children}
     </ScoutDataContext.Provider>
   );

@@ -5,20 +5,29 @@ import {
   unarchiveQrCode,
   deleteQrCode,
 } from "../utils/QrUtils";
+import { newFolderId } from "../utils/FolderUtils";
 
 interface UseFolderManagerProps {
   showArchived: boolean; // true for Archive page, false for QR page
 }
 
 export interface UseFolderManagerReturn {
+  /** Folders belonging to this page only (archived or not, per `showArchived`). */
   folders: QrFolder[];
+  /**
+   * Every folder, both pages.
+   *
+   * Needed by anything that must not miss a folder on the *other* page — clearing a
+   * code's previous folders on a move, above all. A code can legitimately sit in an
+   * archived folder while itself being unarchived (unarchive one code inside an
+   * archived folder), and scanning only `folders` there leaves it in two folders.
+   */
+  allFolders: QrFolder[];
   currentFolder: string | null;
   currentFolderData: QrFolder | null;
   setCurrentFolder: React.Dispatch<React.SetStateAction<string | null>>;
   createFolder: (name: string) => Promise<void>;
-  addQrToFolder: (qrName: string, folderId: string) => Promise<void>;
   addQrCodesToFolder: (qrNames: string[], folderId: string) => Promise<void>;
-  removeQrFromFolder: (qrName: string, folderId: string) => Promise<void>;
   removeQrCodesFromFolder: (qrNames: string[], folderId: string) => Promise<void>;
   archiveFolder: (folderId: string) => Promise<void>;
   unarchiveFolder: (folderId: string) => Promise<void>;
@@ -28,7 +37,6 @@ export interface UseFolderManagerReturn {
   isFolderSelected: (folder: QrFolder) => boolean;
   toggleFolderSelection: (folder: QrFolder) => void;
   resetFolderSelection: () => void;
-  refresh: () => Promise<void>;
 }
 
 export function useFolderManager({
@@ -67,22 +75,12 @@ export function useFolderManager({
   // Create folder
   const createFolder = async (name: string) => {
     const folder: QrFolder = {
-      id: `folder-${Date.now()}`,
+      id: newFolderId(),
       name,
       createdAt: Date.now(),
       qrCodes: [],
       archived: showArchived, // Create in current context
     };
-    await StoreManager.saveFolder(folder);
-    await loadFolders();
-  };
-
-  // Add QR to folder
-  const addQrToFolder = async (qrName: string, folderId: string) => {
-    const folder = folders.find((f) => f.id === folderId);
-    if (!folder || folder.qrCodes.includes(qrName)) return;
-
-    folder.qrCodes.push(qrName);
     await StoreManager.saveFolder(folder);
     await loadFolders();
   };
@@ -96,16 +94,6 @@ export function useFolderManager({
     if (toAdd.length === 0) return;
 
     folder.qrCodes = [...folder.qrCodes, ...toAdd];
-    await StoreManager.saveFolder(folder);
-    await loadFolders();
-  };
-
-  // Remove QR from folder
-  const removeQrFromFolder = async (qrName: string, folderId: string) => {
-    const folder = folders.find((f) => f.id === folderId);
-    if (!folder) return;
-
-    folder.qrCodes = folder.qrCodes.filter((name) => name !== qrName);
     await StoreManager.saveFolder(folder);
     await loadFolders();
   };
@@ -133,12 +121,7 @@ export function useFolderManager({
     await StoreManager.saveFolder(folder);
 
     // Archive all QR codes in the folder
-    await Promise.all(
-      folder.qrCodes.map((qrName) => {
-        const qr = { name: qrName } as QrCode;
-        return archiveQrCode(qr);
-      })
-    );
+    await Promise.all(folder.qrCodes.map((qrName) => archiveQrCode(qrName)));
 
     await loadFolders();
   };
@@ -153,12 +136,7 @@ export function useFolderManager({
     await StoreManager.saveFolder(folder);
 
     // Unarchive all QR codes in the folder
-    await Promise.all(
-      folder.qrCodes.map((qrName) => {
-        const qr = { name: qrName } as QrCode;
-        return unarchiveQrCode(qr);
-      })
-    );
+    await Promise.all(folder.qrCodes.map((qrName) => unarchiveQrCode(qrName)));
 
     await loadFolders();
   };
@@ -168,10 +146,10 @@ export function useFolderManager({
   const deleteFolder = async (folderId: string, deleteCodes: boolean) => {
     const folder = folders.find((f) => f.id === folderId);
     if (folder && deleteCodes && folder.qrCodes.length > 0) {
-      await Promise.all(
-        folder.qrCodes.map((qrName) =>
-          deleteQrCode({ name: qrName } as QrCode)
-        )
+      // allSettled, not all: one failed code deletion must not abort the loop and
+      // leave the folder itself undeleted. The folder is being removed either way.
+      await Promise.allSettled(
+        folder.qrCodes.map((qrName) => deleteQrCode(qrName))
       );
     }
     await StoreManager.deleteFolder(folderId);
@@ -218,13 +196,12 @@ export function useFolderManager({
 
   return {
     folders: filteredFolders,
+    allFolders: folders,
     currentFolder,
     currentFolderData,
     setCurrentFolder,
     createFolder,
-    addQrToFolder,
     addQrCodesToFolder,
-    removeQrFromFolder,
     removeQrCodesFromFolder,
     archiveFolder,
     unarchiveFolder,
@@ -234,6 +211,5 @@ export function useFolderManager({
     isFolderSelected,
     toggleFolderSelection,
     resetFolderSelection,
-    refresh: loadFolders,
   };
 }

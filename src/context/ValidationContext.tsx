@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useContext, useState } from "react";
+import { createContext, ReactNode, useContext, useMemo, useState } from "react";
 
 interface ValidationContextType {
   valid: boolean;
@@ -19,10 +19,13 @@ export default function ValidationProvider({
   const [valid, setValid] = useState(true);
   const [touched, setTouched] = useState(false);
 
+  const value = useMemo(
+    () => ({ valid, touched, setValid, setTouched }),
+    [valid, touched]
+  );
+
   return (
-    <ValidationContext.Provider
-      value={{ valid, touched, setValid, setTouched }}
-    >
+    <ValidationContext.Provider value={value}>
       {children}
     </ValidationContext.Provider>
   );

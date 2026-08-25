@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { readChangelog } from "../utils/GeneralUtils";
+import { readChangelog } from "../utils/appUpdate";
 import {
   Typography,
   Card,

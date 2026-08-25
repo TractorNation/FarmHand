@@ -7,178 +7,180 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1FFCC19347C96D5E23011196 /* assets in Resources */ = {isa = PBXBuildFile; fileRef = 8FAFDF900258E14D7AEE2ED8 /* assets */; };
-		3024D79B540984F1273DC90F /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 14CF6C75DE8BC1E3418EDAF5 /* CoreGraphics.framework */; };
-		313FB3C2C0A9E0C41C3A4F54 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4376FEDEF21D3462D84D89AD /* QuartzCore.framework */; };
-		4ADDF9E6A7ED0079D3C6947F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 23C85FB9AE5F28CAED182099 /* Assets.xcassets */; };
-		6EE56DD94631D0459230C0F4 /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = 12117A6AF797313D39AB9802 /* main.mm */; };
-		85F27E97C57DA9F7AE8529F5 /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8EF57FB8ED132F756DB09128 /* Security.framework */; };
-		87B63BBA54A7F0A3CB843C64 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = EDC069172B8BD7035A53504F /* UIKit.framework */; };
-		8F754938EBF9208799968E4E /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 766692111BA44FF302EF6A26 /* Metal.framework */; };
-		A5BE30B7A66EF89E9811AC7B /* libapp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 473A7DBAFEDB2EACF84C0CB7 /* libapp.a */; };
-		BC77FD77618834AD58A0FE0A /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4631B9BEFDF73760861B915B /* WebKit.framework */; };
-		D389050E01368D62A3C77B2C /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 454FF4FF65E221FDCF03A3DD /* MetalKit.framework */; };
-		E14CCC0EBBAE078C58765816 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA50900835B2D1783637D869 /* LaunchScreen.storyboard */; };
+		0297176FFFE554D7E80EEA5E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 90C5A2C50065D3E77390E58B /* Assets.xcassets */; };
+		1C5E380C805DD747A66615F3 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6F647035E4601F321A73A3E0 /* Metal.framework */; };
+		25C8BE353788F2B0AC93AFC7 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 698E4CA3760F365862733178 /* QuartzCore.framework */; };
+		2BAB346EFB109054A9F4CEB4 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0A9328CA66EF35734F7736E1 /* CoreGraphics.framework */; };
+		2C3657FC721880E1CDCDDE37 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C2816D8A8EA4645B4024D010 /* WebKit.framework */; };
+		4A65A9392976A9530A2FA5F6 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 163086DC0E16132455D70A71 /* MetalKit.framework */; };
+		4E5122AE81625BB3C2523927 /* libapp.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6E998FCB00303D461BF1ED75 /* libapp.a */; };
+		C3BA7683810026819BF5F0CB /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 373B16D949F1AB1A6CF1E778 /* Security.framework */; };
+		C9BF1893EAF7358D619FE20C /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F65881E7448FFF767EBDE832 /* UIKit.framework */; };
+		DBD50B5CE2DEFFD61581C647 /* main.mm in Sources */ = {isa = PBXBuildFile; fileRef = A4CEF3BA4B79D4CEA3B9D631 /* main.mm */; };
+		F75B7147C9842CC28432541E /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 28AA67386BD44E3941B3BDEE /* LaunchScreen.storyboard */; };
+		FD5BC17F6C4BA0134684F52B /* assets in Resources */ = {isa = PBXBuildFile; fileRef = EEE1882EFDE822F13C20EC1B /* assets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		0742AFE6141FD012507CE30B /* Farmhand_iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Farmhand_iOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		110523F1157CA0C6169E3098 /* lib.rs */ = {isa = PBXFileReference; path = lib.rs; sourceTree = "<group>"; };
-		12117A6AF797313D39AB9802 /* main.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
-		14CF6C75DE8BC1E3418EDAF5 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
-		23C85FB9AE5F28CAED182099 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		24309DA90730B982CDB84AEA /* qr.rs */ = {isa = PBXFileReference; path = qr.rs; sourceTree = "<group>"; };
-		354FC1440B313EEC00DCEE8C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		41498AAF6D296BA9E0CE4F4E /* main.rs */ = {isa = PBXFileReference; path = main.rs; sourceTree = "<group>"; };
-		4376FEDEF21D3462D84D89AD /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
-		43BF98D5392464AC2DE040B1 /* Farmhand_iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Farmhand_iOS.entitlements; sourceTree = "<group>"; };
-		454FF4FF65E221FDCF03A3DD /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
-		4631B9BEFDF73760861B915B /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
-		473A7DBAFEDB2EACF84C0CB7 /* libapp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libapp.a; sourceTree = "<group>"; };
-		69AAE88C48D97A1331F22283 /* mod.rs */ = {isa = PBXFileReference; path = mod.rs; sourceTree = "<group>"; };
-		751397B8024189BC18D38994 /* util.rs */ = {isa = PBXFileReference; path = util.rs; sourceTree = "<group>"; };
-		766692111BA44FF302EF6A26 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
-		7D897E20647D409898098251 /* schema.rs */ = {isa = PBXFileReference; path = schema.rs; sourceTree = "<group>"; };
-		8EF57FB8ED132F756DB09128 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
-		8FAFDF900258E14D7AEE2ED8 /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = assets; sourceTree = SOURCE_ROOT; };
-		AA50900835B2D1783637D869 /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
-		AE5976D585D618B6DBC13D60 /* commands.rs */ = {isa = PBXFileReference; path = commands.rs; sourceTree = "<group>"; };
-		C397822175A4051FF4621841 /* bindings.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bindings.h; sourceTree = "<group>"; };
-		EDC069172B8BD7035A53504F /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
+		0A9328CA66EF35734F7736E1 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		0CDF396105E28AE5481FD198 /* bindings.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bindings.h; sourceTree = "<group>"; };
+		163086DC0E16132455D70A71 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
+		1B7F5706BCF142862505E18A /* main.rs */ = {isa = PBXFileReference; path = main.rs; sourceTree = "<group>"; };
+		28AA67386BD44E3941B3BDEE /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = LaunchScreen.storyboard; sourceTree = "<group>"; };
+		32F83E3FD1CEF1DF7A3046C6 /* commands.rs */ = {isa = PBXFileReference; path = commands.rs; sourceTree = "<group>"; };
+		373B16D949F1AB1A6CF1E778 /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		4C1D38943FDE80150C965FB6 /* schema.rs */ = {isa = PBXFileReference; path = schema.rs; sourceTree = "<group>"; };
+		698E4CA3760F365862733178 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		6E998FCB00303D461BF1ED75 /* libapp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = libapp.a; sourceTree = "<group>"; };
+		6F647035E4601F321A73A3E0 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
+		78C37DEC9F398E356B133605 /* Farmhand_iOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Farmhand_iOS.entitlements; sourceTree = "<group>"; };
+		7F949B0035D982A3DDF2E15C /* lib.rs */ = {isa = PBXFileReference; path = lib.rs; sourceTree = "<group>"; };
+		854842CF9CCF35332F187B32 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		8F47E3148069A3D4BD81029F /* qr.rs */ = {isa = PBXFileReference; path = qr.rs; sourceTree = "<group>"; };
+		90C5A2C50065D3E77390E58B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		930A5B06CC310177197FDBFF /* util.rs */ = {isa = PBXFileReference; path = util.rs; sourceTree = "<group>"; };
+		9B209375FBD96B8CDADA9050 /* api.rs */ = {isa = PBXFileReference; path = api.rs; sourceTree = "<group>"; };
+		A4CEF3BA4B79D4CEA3B9D631 /* main.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = main.mm; sourceTree = "<group>"; };
+		C2816D8A8EA4645B4024D010 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		CB95A31828967B55FA87D9A5 /* mod.rs */ = {isa = PBXFileReference; path = mod.rs; sourceTree = "<group>"; };
+		EEE1882EFDE822F13C20EC1B /* assets */ = {isa = PBXFileReference; lastKnownFileType = folder; path = assets; sourceTree = SOURCE_ROOT; };
+		F564AFCD617749E5218F6D8D /* Farmhand_iOS.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Farmhand_iOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		F65881E7448FFF767EBDE832 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		2D9420C59CAD64C06177B2CA /* Frameworks */ = {
+		E61FA500C2E58CD6034D0787 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A5BE30B7A66EF89E9811AC7B /* libapp.a in Frameworks */,
-				3024D79B540984F1273DC90F /* CoreGraphics.framework in Frameworks */,
-				8F754938EBF9208799968E4E /* Metal.framework in Frameworks */,
-				D389050E01368D62A3C77B2C /* MetalKit.framework in Frameworks */,
-				313FB3C2C0A9E0C41C3A4F54 /* QuartzCore.framework in Frameworks */,
-				85F27E97C57DA9F7AE8529F5 /* Security.framework in Frameworks */,
-				87B63BBA54A7F0A3CB843C64 /* UIKit.framework in Frameworks */,
-				BC77FD77618834AD58A0FE0A /* WebKit.framework in Frameworks */,
+				4E5122AE81625BB3C2523927 /* libapp.a in Frameworks */,
+				2BAB346EFB109054A9F4CEB4 /* CoreGraphics.framework in Frameworks */,
+				1C5E380C805DD747A66615F3 /* Metal.framework in Frameworks */,
+				4A65A9392976A9530A2FA5F6 /* MetalKit.framework in Frameworks */,
+				25C8BE353788F2B0AC93AFC7 /* QuartzCore.framework in Frameworks */,
+				C3BA7683810026819BF5F0CB /* Security.framework in Frameworks */,
+				C9BF1893EAF7358D619FE20C /* UIKit.framework in Frameworks */,
+				2C3657FC721880E1CDCDDE37 /* WebKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		296FE6008F8F30F51F1B98AE /* Products */ = {
+		05E9D0F2E6DEA61FD4413E3A = {
 			isa = PBXGroup;
 			children = (
-				0742AFE6141FD012507CE30B /* Farmhand_iOS.app */,
+				EEE1882EFDE822F13C20EC1B /* assets */,
+				90C5A2C50065D3E77390E58B /* Assets.xcassets */,
+				28AA67386BD44E3941B3BDEE /* LaunchScreen.storyboard */,
+				6ED92DA8E2F50C14C67A838D /* Externals */,
+				19071C0908934264237A1EE7 /* Farmhand_iOS */,
+				3DAFD000CC6F10B942F7BDBD /* Sources */,
+				7EF38FC3D8D2273F91E98791 /* src */,
+				0B9D5DCE8AC125B67E6E43B7 /* Frameworks */,
+				EFE9A0489196347FBC092481 /* Products */,
 			);
-			name = Products;
 			sourceTree = "<group>";
 		};
-		30791EDEA378EE2CF4D316D1 /* Frameworks */ = {
+		0B9D5DCE8AC125B67E6E43B7 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				14CF6C75DE8BC1E3418EDAF5 /* CoreGraphics.framework */,
-				473A7DBAFEDB2EACF84C0CB7 /* libapp.a */,
-				766692111BA44FF302EF6A26 /* Metal.framework */,
-				454FF4FF65E221FDCF03A3DD /* MetalKit.framework */,
-				4376FEDEF21D3462D84D89AD /* QuartzCore.framework */,
-				8EF57FB8ED132F756DB09128 /* Security.framework */,
-				EDC069172B8BD7035A53504F /* UIKit.framework */,
-				4631B9BEFDF73760861B915B /* WebKit.framework */,
+				0A9328CA66EF35734F7736E1 /* CoreGraphics.framework */,
+				6E998FCB00303D461BF1ED75 /* libapp.a */,
+				6F647035E4601F321A73A3E0 /* Metal.framework */,
+				163086DC0E16132455D70A71 /* MetalKit.framework */,
+				698E4CA3760F365862733178 /* QuartzCore.framework */,
+				373B16D949F1AB1A6CF1E778 /* Security.framework */,
+				F65881E7448FFF767EBDE832 /* UIKit.framework */,
+				C2816D8A8EA4645B4024D010 /* WebKit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		46E8D84B1F38F3EC3C330E20 /* bindings */ = {
+		19071C0908934264237A1EE7 /* Farmhand_iOS */ = {
 			isa = PBXGroup;
 			children = (
-				C397822175A4051FF4621841 /* bindings.h */,
+				78C37DEC9F398E356B133605 /* Farmhand_iOS.entitlements */,
+				854842CF9CCF35332F187B32 /* Info.plist */,
 			);
-			path = bindings;
+			path = Farmhand_iOS;
 			sourceTree = "<group>";
 		};
-		4B6D355612F645BB6CC7BA39 /* Sources */ = {
+		3DAFD000CC6F10B942F7BDBD /* Sources */ = {
 			isa = PBXGroup;
 			children = (
-				82E4E226E3C61B10BE42542C /* farmhand */,
+				F512C0C5C179172F3ABBB142 /* Farmhand */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
 		};
-		50C6E65226438D541DA2269F /* core */ = {
+		44635018656B091C250501A9 /* core */ = {
 			isa = PBXGroup;
 			children = (
-				69AAE88C48D97A1331F22283 /* mod.rs */,
-				24309DA90730B982CDB84AEA /* qr.rs */,
-				7D897E20647D409898098251 /* schema.rs */,
-				751397B8024189BC18D38994 /* util.rs */,
+				9B209375FBD96B8CDADA9050 /* api.rs */,
+				CB95A31828967B55FA87D9A5 /* mod.rs */,
+				8F47E3148069A3D4BD81029F /* qr.rs */,
+				4C1D38943FDE80150C965FB6 /* schema.rs */,
+				930A5B06CC310177197FDBFF /* util.rs */,
 			);
 			path = core;
 			sourceTree = "<group>";
 		};
-		74D91A15D7C8B234570A9859 /* Externals */ = {
+		6ED92DA8E2F50C14C67A838D /* Externals */ = {
 			isa = PBXGroup;
 			children = (
 			);
 			path = Externals;
 			sourceTree = "<group>";
 		};
-		7C907864501A21A0A851177C /* Farmhand_iOS */ = {
+		7EF38FC3D8D2273F91E98791 /* src */ = {
 			isa = PBXGroup;
 			children = (
-				43BF98D5392464AC2DE040B1 /* Farmhand_iOS.entitlements */,
-				354FC1440B313EEC00DCEE8C /* Info.plist */,
-			);
-			path = Farmhand_iOS;
-			sourceTree = "<group>";
-		};
-		82E4E226E3C61B10BE42542C /* farmhand */ = {
-			isa = PBXGroup;
-			children = (
-				12117A6AF797313D39AB9802 /* main.mm */,
-				46E8D84B1F38F3EC3C330E20 /* bindings */,
-			);
-			path = farmhand;
-			sourceTree = "<group>";
-		};
-		B740687B492CBD79CE9C1DA1 /* src */ = {
-			isa = PBXGroup;
-			children = (
-				AE5976D585D618B6DBC13D60 /* commands.rs */,
-				110523F1157CA0C6169E3098 /* lib.rs */,
-				41498AAF6D296BA9E0CE4F4E /* main.rs */,
-				50C6E65226438D541DA2269F /* core */,
+				32F83E3FD1CEF1DF7A3046C6 /* commands.rs */,
+				7F949B0035D982A3DDF2E15C /* lib.rs */,
+				1B7F5706BCF142862505E18A /* main.rs */,
+				44635018656B091C250501A9 /* core */,
 			);
 			name = src;
 			path = ../../src;
 			sourceTree = "<group>";
 		};
-		FE0882BD97F48598498B4559 = {
+		EFE9A0489196347FBC092481 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				8FAFDF900258E14D7AEE2ED8 /* assets */,
-				23C85FB9AE5F28CAED182099 /* Assets.xcassets */,
-				AA50900835B2D1783637D869 /* LaunchScreen.storyboard */,
-				74D91A15D7C8B234570A9859 /* Externals */,
-				7C907864501A21A0A851177C /* Farmhand_iOS */,
-				4B6D355612F645BB6CC7BA39 /* Sources */,
-				B740687B492CBD79CE9C1DA1 /* src */,
-				30791EDEA378EE2CF4D316D1 /* Frameworks */,
-				296FE6008F8F30F51F1B98AE /* Products */,
+				F564AFCD617749E5218F6D8D /* Farmhand_iOS.app */,
 			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		F512C0C5C179172F3ABBB142 /* Farmhand */ = {
+			isa = PBXGroup;
+			children = (
+				A4CEF3BA4B79D4CEA3B9D631 /* main.mm */,
+				FEF870E030B71BF34A5889C1 /* bindings */,
+			);
+			path = Farmhand;
+			sourceTree = "<group>";
+		};
+		FEF870E030B71BF34A5889C1 /* bindings */ = {
+			isa = PBXGroup;
+			children = (
+				0CDF396105E28AE5481FD198 /* bindings.h */,
+			);
+			path = bindings;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		95B39963C63F153592097247 /* Farmhand_iOS */ = {
+		240EAC34D5B4908A7AA7FF9A /* Farmhand_iOS */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 688EE7B734CED1E430AE7356 /* Build configuration list for PBXNativeTarget "Farmhand_iOS" */;
+			buildConfigurationList = B471F60E871AB4C01838FA8F /* Build configuration list for PBXNativeTarget "Farmhand_iOS" */;
 			buildPhases = (
-				CEC6918FAB73046B9F157C7D /* Build Rust Code */,
-				EAD154B0BC7C6DC8B71F1056 /* Sources */,
-				92823C9041D32C66E18F47F3 /* Resources */,
-				2D9420C59CAD64C06177B2CA /* Frameworks */,
+				54BA031F75280BF4FD033590 /* Build Rust Code */,
+				B36D6B0644CC89F533032999 /* Sources */,
+				A13B84364BB08A943425D0B8 /* Resources */,
+				E61FA500C2E58CD6034D0787 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -188,52 +190,57 @@
 			packageProductDependencies = (
 			);
 			productName = Farmhand_iOS;
-			productReference = 0742AFE6141FD012507CE30B /* Farmhand_iOS.app */;
+			productReference = F564AFCD617749E5218F6D8D /* Farmhand_iOS.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
-		D6E04D48661B352C73C2FBEE /* Project object */ = {
+		4871E029E1F2C30D60CC41A9 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					240EAC34D5B4908A7AA7FF9A = {
+						DevelopmentTeam = SL7LGQ7AD3;
+					};
+				};
 			};
-			buildConfigurationList = B0118888C1C3225E6E4D6CEF /* Build configuration list for PBXProject "farmhand" */;
-			compatibilityVersion = "Xcode 14.0";
+			buildConfigurationList = 61B3500DAAAABF2BD512BB84 /* Build configuration list for PBXProject "Farmhand" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				Base,
 				en,
 			);
-			mainGroup = FE0882BD97F48598498B4559;
+			mainGroup = 05E9D0F2E6DEA61FD4413E3A;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
+			productRefGroup = EFE9A0489196347FBC092481 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				95B39963C63F153592097247 /* Farmhand_iOS */,
+				240EAC34D5B4908A7AA7FF9A /* Farmhand_iOS */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		92823C9041D32C66E18F47F3 /* Resources */ = {
+		A13B84364BB08A943425D0B8 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4ADDF9E6A7ED0079D3C6947F /* Assets.xcassets in Resources */,
-				E14CCC0EBBAE078C58765816 /* LaunchScreen.storyboard in Resources */,
-				1FFCC19347C96D5E23011196 /* assets in Resources */,
+				0297176FFFE554D7E80EEA5E /* Assets.xcassets in Resources */,
+				F75B7147C9842CC28432541E /* LaunchScreen.storyboard in Resources */,
+				FD5BC17F6C4BA0134684F52B /* assets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
-		CEC6918FAB73046B9F157C7D /* Build Rust Code */ = {
+		54BA031F75280BF4FD033590 /* Build Rust Code */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -257,50 +264,18 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		EAD154B0BC7C6DC8B71F1056 /* Sources */ = {
+		B36D6B0644CC89F533032999 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				6EE56DD94631D0459230C0F4 /* main.mm in Sources */,
+				DBD50B5CE2DEFFD61581C647 /* main.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		5E508F7701A090499F8F6114 /* release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
-				ARCHS = (
-					arm64,
-				);
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = Farmhand_iOS/Farmhand_iOS.entitlements;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				ENABLE_BITCODE = NO;
-				"EXCLUDED_ARCHS[sdk=iphoneos*]" = x86_64;
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"\".\"",
-				);
-				INFOPLIST_FILE = Farmhand_iOS/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-				);
-				"LIBRARY_SEARCH_PATHS[arch=arm64]" = "$(inherited) $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
-				"LIBRARY_SEARCH_PATHS[arch=x86_64]" = "$(inherited) $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
-				PRODUCT_BUNDLE_IDENTIFIER = com.tractortechs.farmhand;
-				PRODUCT_NAME = "farmhand";
-				SDKROOT = iphoneos;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				VALID_ARCHS = arm64;
-				DEVELOPMENT_TEAM = "SL7LGQ7AD3";
-			};
-			name = release;
-		};
-		7F297F7E5583E8E98682E6B7 /* debug */ = {
+		1BBB5E58E9E71F0DFADA847A /* debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -363,7 +338,39 @@
 			};
 			name = debug;
 		};
-		A3D985FEBEC121BB1D9BAD50 /* release */ = {
+		2EB0942A73EB757FBB2974D3 /* debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				ARCHS = (
+					arm64,
+				);
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Farmhand_iOS/Farmhand_iOS.entitlements;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = "SL7LGQ7AD3";
+				ENABLE_BITCODE = NO;
+				"EXCLUDED_ARCHS[sdk=iphoneos*]" = x86_64;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\".\"",
+				);
+				INFOPLIST_FILE = Farmhand_iOS/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				"LIBRARY_SEARCH_PATHS[arch=arm64]" = "$(inherited) $(PROJECT_DIR)/Externals/arm64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				"LIBRARY_SEARCH_PATHS[arch=x86_64]" = "$(inherited) $(PROJECT_DIR)/Externals/x86_64/$(CONFIGURATION) $(SDKROOT)/usr/lib/swift $(TOOLCHAIN_DIR)/usr/lib/swift/$(PLATFORM_NAME) $(TOOLCHAIN_DIR)/usr/lib/swift-5.0/$(PLATFORM_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = com.tractortechs.farmhand;
+				PRODUCT_NAME = "farmhand";
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALID_ARCHS = arm64;
+			};
+			name = debug;
+		};
+		8F319F293EB58A2D9F606074 /* release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
@@ -419,7 +426,7 @@
 			};
 			name = release;
 		};
-		A4BFC04CCD5E22F08652482D /* debug */ = {
+		8F82A3CB3FA7F38DF962D6AF /* release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
@@ -429,6 +436,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Farmhand_iOS/Farmhand_iOS.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
+				DEVELOPMENT_TEAM = "SL7LGQ7AD3";
 				ENABLE_BITCODE = NO;
 				"EXCLUDED_ARCHS[sdk=iphoneos*]" = x86_64;
 				FRAMEWORK_SEARCH_PATHS = (
@@ -447,32 +455,31 @@
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALID_ARCHS = arm64;
-				DEVELOPMENT_TEAM = "SL7LGQ7AD3";
 			};
-			name = debug;
+			name = release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		688EE7B734CED1E430AE7356 /* Build configuration list for PBXNativeTarget "Farmhand_iOS" */ = {
+		61B3500DAAAABF2BD512BB84 /* Build configuration list for PBXProject "Farmhand" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				A4BFC04CCD5E22F08652482D /* debug */,
-				5E508F7701A090499F8F6114 /* release */,
+				1BBB5E58E9E71F0DFADA847A /* debug */,
+				8F319F293EB58A2D9F606074 /* release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = debug;
 		};
-		B0118888C1C3225E6E4D6CEF /* Build configuration list for PBXProject "farmhand" */ = {
+		B471F60E871AB4C01838FA8F /* Build configuration list for PBXNativeTarget "Farmhand_iOS" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				7F297F7E5583E8E98682E6B7 /* debug */,
-				A3D985FEBEC121BB1D9BAD50 /* release */,
+				2EB0942A73EB757FBB2974D3 /* debug */,
+				8F82A3CB3FA7F38DF962D6AF /* release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = debug;
 		};
 /* End XCConfigurationList section */
 	};
-	rootObject = D6E04D48661B352C73C2FBEE /* Project object */;
+	rootObject = 4871E029E1F2C30D60CC41A9 /* Project object */;
 }

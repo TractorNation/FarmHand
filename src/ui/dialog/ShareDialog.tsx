@@ -13,6 +13,8 @@ import {
   DialogActions,
   Alert,
   IconButton,
+  Tab,
+  Tabs,
 } from "@mui/material";
 import { useState, useEffect, useMemo } from "react";
 import DownloadIcon from "@mui/icons-material/DownloadRounded";
@@ -24,18 +26,26 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircleRounded";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUncheckedRounded";
 import ArrowBackIcon from "@mui/icons-material/ArrowBackRounded";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForwardRounded";
-import { saveFileWithDialog, getMatchSortKey } from "../../utils/GeneralUtils";
+import { saveFileWithDialog } from "../../utils/exportMatches";
+import { matchDataJsonToMap } from "../../utils/schemaFields";
+import { getMatchSortKey } from "../../utils/valueFormat";
 import {
   QrCodeBuilder,
-  decodeQR,
+  decodeQrWithSchemas,
+  reconstructMatchDataFromArray,
   deleteQrCode,
   archiveQrCode,
   unarchiveQrCode,
   markQrCodeAsScanned,
   markQrCodeAsUnscanned,
-  validateQR,
+  parseQrHeader,
+  getSchemaHashFromQrString,
   getDataFromQrName,
 } from "../../utils/QrUtils";
+import { getSchemaFromHash } from "../../utils/SchemaUtils";
+import { useSchema } from "../../context/SchemaContext";
+import MatchPreviewPanel from "../scout/MatchPreviewPanel";
+import { formatValue } from "../scout/MatchDataReview";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import useDialog from "../../hooks/useDialog";
 
@@ -81,8 +91,10 @@ export default function ShareDialog(props: ShareDialogProps) {
   } = props;
   const theme = useTheme();
   const isLandscape = useMediaQuery("(orientation: landscape)");
+  const { availableSchemas } = useSchema();
   const [downloadSnackbarOpen, setDownloadSnackbarOpen] = useState(false);
   const [copySnackbarOpen, setCopySnackbarOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"qr" | "data">("qr");
 
   // State for schema QR generation
   const [generatedQrCode, setGeneratedQrCode] = useState<QrCode | null>(null);
@@ -104,6 +116,8 @@ export default function ShareDialog(props: ShareDialogProps) {
   useEffect(() => {
     if (!open) {
       setPendingScannedChanges(new Map());
+      // Always reopen on the QR tab — that is what the dialog is primarily for.
+      setActiveTab("qr");
     }
   }, [open]);
 
@@ -151,28 +165,20 @@ export default function ShareDialog(props: ShareDialogProps) {
     if (mode !== "match" || !currentQrCode || !allQrCodes.length) return [];
 
     try {
-      if (!validateQR(currentQrCode.data)) return [];
-      const [prefix, , currentSchemaHash, currentDeviceIdStr] =
-        currentQrCode.data.split(":");
-      const currentDeviceId = parseInt(currentDeviceIdStr);
-
-      if (prefix !== "frmhnd" || !currentSchemaHash) return [];
+      // Parsed via parseQrHeader rather than split(":") — a Base45 payload can
+      // itself contain colons, and the prefix and hash are uppercase.
+      const current = parseQrHeader(currentQrCode.data);
+      if (!current) return [];
 
       // Filter QR codes with same schema and device (include current one)
       // Note: allQrCodes is already filtered by the parent (archived/unarchived)
       const matching = allQrCodes.filter((qr) => {
-        if (!validateQR(qr.data)) return false;
-        try {
-          const [p, , schemaHash, deviceIdStr] = qr.data.split(":");
-          const deviceId = parseInt(deviceIdStr);
-          return (
-            p === "frmhnd" &&
-            schemaHash === currentSchemaHash &&
-            deviceId === currentDeviceId
-          );
-        } catch {
-          return false;
-        }
+        const header = parseQrHeader(qr.data);
+        return (
+          header !== null &&
+          header.schemaHash === current.schemaHash &&
+          header.deviceId === current.deviceId
+        );
       });
 
       // Sort by match number
@@ -234,9 +240,9 @@ export default function ShareDialog(props: ShareDialogProps) {
           if (!qrCode) return;
 
           if (scannedState) {
-            await markQrCodeAsScanned(qrCode);
+            await markQrCodeAsScanned(qrCode.name);
           } else {
-            await markQrCodeAsUnscanned(qrCode);
+            await markQrCodeAsUnscanned(qrCode.name);
           }
         })
       );
@@ -303,20 +309,54 @@ export default function ShareDialog(props: ShareDialogProps) {
       : displayQrCode?.name || "match_qr";
   const handleDownload = async () => {
     if (!qrCodeImage) return;
-    await saveFileWithDialog(qrCodeImage, qrCodeName);
-    setDownloadSnackbarOpen(true);
+    try {
+      await saveFileWithDialog(qrCodeImage, qrCodeName);
+      setDownloadSnackbarOpen(true);
+    } catch {
+      // User cancelled the save dialog or save failed; do nothing.
+    }
   };
 
+  /**
+   * Copies the match as a readable "Field: value" listing rather than the raw
+   * DecodedQr JSON — the point of copying is to paste it somewhere a human reads.
+   */
   const handleCopy = async () => {
     if (!displayQrCode) return;
-    setCopySnackbarOpen(true);
-    const decoded = await decodeQR(displayQrCode.data);
-    await writeText(JSON.stringify(decoded, null, 2));
+    try {
+      const decoded = await decodeQrWithSchemas(
+        displayQrCode.data,
+        availableSchemas
+      );
+      const hash = getSchemaHashFromQrString(displayQrCode.data) ?? "";
+      const codeSchema = await getSchemaFromHash(hash, availableSchemas);
+
+      if (!codeSchema) {
+        await writeText(displayQrCode.data);
+      } else {
+        const values = matchDataJsonToMap(
+          reconstructMatchDataFromArray(codeSchema, decoded.data)
+        );
+        const lines = codeSchema.sections.flatMap((section) => [
+          `[${section.title}]`,
+          ...section.fields
+            .filter((f) => f.type !== "filler")
+            .map((f) => `${f.name}: ${formatValue(values.get(f.id), f.type)}`),
+          "",
+        ]);
+        await writeText(lines.join("\n").trimEnd());
+      }
+      setCopySnackbarOpen(true);
+    } catch {
+      // Fall back to the raw payload so the action never silently does nothing.
+      await writeText(displayQrCode.data);
+      setCopySnackbarOpen(true);
+    }
   };
 
   const handleDelete = async () => {
     if (!displayQrCode) return;
-    await deleteQrCode(displayQrCode);
+    await deleteQrCode(displayQrCode.name);
     closeDeletePopup();
     onClose();
     onDelete?.();
@@ -324,7 +364,7 @@ export default function ShareDialog(props: ShareDialogProps) {
 
   const handleArchive = async () => {
     if (!displayQrCode) return;
-    await archiveQrCode(displayQrCode);
+    await archiveQrCode(displayQrCode.name);
     closeArchivePopup();
     onClose();
     onArchive?.();
@@ -332,7 +372,7 @@ export default function ShareDialog(props: ShareDialogProps) {
 
   const handleUnarchive = async () => {
     if (!displayQrCode) return;
-    await unarchiveQrCode(displayQrCode);
+    await unarchiveQrCode(displayQrCode.name);
     closeUnarchivePopup();
     onClose();
     onUnarchive?.();
@@ -366,9 +406,13 @@ export default function ShareDialog(props: ShareDialogProps) {
               p: isLandscape ? 3 : 2,
               maxHeight: "90dvh",
               display: "flex",
-              flexDirection: isLandscape ? "row" : "column",
-              justifyContent: "center",
-              alignItems: "center",
+              flexDirection: "column",
+              // Not "center" on either axis: with overflowing content, a flex
+              // container that centers its child clips symmetrically off both ends
+              // instead of allowing scroll to reach it. "stretch" gives the child a
+              // concrete cross-axis size so its own overflow-y:auto can take over.
+              justifyContent: "flex-start",
+              alignItems: "stretch",
               boxSizing: "border-box",
               paddingTop: "env(safe-area-inset-top, 0px)",
               paddingBottom: "env(safe-area-inset-bottom, 0px)",
@@ -379,12 +423,71 @@ export default function ShareDialog(props: ShareDialogProps) {
         <DialogContent
           sx={{
             display: "flex",
+            // Landscape puts the code or the match data beside the buttons. Stacked,
+            // a short window spends its whole height on the QR and leaves the buttons
+            // strung across a wide dialog below it.
             flexDirection: isLandscape ? "row" : "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 3,
+            alignItems: "stretch",
+            gap: isLandscape ? 3 : 2,
+            width: "100%",
+            flex: "1 1 auto",
+            minHeight: 0,
+            // Landscape: each pane owns its own scrollbar. Portrait: this is the
+            // scroller, unchanged.
+            overflowY: isLandscape ? "hidden" : "auto",
           }}
         >
+          {/* Content pane — left in landscape, top in portrait. */}
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+              ...(isLandscape
+                ? { flex: "1 1 auto", minWidth: 0, minHeight: 0 }
+                : { width: "100%" }),
+            }}
+          >
+          {mode === "match" && (
+            <Tabs
+              value={activeTab}
+              onChange={(_, next) => setActiveTab(next)}
+              variant="fullWidth"
+            >
+              <Tab label="QR Code" value="qr" sx={{ minHeight: 48 }} />
+              <Tab label="Match Data" value="data" sx={{ minHeight: 48 }} />
+            </Tabs>
+          )}
+
+          {/*
+            The scroller. Given a real height by the pane above rather than left to
+            size itself: a flex child with overflow and no minHeight collapses to its
+            content, and the match data ended up in a scroll box with no room to
+            scroll in — top and bottom bounds landing on the same pixel.
+          */}
+          <Box
+            sx={{
+              width: "100%",
+              ...(isLandscape
+                ? { flex: "1 1 auto", minHeight: 0, overflowY: "auto" }
+                : {}),
+            }}
+          >
+          {mode === "match" && activeTab === "data" ? (
+            <Box sx={{ width: "100%", overflow: isLandscape ? "visible" : "auto" }}>
+              <MatchPreviewPanel qrCode={currentQrCode!} />
+            </Box>
+          ) : (
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: isLandscape ? "row" : "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 3,
+              width: "100%",
+            }}
+          >
           {/* QR Image with Navigation */}
           <Box
             sx={{
@@ -453,7 +556,7 @@ export default function ShareDialog(props: ShareDialogProps) {
                 <Box
                   sx={{
                     width: isLandscape ? "40vh" : "70vw",
-                    maxWidth: "300px",
+                    maxWidth: "min(300px, 100%)",
                     aspectRatio: "1/1",
                     display: "flex",
                     alignItems: "center",
@@ -481,7 +584,7 @@ export default function ShareDialog(props: ShareDialogProps) {
                     alt="QR Code"
                     style={{
                       width: isLandscape ? "40vh" : "70vw",
-                      maxWidth: "300px",
+                      maxWidth: "min(300px, 100%)",
                       display: "block",
                     }}
                   />
@@ -496,8 +599,31 @@ export default function ShareDialog(props: ShareDialogProps) {
               )}
             </Box>
           </Box>
+          </Box>
+          )}
+          </Box>
+          </Box>
+          {/* end content pane */}
 
-          <Stack spacing={2} sx={{ width: "100%" }}>
+          {/* Actions pane — right in landscape, below in portrait. */}
+          <Stack
+            spacing={2}
+            sx={
+              isLandscape
+                ? {
+                    // A column of its own so the buttons keep a sane width instead
+                    // of stretching the full dialog, and scroll on their own when a
+                    // short window cannot fit them all. Clamped rather than fixed: a
+                    // narrow landscape window would otherwise give half the dialog to
+                    // buttons and leave the code nowhere to go.
+                    flex: "0 0 auto",
+                    width: "clamp(220px, 32%, 320px)",
+                    minHeight: 0,
+                    overflowY: "auto",
+                  }
+                : { width: "100%" }
+            }
+          >
             <Typography
               variant="h6"
               textAlign="center"

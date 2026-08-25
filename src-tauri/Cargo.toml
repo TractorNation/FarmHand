@@ -1,6 +1,6 @@
 [package]
 name = "Farmhand"
-version = "26.3.3"
+version = "2026.4.0"
 description = "A FIRST Robotics Competition scouting application."
 authors = ["Henry Mullin", "Jacob Evenson"]
 edition = "2021"
@@ -18,7 +18,7 @@ crate-type = ["staticlib", "cdylib", "rlib"]
 tauri-build = { version = "2", features = [] }
 
 [dependencies]
-tauri = { version = "2", features = [] }
+tauri = { version = "2", features = ["protocol-asset"] }
 tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
@@ -32,6 +32,18 @@ tauri-plugin-dialog = "2"
 reqwest = { version = "0.12.26", default-features = false, features = ["rustls-tls"] }
 chrono = "0.4.42"
 qrcode = "0.14.1"
+
+# WebKitGTK is already in the tree as a transitive dependency of tauri/wry; naming it
+# directly is what lets `lib.rs` reach the webview and turn on media access, which is
+# off by default on Linux. Must resolve to the same crate version tauri uses, or
+# `PlatformWebview::inner()` hands back a `WebView` from a different crate instance.
+[target.'cfg(target_os = "linux")'.dependencies]
+webkit2gtk = { version = "2", features = ["v2_40"] }
+
+[dev-dependencies]
+# Filesystem tests need a real directory that cleans itself up; the delete and
+# image-import paths are all about how they behave against actual files.
+tempfile = "3"
 
 [package.metadata.bundle]
 identifier = "com.tractortechs.farmhand"

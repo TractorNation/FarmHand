@@ -96,9 +96,13 @@ export default function ChartConfigDialog({
       <DialogTitle>
         {existingChart
           ? "Edit Chart"
-          : `Add ${
-              chartType?.charAt(0).toUpperCase()! + chartType?.slice(1)!
-            } Chart`}
+          : // Without the guard an undefined chartType produced "NaN Chart" —
+            // `undefined + undefined` rather than a missing word.
+            `Add ${
+              chartType
+                ? chartType.charAt(0).toUpperCase() + chartType.slice(1) + " "
+                : ""
+            }Chart`}
       </DialogTitle>
       <DialogContent>
         <Stack spacing={3} sx={{ mt: 1 }}>
