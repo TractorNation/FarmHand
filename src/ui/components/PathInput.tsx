@@ -16,7 +16,15 @@ import ClearIcon from "@mui/icons-material/DeleteSweepRounded";
 import FullscreenIcon from "@mui/icons-material/FullscreenRounded";
 import FullscreenExitIcon from "@mui/icons-material/FullscreenExitRounded";
 import FlipFieldIcon from "@mui/icons-material/Rotate90DegreesCwRounded";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { createPortal } from "react-dom";
 import {
   AutoPathValue,
   DEFAULT_PATH_EPSILON,
@@ -29,11 +37,12 @@ import {
   quantizePoint,
   simplifyPath,
 } from "../../utils/PathCodec";
-import { resolvePathIcon } from "../../config/pathIcons";
 import {
   DEFAULT_FIELD_IMAGE_URL,
+  loadImageElement,
   resolveFieldImage,
 } from "../../utils/FieldImage";
+import { resolvePathIcon } from "../../config/pathIcons";
 import { useSettings } from "../../context/SettingsContext";
 import useDialog from "../../hooks/useDialog";
 import WarningDialog from "../dialog/WarningDialog";
@@ -50,6 +59,206 @@ const DRAG_THRESHOLD = 4;
 
 /** Aspect ratio used until the field image reports its own (roughly an FRC field). */
 const FALLBACK_ASPECT = 2;
+
+interface PathControlsProps {
+  /** The path being edited. Drives the counts and every enabled/disabled rule. */
+  path: AutoPathValue;
+  /** Schema-declared game pieces. The picker row is dropped when there are none. */
+  pieces: PathOption[];
+  /** Schema-declared actions. Never empty — PathInput warns instead of rendering. */
+  actions: PathAction[];
+  /** Index of the armed game piece, or null when none is armed. */
+  armedPiece: number | null;
+  onArmPiece: (index: number) => void;
+  /** Action waiting on a result choice, or null when nothing is pending. */
+  pendingAction: number | null;
+  onActionTap: (index: number) => void;
+  onPlaceEvent: (actionIndex: number, resultIndex: number) => void;
+  onUndo: () => void;
+  onClear: () => void;
+  /** Whether the field view is drawn rotated 180 degrees. */
+  flipped: boolean;
+  onToggleFlip: () => void;
+  /**
+   * Opens the full-screen view. Left out by the full-screen layout itself, which is
+   * what drops the button there — it has its own exit control instead.
+   */
+  onEnterFullscreen?: () => void;
+  /** Whether the path can take no more points or events. */
+  atTokenLimit: boolean;
+  /** Whether the scout marked the robot as having run no autonomous. */
+  disabled: boolean;
+}
+
+/**
+ * The controls under an auto-path canvas: the game-piece and action choosers, the
+ * result buttons for an action that has outcomes, and the undo/clear/full-screen/flip
+ * row.
+ *
+ * PathInput renders this in both its in-card and full-screen layouts, so it takes
+ * everything it shows as props and owns no state of its own.
+ *
+ * Declared at module scope rather than inside PathInput: a component defined in
+ * another component body is a new type on every render, which remounts this whole
+ * subtree — dropping button ripples and focus — each time the path changes.
+ */
+function PathControls({
+  path,
+  pieces,
+  actions,
+  armedPiece,
+  onArmPiece,
+  pendingAction,
+  onActionTap,
+  onPlaceEvent,
+  onUndo,
+  onClear,
+  flipped,
+  onToggleFlip,
+  onEnterFullscreen,
+  atTokenLimit,
+  disabled,
+}: PathControlsProps) {
+  return (
+    <Stack spacing={1.25}>
+      {pieces.length > 0 && (
+        <Box>
+          <Typography variant="caption" color="text.secondary">
+            Game piece
+          </Typography>
+          <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", mt: 0.5 }}>
+            {pieces.map((piece, index) => {
+              const Icon = resolvePathIcon(piece.icon);
+              return (
+                <Chip
+                  key={`${piece.label}-${index}`}
+                  icon={<Icon />}
+                  label={piece.label}
+                  disabled={disabled}
+                  color={armedPiece === index ? "primary" : "default"}
+                  variant={armedPiece === index ? "filled" : "outlined"}
+                  onClick={() => onArmPiece(index)}
+                  sx={{ minHeight: 44, borderRadius: 2, px: 0.5 }}
+                />
+              );
+            })}
+          </Stack>
+        </Box>
+      )}
+
+      <Box>
+        <Typography variant="caption" color="text.secondary">
+          Action {path.points.length === 0 && "— draw or tap the field first"}
+        </Typography>
+        <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", mt: 0.5 }}>
+          {actions.map((action, index) => {
+            const Icon = resolvePathIcon(action.icon);
+            return (
+              <Chip
+                key={`${action.label}-${index}`}
+                icon={<Icon />}
+                label={action.label}
+                disabled={disabled || path.points.length === 0 || atTokenLimit}
+                color={pendingAction === index ? "secondary" : "default"}
+                variant={pendingAction === index ? "filled" : "outlined"}
+                onClick={() => onActionTap(index)}
+                sx={{ minHeight: 44, borderRadius: 2, px: 0.5 }}
+              />
+            );
+          })}
+        </Stack>
+      </Box>
+
+      {pendingAction !== null && actions[pendingAction]?.results && (
+        <Box>
+          <Typography variant="caption" color="text.secondary">
+            {actions[pendingAction].label} result
+          </Typography>
+          <ToggleButtonGroup
+            exclusive
+            size="small"
+            sx={{ mt: 0.5, flexWrap: "wrap" }}
+            onChange={(_, resultIndex) => {
+              if (resultIndex !== null) onPlaceEvent(pendingAction, resultIndex);
+            }}
+          >
+            {actions[pendingAction].results!.map((result, resultIndex) => (
+              <ToggleButton
+                key={result}
+                value={resultIndex}
+                sx={{ borderRadius: 2, minHeight: 44, px: 2 }}
+              >
+                {result}
+              </ToggleButton>
+            ))}
+          </ToggleButtonGroup>
+        </Box>
+      )}
+
+      {atTokenLimit && (
+        <Alert severity="warning" sx={{ borderRadius: 2 }}>
+          This path is at its maximum detail. Undo or clear to add more.
+        </Alert>
+      )}
+
+      <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
+        <Button
+          size="small"
+          variant="outlined"
+          startIcon={<UndoIcon />}
+          disabled={disabled || (path.points.length === 0 && path.events.length === 0)}
+          onClick={onUndo}
+          sx={{ borderRadius: 2, minHeight: 44 }}
+        >
+          Undo
+        </Button>
+        <Button
+          size="small"
+          variant="outlined"
+          color="warning"
+          startIcon={<ClearIcon />}
+          disabled={path.points.length === 0 && path.events.length === 0 && !path.noAuto}
+          onClick={onClear}
+          sx={{ borderRadius: 2, minHeight: 44 }}
+        >
+          Clear path
+        </Button>
+        {onEnterFullscreen && (
+          <Button
+            size="small"
+            variant="outlined"
+            color="secondary"
+            startIcon={<FullscreenIcon />}
+            onClick={onEnterFullscreen}
+            sx={{ borderRadius: 2, minHeight: 44 }}
+          >
+            Full screen
+          </Button>
+        )}
+        {/*
+          Deliberately still enabled when the no-autonomous switch is on: this
+          changes the view, not the recording, and a scout should be able to set
+          their side of the arena before a robot has done anything.
+        */}
+        <Button
+          size="small"
+          variant={flipped ? "contained" : "outlined"}
+          startIcon={<FlipFieldIcon />}
+          aria-label="Rotate the field view 180 degrees"
+          onClick={onToggleFlip}
+          sx={{ borderRadius: 2, minHeight: 44 }}
+        >
+          Flip field
+        </Button>
+        <Box sx={{ flex: 1 }} />
+        <Typography variant="caption" color="text.secondary" sx={{ alignSelf: "center" }}>
+          {path.points.length} point{path.points.length !== 1 ? "s" : ""} ·{" "}
+          {path.events.length} action{path.events.length !== 1 ? "s" : ""}
+        </Typography>
+      </Stack>
+    </Stack>
+  );
+}
 
 export default function PathInput({
   value,
@@ -85,6 +294,8 @@ export default function PathInput({
     url: string;
     fellBack: boolean;
   }>({ url: DEFAULT_FIELD_IMAGE_URL, fellBack: false });
+  const [imageRefused, setImageRefused] = useState(false);
+  const [fitSize, setFitSize] = useState<{ w: number; h: number } | null>(null);
   const [aspect, setAspect] = useState(FALLBACK_ASPECT);
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -117,15 +328,35 @@ export default function PathInput({
   }, [fieldProps?.fieldImageKey, settings.FIELD_IMAGE_KEY]);
 
   useEffect(() => {
-    const img = new Image();
-    img.onload = () => {
+    let cancelled = false;
+
+    const show = (img: HTMLImageElement) => {
+      if (cancelled) return;
       imageRef.current = img;
       if (img.naturalHeight > 0) {
         setAspect(img.naturalWidth / img.naturalHeight);
       }
       draw();
     };
-    img.src = fieldImage.url;
+
+    loadImageElement(fieldImage.url).then(async (img) => {
+      if (cancelled) return;
+      if (img) {
+        setImageRefused(false);
+        show(img);
+        return;
+      }
+      // A real file the webview still refused. Draw the bundled field so a scout has
+      // something under their finger, and flag it: leaving imageRef null paints a flat
+      // rectangle that reads as an empty field rather than a broken one.
+      setImageRefused(fieldImage.url !== DEFAULT_FIELD_IMAGE_URL);
+      const fallback = await loadImageElement(DEFAULT_FIELD_IMAGE_URL);
+      if (fallback) show(fallback);
+    });
+
+    return () => {
+      cancelled = true;
+    };
     // draw is stable enough for this effect; redrawing happens on every state change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fieldImage.url]);
@@ -239,6 +470,41 @@ export default function PathInput({
     return () => observer.disconnect();
     // fullscreen re-parents the canvas, so the observer has to re-attach to the new one.
   }, [draw, fullscreen]);
+
+  /*
+    Full screen sizes the field from the space actually left over rather than from its
+    own width. Deriving the height from a 100%-wide canvas is what pushed the field
+    past the bottom of a wide window: the overlay scrolled, and a scout mid-stroke was
+    drawing rather than panning it back.
+
+    Measured instead of clamped in CSS because aspect-ratio only transfers a max-height
+    back into the width when the width is not already definite — a wide window would
+    otherwise squash the field instead of shrinking it. Layout phase, so the first
+    frame is already fitted rather than snapping to size after it paints.
+  */
+  useLayoutEffect(() => {
+    const box = wrapperRef.current;
+    if (!fullscreen || !box) {
+      setFitSize(null);
+      return;
+    }
+
+    const measure = () => {
+      const { width, height } = box.getBoundingClientRect();
+      if (width === 0 || height === 0) return;
+      const w = Math.min(width, height * aspect);
+      setFitSize((prev) =>
+        prev && Math.abs(prev.w - w) < 0.5 ? prev : { w, h: w / aspect }
+      );
+    };
+
+    measure();
+    // The box takes its height from the flex row it sits in, never from this child, so
+    // writing a size back here cannot feed another resize.
+    const observer = new ResizeObserver(measure);
+    observer.observe(box);
+    return () => observer.disconnect();
+  }, [fullscreen, aspect]);
 
   // --- editing -----------------------------------------------------------
 
@@ -407,27 +673,75 @@ export default function PathInput({
         width: "100%",
         opacity: disabled ? 0.4 : 1,
         transition: "opacity 0.2s ease",
+        ...(fullscreen && {
+          // Basis 0 rather than auto so this row is whatever the header and controls
+          // leave behind, independent of the field inside it.
+          flex: "1 1 0",
+          minHeight: 0,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }),
       }}
     >
-      <canvas
-        ref={canvasRef}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={finishStroke}
-        onPointerCancel={finishStroke}
-        onPointerLeave={finishStroke}
-        style={{
-          width: "100%",
-          aspectRatio: String(aspect),
-          display: "block",
-          borderRadius: 8,
-          border: `2px solid ${theme.palette.divider}`,
-          // Required so a finger drag draws instead of scrolling the page.
-          touchAction: "none",
-          cursor: disabled ? "not-allowed" : "crosshair",
-        }}
-      />
+      <Box
+        sx={
+          // Bounded by whichever edge runs out first when full screen; in the card it
+          // still fills the width and lets the page decide the height.
+          fullscreen && fitSize
+            ? { position: "relative", width: fitSize.w, height: fitSize.h }
+            : { position: "relative", width: "100%", aspectRatio: String(aspect) }
+        }
+      >
+        <canvas
+          ref={canvasRef}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={finishStroke}
+          onPointerCancel={finishStroke}
+          onPointerLeave={finishStroke}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            boxSizing: "border-box",
+            display: "block",
+            borderRadius: 8,
+            border: `2px solid ${theme.palette.divider}`,
+            // Required so a finger drag draws instead of scrolling the page.
+            touchAction: "none",
+            cursor: disabled ? "not-allowed" : "crosshair",
+          }}
+        />
+      </Box>
     </Box>
+  );
+
+  /*
+    Built once and rendered in whichever layout is active, the same way canvasBlock is.
+    Leaving out onEnterFullscreen is what drops the button from the full-screen
+    layout, which has its own exit control.
+  */
+  const controls = (
+    <PathControls
+      path={path}
+      pieces={pieces}
+      actions={actions}
+      armedPiece={armedPiece}
+      onArmPiece={setArmedPiece}
+      pendingAction={pendingAction}
+      onActionTap={handleActionTap}
+      onPlaceEvent={placeEvent}
+      onUndo={handleUndo}
+      onClear={openClearWarning}
+      flipped={flipped}
+      onToggleFlip={() => setSetting("FIELD_FLIPPED", !flipped)}
+      onEnterFullscreen={fullscreen ? undefined : () => setFullscreen(true)}
+      atTokenLimit={atTokenLimit}
+      disabled={disabled}
+    />
   );
 
   return (
@@ -443,46 +757,63 @@ export default function PathInput({
         sx={{ m: 0 }}
       />
 
-      {fieldImage.fellBack && (
+      {(fieldImage.fellBack || imageRefused) && (
         <Alert severity="info" sx={{ borderRadius: 2 }}>
-          This schema asks for a playing field image that isn't on this device.
-          Using the default field instead.
+          {imageRefused
+            ? "The chosen playing field image could not be loaded. Using the default field instead."
+            : "This schema asks for a playing field image that isn't on this device. Using the default field instead."}
         </Alert>
       )}
 
       {fullscreen ? (
-        <Box
-          sx={{
-            position: "fixed",
-            inset: 0,
-            zIndex: theme.zIndex.modal,
-            bgcolor: theme.palette.background.paper,
-            p: 2,
-            display: "flex",
-            flexDirection: "column",
-            gap: 1.5,
-            overflow: "auto",
-          }}
-        >
-          <Stack direction="row" justifyContent="space-between" alignItems="center">
-            <Typography variant="h6" sx={{ fontWeight: 600 }}>
-              Auto path
-            </Typography>
-            <Button
-              onClick={() => setFullscreen(false)}
-              startIcon={<FullscreenExitIcon />}
-              sx={{ borderRadius: 2, minHeight: 44 }}
+        /*
+          Portalled to the body: an ancestor transform captures fixed positioning, and
+          InputCard's hover lift would otherwise collapse this overlay back into its
+          grid cell, flickering as hover follows it. Context still flows through.
+        */
+        createPortal(
+          <Box
+            sx={{
+              position: "fixed",
+              inset: 0,
+              zIndex: theme.zIndex.modal,
+              bgcolor: theme.palette.background.paper,
+              p: 2,
+              display: "flex",
+              flexDirection: "column",
+              gap: 1.5,
+              // Nothing here is allowed to scroll: a scout drawing on the field would
+              // be panning it instead, and a stray scroll position hides the controls.
+              // The field yields height instead, since it is the only part that can.
+              overflow: "hidden",
+            }}
+          >
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+              sx={{ flexShrink: 0 }}
             >
-              Exit
-            </Button>
-          </Stack>
-          {canvasBlock}
-          <PathControls />
-        </Box>
+              <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                Auto path
+              </Typography>
+              <Button
+                onClick={() => setFullscreen(false)}
+                startIcon={<FullscreenExitIcon />}
+                sx={{ borderRadius: 2, minHeight: 44 }}
+              >
+                Exit
+              </Button>
+            </Stack>
+            {canvasBlock}
+            <Box sx={{ flexShrink: 0 }}>{controls}</Box>
+          </Box>,
+          document.body
+        )
       ) : (
         <>
           {canvasBlock}
-          <PathControls />
+          {controls}
         </>
       )}
 
@@ -497,147 +828,4 @@ export default function PathInput({
       />
     </Stack>
   );
-
-  /** Piece/action chips plus the undo, clear and fullscreen row. */
-  function PathControls() {
-    return (
-      <Stack spacing={1.25}>
-        {pieces.length > 0 && (
-          <Box>
-            <Typography variant="caption" color="text.secondary">
-              Game piece
-            </Typography>
-            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", mt: 0.5 }}>
-              {pieces.map((piece, index) => {
-                const Icon = resolvePathIcon(piece.icon);
-                return (
-                  <Chip
-                    key={`${piece.label}-${index}`}
-                    icon={<Icon />}
-                    label={piece.label}
-                    disabled={disabled}
-                    color={armedPiece === index ? "primary" : "default"}
-                    variant={armedPiece === index ? "filled" : "outlined"}
-                    onClick={() => setArmedPiece(index)}
-                    sx={{ minHeight: 44, borderRadius: 2, px: 0.5 }}
-                  />
-                );
-              })}
-            </Stack>
-          </Box>
-        )}
-
-        <Box>
-          <Typography variant="caption" color="text.secondary">
-            Action {path.points.length === 0 && "— draw or tap the field first"}
-          </Typography>
-          <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", mt: 0.5 }}>
-            {actions.map((action, index) => {
-              const Icon = resolvePathIcon(action.icon);
-              return (
-                <Chip
-                  key={`${action.label}-${index}`}
-                  icon={<Icon />}
-                  label={action.label}
-                  disabled={disabled || path.points.length === 0 || atTokenLimit}
-                  color={pendingAction === index ? "secondary" : "default"}
-                  variant={pendingAction === index ? "filled" : "outlined"}
-                  onClick={() => handleActionTap(index)}
-                  sx={{ minHeight: 44, borderRadius: 2, px: 0.5 }}
-                />
-              );
-            })}
-          </Stack>
-        </Box>
-
-        {pendingAction !== null && actions[pendingAction]?.results && (
-          <Box>
-            <Typography variant="caption" color="text.secondary">
-              {actions[pendingAction].label} result
-            </Typography>
-            <ToggleButtonGroup
-              exclusive
-              size="small"
-              sx={{ mt: 0.5, flexWrap: "wrap" }}
-              onChange={(_, resultIndex) => {
-                if (resultIndex !== null) placeEvent(pendingAction, resultIndex);
-              }}
-            >
-              {actions[pendingAction].results!.map((result, resultIndex) => (
-                <ToggleButton
-                  key={result}
-                  value={resultIndex}
-                  sx={{ borderRadius: 2, minHeight: 44, px: 2 }}
-                >
-                  {result}
-                </ToggleButton>
-              ))}
-            </ToggleButtonGroup>
-          </Box>
-        )}
-
-        {atTokenLimit && (
-          <Alert severity="warning" sx={{ borderRadius: 2 }}>
-            This path is at its maximum detail. Undo or clear to add more.
-          </Alert>
-        )}
-
-        <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
-          <Button
-            size="small"
-            variant="outlined"
-            startIcon={<UndoIcon />}
-            disabled={disabled || (path.points.length === 0 && path.events.length === 0)}
-            onClick={handleUndo}
-            sx={{ borderRadius: 2, minHeight: 44 }}
-          >
-            Undo
-          </Button>
-          <Button
-            size="small"
-            variant="outlined"
-            color="warning"
-            startIcon={<ClearIcon />}
-            disabled={path.points.length === 0 && path.events.length === 0 && !path.noAuto}
-            onClick={openClearWarning}
-            sx={{ borderRadius: 2, minHeight: 44 }}
-          >
-            Clear path
-          </Button>
-          {!fullscreen && (
-            <Button
-              size="small"
-              variant="outlined"
-              color="secondary"
-              startIcon={<FullscreenIcon />}
-              onClick={() => setFullscreen(true)}
-              sx={{ borderRadius: 2, minHeight: 44 }}
-            >
-              Full screen
-            </Button>
-          )}
-          {/*
-            Deliberately still enabled when the no-autonomous switch is on: this
-            changes the view, not the recording, and a scout should be able to set
-            their side of the arena before a robot has done anything.
-          */}
-          <Button
-            size="small"
-            variant={flipped ? "contained" : "outlined"}
-            startIcon={<FlipFieldIcon />}
-            aria-label="Rotate the field view 180 degrees"
-            onClick={() => setSetting("FIELD_FLIPPED", !flipped)}
-            sx={{ borderRadius: 2, minHeight: 44 }}
-          >
-            Flip field
-          </Button>
-          <Box sx={{ flex: 1 }} />
-          <Typography variant="caption" color="text.secondary" sx={{ alignSelf: "center" }}>
-            {path.points.length} point{path.points.length !== 1 ? "s" : ""} ·{" "}
-            {path.events.length} action{path.events.length !== 1 ? "s" : ""}
-          </Typography>
-        </Stack>
-      </Stack>
-    );
-  }
 }

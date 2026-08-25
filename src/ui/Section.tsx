@@ -6,6 +6,7 @@ import CheckCircleOutlineRounded from "@mui/icons-material/CheckCircleOutlineRou
 import { useScoutData } from "../context/ScoutDataContext";
 import { useMemo } from "react";
 import InputCard from "./InputCard";
+import { isFullWidthType } from "../config/componentTypes";
 
 /**
  * Props for the section component
@@ -92,12 +93,19 @@ export default function Section(props: SectionProps) {
       <Grid container spacing={2}>
         {section.fields.map((component) => (
           <Grid
-            size={{
-              xs: 12,
-              sm: component.doubleWidth ? 12 : 6,
-              md: component.doubleWidth ? 8 : 4,
-              lg: component.doubleWidth ? 6 : 3,
-            }}
+            size={
+              // Width is decided by type first so schemas keep one `doubleWidth`
+              // shape for every field: types that need the whole row take it, and
+              // everything else falls back to the flag the schema set.
+              isFullWidthType(component.type)
+                ? 12
+                : {
+                    xs: 12,
+                    sm: component.doubleWidth ? 12 : 6,
+                    md: component.doubleWidth ? 8 : 4,
+                    lg: component.doubleWidth ? 6 : 3,
+                  }
+            }
             key={component.id}
             // Scroll anchor for Scout's "jump to the first invalid field" behavior.
             data-field-id={component.id}

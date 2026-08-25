@@ -11,7 +11,7 @@ import StoreManager, { StoreKeys } from "../utils/StoreManager";
 import { coerceSetting } from "../utils/settingsCodec";
 
 export const defaultSettings: Settings = {
-  LAST_SCHEMA_NAME: "2025 Reefscape",
+  LAST_SCHEMA_NAME: "2025 Reefscape", // Update this seasonally to current game
   THEME: "system",
   TBA_API_KEY: "",
   TBA_EVENT_KEY: "",

@@ -406,7 +406,7 @@ export default function ShareDialog(props: ShareDialogProps) {
               p: isLandscape ? 3 : 2,
               maxHeight: "90dvh",
               display: "flex",
-              flexDirection: isLandscape ? "row" : "column",
+              flexDirection: "column",
               // Not "center" on either axis: with overflowing content, a flex
               // container that centers its child clips symmetrically off both ends
               // instead of allowing scroll to reach it. "stretch" gives the child a
@@ -423,14 +423,31 @@ export default function ShareDialog(props: ShareDialogProps) {
         <DialogContent
           sx={{
             display: "flex",
-            flexDirection: "column",
+            // Landscape puts the code or the match data beside the buttons. Stacked,
+            // a short window spends its whole height on the QR and leaves the buttons
+            // strung across a wide dialog below it.
+            flexDirection: isLandscape ? "row" : "column",
             alignItems: "stretch",
-            gap: 2,
+            gap: isLandscape ? 3 : 2,
             width: "100%",
+            flex: "1 1 auto",
             minHeight: 0,
-            overflowY: "auto",
+            // Landscape: each pane owns its own scrollbar. Portrait: this is the
+            // scroller, unchanged.
+            overflowY: isLandscape ? "hidden" : "auto",
           }}
         >
+          {/* Content pane — left in landscape, top in portrait. */}
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+              ...(isLandscape
+                ? { flex: "1 1 auto", minWidth: 0, minHeight: 0 }
+                : { width: "100%" }),
+            }}
+          >
           {mode === "match" && (
             <Tabs
               value={activeTab}
@@ -442,8 +459,22 @@ export default function ShareDialog(props: ShareDialogProps) {
             </Tabs>
           )}
 
+          {/*
+            The scroller. Given a real height by the pane above rather than left to
+            size itself: a flex child with overflow and no minHeight collapses to its
+            content, and the match data ended up in a scroll box with no room to
+            scroll in — top and bottom bounds landing on the same pixel.
+          */}
+          <Box
+            sx={{
+              width: "100%",
+              ...(isLandscape
+                ? { flex: "1 1 auto", minHeight: 0, overflowY: "auto" }
+                : {}),
+            }}
+          >
           {mode === "match" && activeTab === "data" ? (
-            <Box sx={{ width: "100%", overflow: "auto" }}>
+            <Box sx={{ width: "100%", overflow: isLandscape ? "visible" : "auto" }}>
               <MatchPreviewPanel qrCode={currentQrCode!} />
             </Box>
           ) : (
@@ -525,7 +556,7 @@ export default function ShareDialog(props: ShareDialogProps) {
                 <Box
                   sx={{
                     width: isLandscape ? "40vh" : "70vw",
-                    maxWidth: "300px",
+                    maxWidth: "min(300px, 100%)",
                     aspectRatio: "1/1",
                     display: "flex",
                     alignItems: "center",
@@ -553,7 +584,7 @@ export default function ShareDialog(props: ShareDialogProps) {
                     alt="QR Code"
                     style={{
                       width: isLandscape ? "40vh" : "70vw",
-                      maxWidth: "300px",
+                      maxWidth: "min(300px, 100%)",
                       display: "block",
                     }}
                   />
@@ -570,8 +601,29 @@ export default function ShareDialog(props: ShareDialogProps) {
           </Box>
           </Box>
           )}
+          </Box>
+          </Box>
+          {/* end content pane */}
 
-          <Stack spacing={2} sx={{ width: "100%" }}>
+          {/* Actions pane — right in landscape, below in portrait. */}
+          <Stack
+            spacing={2}
+            sx={
+              isLandscape
+                ? {
+                    // A column of its own so the buttons keep a sane width instead
+                    // of stretching the full dialog, and scroll on their own when a
+                    // short window cannot fit them all. Clamped rather than fixed: a
+                    // narrow landscape window would otherwise give half the dialog to
+                    // buttons and leave the code nowhere to go.
+                    flex: "0 0 auto",
+                    width: "clamp(220px, 32%, 320px)",
+                    minHeight: 0,
+                    overflowY: "auto",
+                  }
+                : { width: "100%" }
+            }
+          >
             <Typography
               variant="h6"
               textAlign="center"

@@ -1,11 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { SERIALIZED_PROP_KEYS, UNSERIALIZED_PROPS, deminifySchema, minifySchema } from "./SchemaWire";
-import Reefscape from "../config/schema/2025Reefscape.json";
-import Decode from "../config/schema/2025Decode.json";
-import Pits from "../config/schema/2026PitScouting.json";
-import TBAPits from "../config/schema/2026PitScoutingTBA.json";
-import Rebuilt from "../config/schema/2026Rebuilt.json";
-import TBARebuilt from "../config/schema/2026RebuiltTBA.json";
+
+/**
+ * Globbed here rather than imported from SchemaUtils, which pulls in plugin-fs and
+ * StoreManager's store singleton at module scope — neither belongs in a node-env test.
+ * The pattern is the same one SchemaUtils uses, so a schema added to the folder is
+ * covered by the round trip below without touching this file.
+ */
+const bundledSchemas = Object.entries(
+  import.meta.glob<{ default: Schema }>("../config/schema/*.json", { eager: true })
+).map(([path, module]) => ({ path, schema: module.default }));
+
+/** The shape check SchemaUtils filters on, so both agree on what counts as a schema. */
+const looksLikeSchema = (s: Schema | undefined) =>
+  typeof s?.name === "string" && Array.isArray(s?.sections);
 
 /**
  * Schema-over-QR round trips.
@@ -244,36 +252,61 @@ describe("built-in schemas survive a QR round trip", () => {
   // but not byte-identical — and therefore hashes differently. That difference is
   // handled by recording the sending device's hash on import
   // (SchemaUtils.saveSchema's originHash), not by chasing byte fidelity here.
-  it.each([
-    ["2025 Decode", Decode],
-    ["2025 Reefscape", Reefscape],
-    ["2026 Pit Scouting", Pits],
-    ["2026 Pit Scouting (TBA)", TBAPits],
-    ["2026 Rebuilt", Rebuilt],
-    ["2026 Rebuilt (TBA)", TBARebuilt],
-  ])("%s", (_name, schema) => {
-    const original = schema as unknown as Schema;
-    const rebuilt = deminifySchema(minifySchema(original));
+  it.each(
+    bundledSchemas
+      .filter((s) => looksLikeSchema(s.schema))
+      .map((s) => [s.schema.name, s.schema] as const)
+  )(
+    "%s",
+    (_name, original) => {
+      const rebuilt = deminifySchema(minifySchema(original));
 
-    expect(rebuilt.name).toBe(original.name);
-    expect(rebuilt.sections.map((s) => s.title)).toEqual(
-      original.sections.map((s) => s.title)
-    );
+      expect(rebuilt.name).toBe(original.name);
+      expect(rebuilt.sections.map((s) => s.title)).toEqual(
+        original.sections.map((s) => s.title)
+      );
 
-    original.sections.forEach((section, si) => {
-      section.fields.forEach((field, fi) => {
-        const out = rebuilt.sections[si].fields[fi];
-        // Field id and ordering drive the entire wire format's positional layout,
-        // so these are the properties that must survive exactly.
-        expect(out.id).toBe(field.id);
-        expect(out.name).toBe(field.name);
-        expect(out.type).toBe(field.type);
-        expect(out.required ?? false).toBe(field.required ?? false);
-        expect(out.note).toBe(field.note);
-        expect(out.doubleWidth ?? false).toBe(field.doubleWidth ?? false);
-        expect(out.persist ?? false).toBe(field.persist ?? false);
-        expect(out.props ?? {}).toEqual(field.props ?? {});
+      original.sections.forEach((section, si) => {
+        section.fields.forEach((field, fi) => {
+          const out = rebuilt.sections[si].fields[fi];
+          // Field id and ordering drive the entire wire format's positional layout,
+          // so these are the properties that must survive exactly.
+          expect(out.id).toBe(field.id);
+          expect(out.name).toBe(field.name);
+          expect(out.type).toBe(field.type);
+          expect(out.required ?? false).toBe(field.required ?? false);
+          expect(out.note).toBe(field.note);
+          expect(out.doubleWidth ?? false).toBe(field.doubleWidth ?? false);
+          expect(out.persist ?? false).toBe(field.persist ?? false);
+          expect(out.props ?? {}).toEqual(field.props ?? {});
+        });
       });
-    });
+    }
+  );
+
+  it("finds the bundled schemas at the expected paths", () => {
+    // A glob that matches nothing resolves to an empty object rather than erroring, so
+    // without this the whole describe would pass by simply not running.
+    expect(bundledSchemas.length).toBeGreaterThan(0);
+    for (const { path } of bundledSchemas) {
+      expect(path).toMatch(/^\.\.\/config\/schema\/.+\.json$/);
+    }
+  });
+
+  it("has nothing but schemas in the schema folder", () => {
+    // SchemaUtils drops a stray file rather than letting it break the app's list, so
+    // nothing here would fail — but the round trip above would skip it silently. Naming
+    // the file beats the alternative: a test called "undefined" dying on .map.
+    for (const { path, schema } of bundledSchemas) {
+      expect(looksLikeSchema(schema), `${path} is not a schema`).toBe(true);
+    }
+  });
+
+  it("gives every bundled schema a distinct name", () => {
+    // Schemas are looked up by name — LAST_SCHEMA_NAME, saved codes, the revision
+    // archive. Two files sharing one name would shadow each other silently, which the
+    // old hand-written list made impossible and a glob does not.
+    const names = bundledSchemas.map((s) => s.schema.name);
+    expect(new Set(names).size).toBe(names.length);
   });
 });

@@ -10,6 +10,7 @@ import {
 } from "../../utils/PathCodec";
 import {
   DEFAULT_FIELD_IMAGE_URL,
+  loadImageElement,
   resolveFieldImage,
 } from "../../utils/FieldImage";
 import { useSettings } from "../../context/SettingsContext";
@@ -58,13 +59,26 @@ export default function PathPreview({
   }, [fieldProps?.fieldImageKey, settings.FIELD_IMAGE_KEY]);
 
   useEffect(() => {
-    const img = new Image();
-    img.onload = () => {
+    let cancelled = false;
+
+    const show = (img: HTMLImageElement) => {
+      if (cancelled) return;
       imageRef.current = img;
       if (img.naturalHeight > 0) setAspect(img.naturalWidth / img.naturalHeight);
       redraw();
     };
-    img.src = imageUrl;
+
+    // Falls back where PathInput does, for the same reason: a refused image would
+    // otherwise leave the reviewer looking at a flat rectangle with a path over it.
+    loadImageElement(imageUrl).then(async (img) => {
+      if (img) return show(img);
+      const fallback = await loadImageElement(DEFAULT_FIELD_IMAGE_URL);
+      if (fallback) show(fallback);
+    });
+
+    return () => {
+      cancelled = true;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [imageUrl]);
 

@@ -93,6 +93,23 @@ export async function fieldImageUrl(key: string): Promise<string | null> {
   return convertFileSrc(path);
 }
 
+/**
+ * Decodes a URL into an image, or null if the webview refuses it.
+ *
+ * An asset: URL can name a file that genuinely exists and still fail to load — the
+ * protocol has to be enabled in tauri.conf.json and the path has to sit inside its
+ * scope. Callers that only wire up onload never learn that happened: the canvas paints
+ * its background colour and reads as an empty field rather than a broken one.
+ */
+export function loadImageElement(url: string): Promise<HTMLImageElement | null> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
+}
+
 export interface ResolvedFieldImage {
   /** Renderable URL. Never empty — the bundled default backs every other case. */
   url: string;

@@ -31,6 +31,7 @@ import {
   COMPONENT_TYPE_LABELS,
   componentTypeFromLabel,
   componentTypeLabel,
+  isFullWidthType,
 } from "../config/componentTypes";
 
 /* Properties for the Component Card*/
@@ -606,18 +607,22 @@ export default function EditableComponentCard(props: ComponentCardProps) {
               }
               label="Required?"
             />
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={editedComponent.doubleWidth || false}
-                  disabled={isProtected}
-                  onChange={(e) =>
-                    handleFieldChange("doubleWidth", e.target.checked)
-                  }
-                />
-              }
-              label="Double Wide?"
-            />
+            {!isFullWidthType(editedComponent.type) && (
+              // Types that always span the whole row ignore doubleWidth, so offering
+              // the toggle would only promise a layout change that never happens.
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={editedComponent.doubleWidth || false}
+                    disabled={isProtected}
+                    onChange={(e) =>
+                      handleFieldChange("doubleWidth", e.target.checked)
+                    }
+                  />
+                }
+                label="Double Wide?"
+              />
+            )}
             {!isProtected && (
               // This is structured differently so the button won't appear (even as disabled) on
               // Match Num or Team Num fields, as they have special behavior & should never

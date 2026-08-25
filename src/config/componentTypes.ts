@@ -33,3 +33,20 @@ export function componentTypeFromLabel(label: string): ComponentType {
     (label.toLowerCase() as ComponentType)
   );
 }
+
+/**
+ * Field types that always claim a whole section row, whatever `doubleWidth` says.
+ *
+ * Width is a property of these types rather than a schema author's choice: an auto
+ * path is a scaled field image with a toolbar under it, and at a quarter or a half of
+ * a row it is too small to trace on. Keeping the rule here lets every field in a
+ * schema carry the same `doubleWidth` shape — Section applies the override.
+ */
+const FULL_WIDTH_TYPES: ReadonlySet<ComponentType> = new Set<ComponentType>([
+  "autopath",
+]);
+
+/** Whether `type` ignores `doubleWidth` and spans its section's full width. */
+export function isFullWidthType(type: ComponentType | string): boolean {
+  return FULL_WIDTH_TYPES.has(type as ComponentType);
+}

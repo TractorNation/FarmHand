@@ -7,53 +7,51 @@ import {
 } from "@tauri-apps/plugin-fs";
 import { createSchemaHash } from "./SchemaWire";
 import { appLocalDataDir, resolve } from "@tauri-apps/api/path";
-import Reefscape from "../config/schema/2025Reefscape.json";
-import Decode from "../config/schema/2025Decode.json";
-import Pits from "../config/schema/2026PitScouting.json";
-import TBAPits from "../config/schema/2026PitScoutingTBA.json";
-import Rebuilt from "../config/schema/2026Rebuilt.json";
-import TBARebuilt from "../config/schema/2026RebuiltTBA.json";
 import { invoke } from "@tauri-apps/api/core";
 import StoreManager, { StoreKeys } from "./StoreManager";
 
-export const defaultSchemas: SchemaMetaData[] = [
-  {
-    name: "2025 Decode",
-    path: "../config/schema/2025Decode.json",
-    schema: Decode as Schema,
-    type: "default",
-  },
-  {
-    name: "2025 Reefscape",
-    path: "../config/schema/2025Reefscape.json",
-    schema: Reefscape as Schema,
-    type: "default",
-  },
-  {
-    name: "2026 Pit Scouting",
-    path: "../config/schema/2026PitScouting.json",
-    schema: Pits as Schema,
-    type: "default",
-  },
-  {
-    name: "2026 Pit Scouting (TBA)",
-    path: "../config/schema/2026PitScoutingTBA.json",
-    schema: TBAPits as Schema,
-    type: "default",
-  },
-   {
-    name: "2026 Rebuilt",
-    path: "../config/schema/2026Rebuilt.json",
-    schema: Rebuilt as Schema,
-    type: "default",
-  },
-   {
-    name: "2026 Rebuilt (TBA)",
-    path: "../config/schema/2026RebuiltTBA.json",
-    schema: TBARebuilt as Schema,
-    type: "default",
-  }
-];
+/**
+ * Every JSON in src/config/schema/, bundled at build time.
+ *
+ * Eager because `defaultSchemas` is read synchronously the moment SchemaContext mounts;
+ * a lazy glob would turn the schema list into a promise for no gain, since these are
+ * compiled into the bundle either way.
+ */
+const bundledSchemaModules = import.meta.glob<{ default: Schema }>(
+  "../config/schema/*.json",
+  { eager: true }
+);
+
+/** Rejects anything in the folder that is not actually a schema. */
+function isSchema(value: unknown): value is Schema {
+  const candidate = value as Schema | null;
+  return (
+    typeof candidate?.name === "string" && Array.isArray(candidate?.sections)
+  );
+}
+
+/**
+ * The schemas that ship with the app.
+ *
+ * Discovered from the folder rather than listed here, so a new season's JSON is offered
+ * as soon as it is dropped in. The display name is the `name` inside the file: a name
+ * repeated in this file could disagree with it, and the name is what saved match codes
+ * and LAST_SCHEMA_NAME are keyed on, so there is only one place for it to live.
+ *
+ * A curated list could not pick up a stray or half-written JSON; a glob can, so
+ * anything that does not parse as a schema is dropped rather than allowed to break the
+ * list. Glob keys arrive sorted, which is the order these appear in the UI.
+ */
+export const defaultSchemas: SchemaMetaData[] = Object.entries(
+  bundledSchemaModules
+)
+  .filter(([, module]) => isSchema(module.default))
+  .map(([path, module]) => ({
+    name: module.default.name,
+    path,
+    schema: module.default,
+    type: "default" as const,
+  }));
 
 /** Where superseded schema revisions are kept, relative to AppLocalData. */
 const REVISIONS_DIR = "schemas/revisions";

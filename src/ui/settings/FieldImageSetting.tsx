@@ -59,6 +59,7 @@ export default function FieldImageSetting({
       setPreviewUrl(DEFAULT_FIELD_IMAGE_URL);
       return;
     }
+    setError(null);
     fieldImageUrl(value)
       .then((url) => !cancelled && setPreviewUrl(url ?? DEFAULT_FIELD_IMAGE_URL))
       .catch(() => !cancelled && setPreviewUrl(DEFAULT_FIELD_IMAGE_URL));
@@ -127,6 +128,14 @@ export default function FieldImageSetting({
         component="img"
         src={previewUrl}
         alt="Playing field"
+        // This is the screen where a broken image is discoverable, so it is the screen
+        // that has to say so. A silent broken thumbnail reads as "the upload failed".
+        onError={() =>
+          previewUrl !== DEFAULT_FIELD_IMAGE_URL &&
+          setError(
+            "This image is stored on the device but the app could not display it. Auto paths will use the built-in field."
+          )
+        }
         sx={{
           width: "100%",
           maxWidth: 320,

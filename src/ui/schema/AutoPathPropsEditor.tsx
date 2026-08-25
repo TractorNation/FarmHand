@@ -82,6 +82,7 @@ export default function AutoPathPropsEditor({
 
   const [images, setImages] = useState<string[]>([]);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [previewFailed, setPreviewFailed] = useState(false);
   // Raw text of the "Results" field per action index, kept separate from the parsed
   // `results` array so typing ", " isn't immediately collapsed by the split/trim/filter
   // that derives the array — that re-derivation on every keystroke ate commas and
@@ -97,6 +98,7 @@ export default function AutoPathPropsEditor({
   useEffect(() => {
     let cancelled = false;
     const key = props?.fieldImageKey;
+    setPreviewFailed(false);
     if (!key) {
       setPreviewUrl(null);
       return;
@@ -211,11 +213,18 @@ export default function AutoPathPropsEditor({
             device. Scouting will use the Settings default.
           </Alert>
         )}
-        {previewUrl && (
+        {previewFailed && (
+          <Alert severity="warning" sx={{ mt: 1, borderRadius: 2 }}>
+            "{props?.fieldImageKey}" is on this device but could not be displayed.
+            Scouting will use the built-in field.
+          </Alert>
+        )}
+        {previewUrl && !previewFailed && (
           <Box
             component="img"
             src={previewUrl}
             alt="Playing field"
+            onError={() => setPreviewFailed(true)}
             sx={{
               mt: 1,
               width: "100%",
