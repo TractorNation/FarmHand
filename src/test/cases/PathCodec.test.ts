@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { BitReader, BitWriter } from "./BitStream";
+import { BitReader, BitWriter } from "../../utils/BitStream";
 import {
   AutoPathValue,
   PATH_GRID,
@@ -15,7 +15,7 @@ import {
   rdpSimplify,
   simplifyPath,
   startZoneLabel,
-} from "./PathCodec";
+} from "../../utils/PathCodec";
 
 const VOCAB: PathVocabulary = {
   actions: [

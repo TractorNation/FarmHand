@@ -4,12 +4,12 @@ import {
   MAX_BATCH_MATCHES,
   decodeBatchBody,
   encodeBatchBody,
-} from "./BatchCodec";
+} from "../../utils/BatchCodec";
 import {
   BATCH_SIZE_BY_BREAKPOINT,
   MAX_BATCH_PAYLOAD_CHARS,
   QR_ALNUM_CAPACITY_V40_Q,
-} from "./BatchBuilder";
+} from "../../utils/BatchBuilder";
 
 function entry(deviceId: number, length: number, seed = 1): BatchEntry {
   const payload = new Uint8Array(length);

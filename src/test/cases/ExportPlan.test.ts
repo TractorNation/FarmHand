@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { csvCell, planMatchExport, toCsv } from "./ExportPlan";
+import { csvCell, planMatchExport, toCsv } from "../../utils/ExportPlan";
 
 /**
  * CSV escaping and column alignment.

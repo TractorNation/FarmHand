@@ -5,9 +5,9 @@ import {
   getSchemaHashFromQrString,
   parseQrHeader,
   rawMatchPayload,
-} from "./QrUtils";
-import { encodeBatchBody } from "./BatchCodec";
-import { encodeBase45 } from "./Base45";
+} from "../../utils/QrUtils";
+import { encodeBatchBody } from "../../utils/BatchCodec";
+import { encodeBase45 } from "../../utils/Base45";
 
 /**
  * The batch path, end to end.

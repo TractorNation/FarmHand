@@ -24,7 +24,7 @@ vi.mock("@tauri-apps/plugin-fs", () => ({
   BaseDirectory: { AppLocalData: 1 },
 }));
 
-const { getSchemaFromHash } = await import("./SchemaUtils");
+const { getSchemaFromHash } = await import("../../utils/SchemaUtils");
 
 const schema = (name: string): Schema =>
   ({ name, sections: [] }) as unknown as Schema;

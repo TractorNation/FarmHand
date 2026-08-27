@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SERIALIZED_PROP_KEYS, UNSERIALIZED_PROPS, deminifySchema, minifySchema } from "./SchemaWire";
+import { SERIALIZED_PROP_KEYS, UNSERIALIZED_PROPS, deminifySchema, minifySchema } from "../../utils/SchemaWire";
 
 /**
  * Globbed here rather than imported from SchemaUtils, which pulls in plugin-fs and

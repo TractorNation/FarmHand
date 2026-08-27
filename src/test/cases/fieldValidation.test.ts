@@ -3,7 +3,7 @@ import {
   isAutoPathAnswered,
   isFieldInvalid,
   UNSET_OPTION,
-} from "./fieldValidation";
+} from "../../utils/fieldValidation";
 
 /**
  * `isFieldInvalid` is the gate on whether a scout can leave a step or submit a match.

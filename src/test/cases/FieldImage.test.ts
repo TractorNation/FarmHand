@@ -34,7 +34,7 @@ vi.mock("@tauri-apps/plugin-fs", () => ({
 vi.mock("../assets/images/FieldDefault.png?url", () => ({ default: "/bundled-field.png" }));
 
 const tauriConfig = JSON.parse(
-  readFileSync(resolvePath(__dirname, "../../src-tauri/tauri.conf.json"), "utf8")
+  readFileSync(resolvePath(__dirname, "../../../src-tauri/tauri.conf.json"), "utf8")
 );
 
 describe("asset protocol config", () => {
@@ -61,7 +61,7 @@ describe("resolveFieldImage", () => {
   it("prefers the schema's image over the global one", async () => {
     stored.add("field-images/schema.png");
     stored.add("field-images/global.png");
-    const { resolveFieldImage } = await import("./FieldImage");
+    const { resolveFieldImage } = await import("../../utils/FieldImage");
 
     const resolved = await resolveFieldImage("schema.png", "global.png");
 
@@ -74,7 +74,7 @@ describe("resolveFieldImage", () => {
     // The QR case: a schema authored elsewhere routinely names an image the reader has
     // never seen, and the Auto screen still has to be drawable.
     stored.add("field-images/global.png");
-    const { resolveFieldImage } = await import("./FieldImage");
+    const { resolveFieldImage } = await import("../../utils/FieldImage");
 
     const resolved = await resolveFieldImage("absent.png", "global.png");
 
@@ -84,7 +84,7 @@ describe("resolveFieldImage", () => {
   });
 
   it("falls back to the bundled field when nothing is stored", async () => {
-    const { resolveFieldImage, DEFAULT_FIELD_IMAGE_URL } = await import("./FieldImage");
+    const { resolveFieldImage, DEFAULT_FIELD_IMAGE_URL } = await import("../../utils/FieldImage");
 
     const resolved = await resolveFieldImage(undefined, "");
 
@@ -94,7 +94,7 @@ describe("resolveFieldImage", () => {
   });
 
   it("does not flag a fallback the schema never asked for", async () => {
-    const { resolveFieldImage } = await import("./FieldImage");
+    const { resolveFieldImage } = await import("../../utils/FieldImage");
 
     // fellBack means "your schema asked for something specific and did not get it",
     // not "no custom image is configured" — the alert would otherwise cry wolf on

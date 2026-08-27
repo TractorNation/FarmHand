@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildPersistedEntries, nextMatchNumber } from "./matchAdvance";
+import { buildPersistedEntries, nextMatchNumber } from "../../utils/matchAdvance";
 
 /**
  * Match-number advancement after "Complete & Next".
