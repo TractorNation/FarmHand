@@ -4,7 +4,7 @@ import {
   folderCodes,
   planMove,
   rootCodes,
-} from "./folderPlan";
+} from "../../utils/folderPlan";
 
 /**
  * Folder membership arithmetic.

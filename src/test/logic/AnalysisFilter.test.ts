@@ -15,12 +15,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const decode = vi.hoisted(() => ({ decodeQR: vi.fn() }));
 
-vi.mock("./QrUtils", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("./QrUtils")>()),
+vi.mock("../../utils/QrUtils", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../../utils/QrUtils")>()),
   decodeQR: decode.decodeQR,
 }));
 
-const { filterQrCodesForAnalysis } = await import("./AnalysisUtils");
+const { filterQrCodesForAnalysis } = await import("../../utils/AnalysisUtils");
 
 const HASH = "b0f68211";
 const OTHER_HASH = "deadbeef";
@@ -89,7 +89,7 @@ describe("no filters selected", () => {
 describe("schema hash", () => {
   it("excludes a code recorded against a different schema", async () => {
     const result = await filterQrCodesForAnalysis(
-      [code("a"), code("b", OTHER_HASH)],
+      [code("a", HASH), code("b", OTHER_HASH)],
       analysis(),
       SCHEMA
     );

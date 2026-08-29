@@ -34,7 +34,7 @@ vi.mock("@tauri-apps/plugin-store", () => ({
 /** Fresh module instance, so the cached `store` singleton does not leak between tests. */
 async function freshStore() {
   vi.resetModules();
-  return await import("./StoreManager");
+  return await import("../../utils/StoreManager");
 }
 
 const folder = (id: string, qrCodes: string[] = [], archived = false): QrFolder => ({

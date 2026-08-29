@@ -9,7 +9,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
  * `document` rather than being skipped.
  *
  * `StoreManager` is mocked so the exact write payloads and call counts are
- * observable — several of these behaviours are "does *not* write" guarantees, which
+ * observable - several of these behaviors are "does *not* write" guarantees, which
  * a real store could not distinguish from a write that happened to change nothing.
  */
 
@@ -25,10 +25,10 @@ const qr = vi.hoisted(() => ({
   deleteQrCode: vi.fn(),
 }));
 
-vi.mock("../utils/StoreManager", () => ({ default: store }));
-vi.mock("../utils/QrUtils", () => qr);
+vi.mock("../../utils/StoreManager", () => ({ default: store }));
+vi.mock("../../utils/QrUtils", () => qr);
 
-const { useFolderManager } = await import("./useFolderManager");
+const { useFolderManager } = await import("../../hooks/useFolderManager");
 
 const folder = (
   id: string,

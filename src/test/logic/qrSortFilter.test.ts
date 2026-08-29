@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import { filterAndSortQrCodes } from "./qrSortFilter";
+import { filterAndSortQrCodes } from "../../utils/qrSortFilter";
 
 /**
  * The date filters shipped broken.

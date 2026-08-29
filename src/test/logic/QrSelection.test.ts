@@ -3,7 +3,7 @@ import {
   getDataFromQrName,
   getSchemaHashFromQrString,
   parseQrHeader,
-} from "./QrUtils";
+} from "../../utils/QrUtils";
 
 /**
  * Guards the schema-hash matching that drives "Select All" and every

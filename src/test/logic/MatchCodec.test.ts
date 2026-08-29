@@ -5,9 +5,9 @@ import {
   encodeMatchBody,
   measureMatchBits,
   orderedFields,
-} from "./MatchCodec";
-import { UNSET_OPTION } from "./fieldValidation";
-import { AutoPathValue } from "./PathCodec";
+} from "../../utils/MatchCodec";
+import { UNSET_OPTION } from "../../utils/fieldValidation";
+import { AutoPathValue } from "../../utils/PathCodec";
 
 /** A schema exercising every encodable field type. */
 const SCHEMA: Schema = {

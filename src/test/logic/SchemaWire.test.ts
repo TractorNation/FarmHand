@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { SERIALIZED_PROP_KEYS, UNSERIALIZED_PROPS, deminifySchema, minifySchema } from "./SchemaWire";
+import { SERIALIZED_PROP_KEYS, UNSERIALIZED_PROPS, deminifySchema, minifySchema } from "../../utils/SchemaWire";
 
 /**
  * Globbed here rather than imported from SchemaUtils, which pulls in plugin-fs and
@@ -8,7 +8,7 @@ import { SERIALIZED_PROP_KEYS, UNSERIALIZED_PROPS, deminifySchema, minifySchema 
  * covered by the round trip below without touching this file.
  */
 const bundledSchemas = Object.entries(
-  import.meta.glob<{ default: Schema }>("../config/schema/*.json", { eager: true })
+  import.meta.glob<{ default: Schema }>("../../config/schema/*.json", { eager: true })
 ).map(([path, module]) => ({ path, schema: module.default }));
 
 /** The shape check SchemaUtils filters on, so both agree on what counts as a schema. */
@@ -289,7 +289,7 @@ describe("built-in schemas survive a QR round trip", () => {
     // without this the whole describe would pass by simply not running.
     expect(bundledSchemas.length).toBeGreaterThan(0);
     for (const { path } of bundledSchemas) {
-      expect(path).toMatch(/^\.\.\/config\/schema\/.+\.json$/);
+      expect(path).toMatch(/^\.\.\/\.\.\/config\/schema\/.+\.json$/);
     }
   });
 

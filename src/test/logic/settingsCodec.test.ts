@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { coerceSetting } from "./settingsCodec";
-import { defaultSettings } from "../context/SettingsContext";
+import { coerceSetting } from "../../utils/settingsCodec";
+import { defaultSettings } from "../../context/SettingsContext";
 
 /**
  * Settings persist as strings and are coerced back by the *type of their default* —

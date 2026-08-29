@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { indexToCoordinate, parseGridData, parseGridToNumber } from "./grid";
+import { indexToCoordinate, parseGridData, parseGridToNumber } from "../../utils/grid";
 
 /**
  * A grid stores as `"<rows>x<cols>:[<checked indices>]"`. Four subsystems read that

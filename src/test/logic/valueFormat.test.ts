@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatTime, getMatchSortKey, parseTime } from "./valueFormat";
+import { formatTime, getMatchSortKey, parseTime } from "../../utils/valueFormat";
 
 /**
  * `parseTime` and `formatTime` are documented as exact inverses, and both the match

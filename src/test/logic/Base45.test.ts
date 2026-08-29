@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { crc8, decodeBase45, encodeBase45 } from "./Base45";
+import { crc8, decodeBase45, encodeBase45 } from "../../utils/Base45";
 
 const utf8 = (s: string) => new TextEncoder().encode(s);
 const str = (b: Uint8Array) => new TextDecoder().decode(b);

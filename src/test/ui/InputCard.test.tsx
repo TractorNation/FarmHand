@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { screen } from "@testing-library/react";
-import InputCard from "./InputCard";
-import ValidationProvider from "../context/ValidationContext";
-import { renderWithTheme } from "../test/renderWithTheme";
+import InputCard from "../../ui/InputCard";
+import ValidationProvider from "../../context/ValidationContext";
+import { renderWithTheme } from "../renderWithTheme";
 
 /**
  * The card wrapping every scouting field.

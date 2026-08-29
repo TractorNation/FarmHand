@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EmbedDataInSvg, GetDescFromSvg } from "./svgPayload";
+import { EmbedDataInSvg, GetDescFromSvg } from "../../utils/svgPayload";
 
 /**
  * A saved QR code is an SVG that carries its own source string in a `<desc>` CDATA

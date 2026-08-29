@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { decodeMatchBody, encodeMatchBody, orderedFields } from "./MatchCodec";
-import { encodeBatchBody, decodeBatchBody } from "./BatchCodec";
-import { buildJsonRecord, planMatchExport } from "./ExportPlan";
+import { decodeMatchBody, encodeMatchBody, orderedFields } from "../../utils/MatchCodec";
+import { encodeBatchBody, decodeBatchBody } from "../../utils/BatchCodec";
+import { buildJsonRecord, planMatchExport } from "../../utils/ExportPlan";
 
 /**
  * "Never recorded" must stay distinguishable from a real value.
