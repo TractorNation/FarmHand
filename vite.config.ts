@@ -36,6 +36,12 @@ export default defineConfig({
   },
 
   test: {
+    coverage: {
+      // you can include other reporters, but 'json-summary' is required, json is recommended
+      reporter: ['text', 'json-summary', 'json'],
+      // If you want a coverage reports even if your tests are failing, include the reportOnFailure option
+      reportOnFailure: true,
+    }
     // Two projects rather than one jsdom environment for everything: the logic suites
     // (codecs, parsers, aggregation) need no DOM and run in well under a second, and
     // paying jsdom startup per file would give that up for nothing.
