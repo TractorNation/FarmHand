@@ -15,7 +15,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const decode = vi.hoisted(() => ({ decodeQR: vi.fn() }));
 
-vi.mock("./QrUtils", async (importOriginal) => ({
+vi.mock("../../utils/QrUtils", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../../utils/QrUtils")>()),
   decodeQR: decode.decodeQR,
 }));

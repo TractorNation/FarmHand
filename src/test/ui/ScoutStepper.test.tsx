@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import ScoutStepper from "./ScoutStepper";
+import ScoutStepper from "../../ui/scout/ScoutStepper";
 import { setViewport } from "../../test/viewport";
 
 /**

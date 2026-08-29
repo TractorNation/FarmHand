@@ -13,7 +13,7 @@
     "start-ios": "npm run tauri ios dev",
     "start-android": "npm run tauri android dev",
     "reset-ios": "xcrun simctl shutdown all && xcrun simctl erase all",
-    "test": "vitest run",
+    "test": "vitest run --coverage",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src",

@@ -2,6 +2,11 @@ name: Run test cases
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - dev
+      - main
+      - feature/**
   pull_request:
     branches:
       - dev
@@ -26,3 +31,9 @@ jobs:
 
       - name: Run tests
         run: npm test -- --coverage
+      
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: coverage

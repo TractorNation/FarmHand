@@ -31,7 +31,7 @@ vi.mock("@tauri-apps/plugin-fs", () => ({
   readDir: async () => [],
 }));
 
-vi.mock("../assets/images/FieldDefault.png?url", () => ({ default: "/bundled-field.png" }));
+vi.mock("../../assets/images/FieldDefault.png?url", () => ({ default: "/bundled-field.png" }));
 
 const tauriConfig = JSON.parse(
   readFileSync(resolvePath(__dirname, "../../../src-tauri/tauri.conf.json"), "utf8")

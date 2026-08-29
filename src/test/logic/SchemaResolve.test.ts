@@ -9,14 +9,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
  * it, and neither catches a schema that happens to have a compatible bit layout.
  *
  * The three lookups exist because the same schema can legitimately have two hashes —
- * an imported copy is normalised by minifySchema and so hashes differently from the
+ * an imported copy is normalized by minifySchema and so hashes differently from the
  * device that stamped the codes.
  */
 
 const wire = vi.hoisted(() => ({ createSchemaHash: vi.fn() }));
 const fs = vi.hoisted(() => ({ exists: vi.fn(), readTextFile: vi.fn() }));
 
-vi.mock("./SchemaWire", () => wire);
+vi.mock("../../utils/SchemaWire", () => wire);
 vi.mock("@tauri-apps/plugin-fs", () => ({
   ...fs,
   mkdir: vi.fn(),

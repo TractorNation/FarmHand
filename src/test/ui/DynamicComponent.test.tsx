@@ -25,7 +25,9 @@ vi.mock("../../context/ScoutDataContext", () => ({
 }));
 
 // Imported after the mock so the component picks it up.
-const { default: DynamicComponent } = await import("./DynamicComponent");
+const { default: DynamicComponent } = await import(
+  "../../ui/components/DynamicComponent"
+);
 
 function makeScoutData(over: Record<string, any> = {}) {
   return {
@@ -45,7 +47,13 @@ function makeScoutData(over: Record<string, any> = {}) {
 }
 
 const field = (over: Partial<Component>): Component =>
-  ({ id: 1, name: "Field", type: "text", required: false, ...over }) as Component;
+  ({
+    id: 1,
+    name: "Field",
+    type: "text",
+    required: false,
+    ...over,
+  } as Component);
 
 function renderField(component: Component, submitted = false) {
   return render(
@@ -90,22 +98,34 @@ describe("widget dispatch", () => {
 
   it("renders a select for a dropdown component", async () => {
     renderField(
-      field({ type: "dropdown", name: "Position", props: { options: ["1", "2"] } })
+      field({
+        type: "dropdown",
+        name: "Position",
+        props: { options: ["1", "2"] },
+      })
     );
     expect(await screen.findByRole("combobox")).toBeInTheDocument();
   });
 
   it("renders radio buttons for a multiple choice component", async () => {
     renderField(
-      field({ type: "multiplechoice", name: "Auto", props: { options: ["A", "B"] } })
+      field({
+        type: "multiplechoice",
+        name: "Auto",
+        props: { options: ["A", "B"] },
+      })
     );
     expect(await screen.findAllByRole("radio")).toHaveLength(2);
   });
 
   it("renders nothing for a filler, which is a layout spacer", async () => {
-    const { container } = renderField(field({ type: "filler", name: "Spacer" }));
+    const { container } = renderField(
+      field({ type: "filler", name: "Spacer" })
+    );
     await waitFor(() => {
-      expect(container.querySelector(".MuiSkeleton-root")).not.toBeInTheDocument();
+      expect(
+        container.querySelector(".MuiSkeleton-root")
+      ).not.toBeInTheDocument();
     });
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
     expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
@@ -114,7 +134,9 @@ describe("widget dispatch", () => {
   it("reports an unknown type rather than rendering nothing silently", async () => {
     // A schema written by a newer build can name a type this one does not have.
     renderField(field({ type: "somethingNew" as any, name: "Future" }));
-    expect(await screen.findByText(/unknown component type/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/unknown component type/i)
+    ).toBeInTheDocument();
   });
 });
 
@@ -170,7 +192,9 @@ describe("empty-state defaults", () => {
     // win over the default rather than being treated as empty. Only meaningful once
     // settled: `outlined` is also what the pre-settle null render shows, so asserting
     // it early would pass even if the default had won.
-    scoutData.current = makeScoutData({ getMatchData: vi.fn(async () => false) });
+    scoutData.current = makeScoutData({
+      getMatchData: vi.fn(async () => false),
+    });
     await renderSettled(field({ type: "checkbox", props: { default: true } }));
 
     expect(screen.getByRole("button")).toHaveClass("MuiButton-outlined");
@@ -196,7 +220,9 @@ describe("empty-state defaults", () => {
     scoutData.current = makeScoutData({
       getMatchData: vi.fn(async () => "2x2:[1]"),
     });
-    renderField(field({ type: "grid", required: true, props: { rows: 2, cols: 2 } }));
+    renderField(
+      field({ type: "grid", required: true, props: { rows: 2, cols: 2 } })
+    );
 
     await waitFor(() => {
       expect(scoutData.current.getMatchData).toHaveBeenCalled();
@@ -321,7 +347,11 @@ describe("TBA-backed fields", () => {
       getAllMatchNumbers: () => tba.matchNumbers,
     });
     renderField(
-      field({ type: "number", name: "Match Number", props: { pullFromTBA: true } })
+      field({
+        type: "number",
+        name: "Match Number",
+        props: { pullFromTBA: true },
+      })
     );
 
     const input = await screen.findByRole("combobox");
@@ -356,7 +386,11 @@ describe("TBA-backed fields", () => {
       getTeamForCurrentSlot: () => "254",
     });
     renderField(
-      field({ type: "number", name: "Team Number", props: { pullFromTBA: true } })
+      field({
+        type: "number",
+        name: "Team Number",
+        props: { pullFromTBA: true },
+      })
     );
 
     await waitFor(() => {
@@ -372,7 +406,11 @@ describe("TBA-backed fields", () => {
       getTeamForCurrentSlot: () => "254",
     });
     renderField(
-      field({ type: "number", name: "Team Number", props: { pullFromTBA: true } })
+      field({
+        type: "number",
+        name: "Team Number",
+        props: { pullFromTBA: true },
+      })
     );
 
     expect(await screen.findByRole("combobox")).toBeDisabled();
@@ -385,7 +423,11 @@ describe("TBA-backed fields", () => {
       getTeamForCurrentSlot: () => null,
     });
     renderField(
-      field({ type: "number", name: "Team Number", props: { pullFromTBA: true } })
+      field({
+        type: "number",
+        name: "Team Number",
+        props: { pullFromTBA: true },
+      })
     );
 
     expect(await screen.findByRole("combobox")).toBeEnabled();
@@ -402,7 +444,11 @@ describe("TBA-backed fields", () => {
       getTeamForCurrentSlot: () => "254",
     });
     renderField(
-      field({ type: "number", name: "Team Number", props: { pullFromTBA: true } })
+      field({
+        type: "number",
+        name: "Team Number",
+        props: { pullFromTBA: true },
+      })
     );
 
     await waitFor(() => {
@@ -456,7 +502,11 @@ describe("accessible names", () => {
 
   it("names a dropdown after the field", async () => {
     renderField(
-      field({ type: "dropdown", name: "Climb", props: { options: ["Yes", "No"] } })
+      field({
+        type: "dropdown",
+        name: "Climb",
+        props: { options: ["Yes", "No"] },
+      })
     );
     expect(await screen.findByLabelText("Climb")).toBeInTheDocument();
   });
@@ -487,17 +537,27 @@ describe("accessible names", () => {
 
   it("gives the counter's icon-only buttons distinct names", async () => {
     // Two unnamed icon buttons either side of a number are indistinguishable.
-    renderField(field({ type: "counter", name: "Points", props: { min: 0, max: 9 } }));
+    renderField(
+      field({ type: "counter", name: "Points", props: { min: 0, max: 9 } })
+    );
 
-    expect(await screen.findByRole("button", { name: "Increase" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Decrease" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("button", { name: "Increase" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Decrease" })
+    ).toBeInTheDocument();
   });
 
   it("gives the timer's icon-only buttons action names", async () => {
     renderField(field({ type: "timer", name: "Cycle" }));
 
-    expect(await screen.findByRole("button", { name: "Start timer" })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Reset timer" })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("button", { name: "Start timer" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Reset timer" })
+    ).toBeInTheDocument();
   });
 });
 
@@ -522,7 +582,9 @@ describe("load states", () => {
       });
       renderField(field({ type: "text" }));
 
-      expect(await screen.findByText(/error loading data/i)).toBeInTheDocument();
+      expect(
+        await screen.findByText(/error loading data/i)
+      ).toBeInTheDocument();
       expect(logged).toHaveBeenCalled();
     } finally {
       logged.mockRestore();

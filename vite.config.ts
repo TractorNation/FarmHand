@@ -1,13 +1,12 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
-// @ts-expect-error process is a nodejs global
 const host = process.env.TAURI_DEV_HOST;
 
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
-
+  
   resolve: {
     extensions: [".mjs", ".js", ".mts", ".ts", ".jsx", ".tsx", ".json"],
     // Ensure proper resolution of TypeScript files
@@ -47,14 +46,20 @@ export default defineConfig({
       {
         test: {
           name: "logic",
-          include: ["src/**/*.test.ts"],
+          include: [
+            "src/test/logic/*.test.ts",
+            "src/analysis/**/*.test.ts",
+          ],
           environment: "node",
         },
       },
       {
         test: {
           name: "ui",
-          include: ["src/**/*.test.tsx"],
+          include: [
+            "src/test/ui/*.test.tsx",
+            "src/test/smoke.test.tsx",
+          ],
           environment: "jsdom",
           setupFiles: ["./src/test/setup.ts"],
         },
