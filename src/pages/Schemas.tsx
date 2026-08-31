@@ -235,7 +235,7 @@ export default function Schemas() {
         </Paper>
       ) : (
         <Stack spacing={2} sx={{ mb: 3 }}>
-          {availableSchemas.map((s, i) => (
+          {availableSchemas.sort((a, b) => a.name.localeCompare(b.name)).map((s, i) => (
             <Card
               key={i}
               elevation={0}
