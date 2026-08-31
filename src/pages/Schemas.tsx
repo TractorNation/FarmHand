@@ -31,7 +31,6 @@ import DeleteDialog from "../ui/dialog/DeleteDialog";
 import DuplicateNameDialog from "../ui/dialog/DuplicateNameDialog";
 import ShareDialog from "../ui/dialog/ShareDialog";
 import SchemaHashChip from "../ui/SchemaHashChip";
-import useToggle from "../hooks/useToggle";
 
 export default function Schemas() {
   const theme = useTheme();
@@ -46,11 +45,12 @@ export default function Schemas() {
   } = useSchema();
   const [shareDialogOpen, openShareDialog, closeShareDialog] = useDialog();
   const [schemaToShare, setSchemaToShare] = useState<Schema | null>(null);
+  const [schemaToCopy, setSchemaToCopy] = useState<Schema | null>(null);
   const [warningOpen, , closeWarning] = useDialog(showWarning || false);
-  const [copySuccess, toggleCopySuccess] = useToggle(false);
 
   const [newSchemaDialogOpen, openNewSchemaDialog, closeNewSchemaDialog] =
     useDialog();
+  const [copyDialogOpen, openCopyDialog, closeCopyDialog] = useDialog();
   const [
     schemaRenameDialogOpen,
     openSchemaRenameDialog,
@@ -120,21 +120,26 @@ export default function Schemas() {
     await refreshSchemas();
   };
 
-  const handleCopySchema = async (schemaToCopy: Schema) => {
-    let trimmedName = `${schemaToCopy.name} - Copy`.trim();
+  const handleCopySchema = async (newSchemaName: string) => {
+    const trimmedName = newSchemaName.trim();
+    if (!trimmedName) return;
 
-    // Make sure the name is always unique
-    while (checkSchemaNameExists(trimmedName)) {
-      trimmedName = `${trimmedName} - Copy`.trim();
+    if (checkSchemaNameExists(trimmedName)) {
+      setDuplicateNameError(`Schema "${trimmedName}" already exists`);
+      openDuplicateNameDialog();
+      return;
+    }
+
+    if (schemaToCopy === null) {
+      return;
     }
 
     await saveSchema({
       ...schemaToCopy,
       name: trimmedName,
     });
-    closeNewSchemaDialog();
+    closeCopyDialog();
     await refreshSchemas();
-    toggleCopySuccess();
   };
 
   const handleRenameSchema = async (newSchemaName: string) => {
@@ -235,111 +240,114 @@ export default function Schemas() {
         </Paper>
       ) : (
         <Stack spacing={2} sx={{ mb: 3 }}>
-          {availableSchemas.sort((a, b) => a.name.localeCompare(b.name)).map((s, i) => (
-            <Card
-              key={i}
-              elevation={0}
-              sx={{
-                border: `2px solid ${theme.palette.divider}`,
-                borderRadius: 3,
-                transition: "all 0.3s ease",
-                px: 2,
-                py: 2,
-                cursor: "pointer",
-                "&:hover": {
-                  borderColor: theme.palette.primary.main,
-                  boxShadow: `0 4px 12px ${theme.palette.primary.main}20`,
-                },
-              }}
-              onClick={() => handleEditSchema(s.name)}
-            >
-              <Stack
-                direction={"row"}
-                alignItems={"center"}
-                justifyContent={"space-between"}
-                spacing={2}
-                sx={{ mb: 1, width: "100%" }}
+          {availableSchemas
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .map((s, i) => (
+              <Card
+                key={i}
+                elevation={0}
+                sx={{
+                  border: `2px solid ${theme.palette.divider}`,
+                  borderRadius: 3,
+                  transition: "all 0.3s ease",
+                  px: 2,
+                  py: 2,
+                  cursor: "pointer",
+                  "&:hover": {
+                    borderColor: theme.palette.primary.main,
+                    boxShadow: `0 4px 12px ${theme.palette.primary.main}20`,
+                  },
+                }}
+                onClick={() => handleEditSchema(s.name)}
               >
-                <Stack direction={"column"} sx={{ minWidth: 0 }}>
-                  <Typography variant="h6" noWrap>
-                    {s.name}
-                  </Typography>
-                  <Stack
-                    direction={"row"}
-                    spacing={2}
-                    alignItems={"center"}
-                    sx={{ flexWrap: "wrap", rowGap: 0.5 }}
-                  >
-                    <Typography variant="body1" color="text.secondary">
-                      {s.schema.sections?.length || 0} sections
+                <Stack
+                  direction={"row"}
+                  alignItems={"center"}
+                  justifyContent={"space-between"}
+                  spacing={2}
+                  sx={{ mb: 1, width: "100%" }}
+                >
+                  <Stack direction={"column"} sx={{ minWidth: 0 }}>
+                    <Typography variant="h6" noWrap>
+                      {s.name}
                     </Typography>
-                    {/* The hash is this schema's identity on the wire: it is what
+                    <Stack
+                      direction={"row"}
+                      spacing={2}
+                      alignItems={"center"}
+                      sx={{ flexWrap: "wrap", rowGap: 0.5 }}
+                    >
+                      <Typography variant="body1" color="text.secondary">
+                        {s.schema.sections?.length || 0} sections
+                      </Typography>
+                      {/* The hash is this schema's identity on the wire: it is what
                         saved match codes carry, and it changes with any edit. */}
-                    <SchemaHashChip hash={hashesByName.get(s.name) ?? null} />
-                    {s.type === "default" && (
-                      <Box>
-                        {s.type === "default" && (
-                          <Chip
-                            label="Built-in"
-                            size="small"
-                            sx={{
-                              backgroundColor: theme.palette.info.main,
-                              color: theme.palette.info.contrastText,
-                              fontWeight: 600,
-                              fontFamily: theme.typography.body1,
+                      <SchemaHashChip hash={hashesByName.get(s.name) ?? null} />
+                      {s.type === "default" && (
+                        <Box>
+                          {s.type === "default" && (
+                            <Chip
+                              label="Built-in"
+                              size="small"
+                              sx={{
+                                backgroundColor: theme.palette.info.main,
+                                color: theme.palette.info.contrastText,
+                                fontWeight: 600,
+                                fontFamily: theme.typography.body1,
+                              }}
+                            />
+                          )}
+                        </Box>
+                      )}
+                    </Stack>
+                  </Stack>
+                  <Stack direction={"row"} spacing={1}>
+                    <>
+                      <IconButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSchemaToCopy(s.schema);
+                          openCopyDialog();
+                        }}
+                      >
+                        <ContentCopyIcon />
+                      </IconButton>
+                      <IconButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSchemaToShare(s.schema);
+                          openShareDialog();
+                        }}
+                      >
+                        <ShareIcon />
+                      </IconButton>
+                      {!(s.type === "default") && (
+                        <Box>
+                          <IconButton
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSchemaToRename(s);
+                              openSchemaRenameDialog();
                             }}
-                          />
-                        )}
-                      </Box>
-                    )}
+                          >
+                            <EditIcon />
+                          </IconButton>
+                          <IconButton
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSchemaToDelete(s);
+                              openDeleteSchemaDialog();
+                            }}
+                          >
+                            <DeleteIcon />
+                          </IconButton>
+                        </Box>
+                      )}
+                    </>
                   </Stack>
                 </Stack>
-                <Stack direction={"row"} spacing={1}>
-                  <>
-                    <IconButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCopySchema(s.schema);
-                      }}
-                    >
-                      <ContentCopyIcon />
-                    </IconButton>
-                    <IconButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSchemaToShare(s.schema);
-                        openShareDialog();
-                      }}
-                    >
-                      <ShareIcon />
-                    </IconButton>
-                    {!(s.type === "default") && (
-                      <Box>
-                        <IconButton
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSchemaToRename(s);
-                            openSchemaRenameDialog();
-                          }}
-                        >
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSchemaToDelete(s);
-                            openDeleteSchemaDialog();
-                          }}
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </Box>
-                    )}
-                  </>
-                </Stack>
-              </Stack>
-            </Card>
-          ))}
+              </Card>
+            ))}
         </Stack>
       )}
 
@@ -357,18 +365,6 @@ export default function Schemas() {
         Create New Schema
       </Button>
 
-      <Snackbar
-        open={copySuccess}
-        onClose={toggleCopySuccess}
-        autoHideDuration={1200}
-        slots={{ transition: Slide }}
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
-      >
-        <Alert onClose={toggleCopySuccess} severity="success" variant="filled">
-          Schema copied successfully!
-        </Alert>
-      </Snackbar>
-
       {/* New Schema Dialog */}
       <CreateDialog
         open={newSchemaDialogOpen}
@@ -378,6 +374,26 @@ export default function Schemas() {
         label="Schema Name"
         actionButtonText="Create"
       />
+
+      {/*Copy Schema Dialog */}
+      <CreateDialog
+        open={copyDialogOpen}
+        onClose={closeCopyDialog}
+        onCreate={handleCopySchema}
+        title="Copy Schema"
+        label="New Schema Name"
+        actionButtonText="Copy"
+        textBoxPlaceHolder={(() => {
+          var trimmedName = schemaToCopy?.name.trim() || "";
+          if (!trimmedName) return "";
+          var copyName = `${trimmedName} - Copy`;
+          while (checkSchemaNameExists(copyName)) {
+            copyName = `${copyName} - Copy`;
+          }
+          return copyName;
+        })()}
+      />
+
       {/* Rename Schema Dialog */}
       <RenameDialog
         open={schemaRenameDialogOpen}

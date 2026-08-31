@@ -16,15 +16,18 @@ interface CreateDialogProps {
   title: string;
   label: string;
   actionButtonText?: string;
+  textBoxPlaceHolder?: string;
 }
 
 export default function CreateDialog(props: CreateDialogProps) {
-  const { open, onClose, onCreate, title, label, actionButtonText } = props;
-  const [name, setName] = useState("");
+  const { open, onClose, onCreate, title, label, actionButtonText, textBoxPlaceHolder = "" } = props;
+  const [name, setName] = useState(textBoxPlaceHolder);
 
   useEffect(() => {
-    if (open) {
+    if (open && !textBoxPlaceHolder) {
       setName(""); // Reset when dialog opens
+    } else if (open && textBoxPlaceHolder) {
+      setName(textBoxPlaceHolder); // Set to placeholder when dialog opens
     }
   }, [open]);
 
