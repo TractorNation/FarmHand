@@ -16,6 +16,7 @@ import {
 import { useLocation, useNavigate } from "react-router";
 import AddIcon from "@mui/icons-material/AddRounded";
 import ArrowBackIcon from "@mui/icons-material/ArrowBackRounded";
+import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import EditIcon from "@mui/icons-material/EditRounded";
 import DeleteIcon from "@mui/icons-material/DeleteRounded";
 import SchemaIcon from "@mui/icons-material/SchemaRounded";
@@ -30,6 +31,7 @@ import DeleteDialog from "../ui/dialog/DeleteDialog";
 import DuplicateNameDialog from "../ui/dialog/DuplicateNameDialog";
 import ShareDialog from "../ui/dialog/ShareDialog";
 import SchemaHashChip from "../ui/SchemaHashChip";
+import useToggle from "../hooks/useToggle";
 
 export default function Schemas() {
   const theme = useTheme();
@@ -45,6 +47,7 @@ export default function Schemas() {
   const [shareDialogOpen, openShareDialog, closeShareDialog] = useDialog();
   const [schemaToShare, setSchemaToShare] = useState<Schema | null>(null);
   const [warningOpen, , closeWarning] = useDialog(showWarning || false);
+  const [copySuccess, toggleCopySuccess] = useToggle(false);
 
   const [newSchemaDialogOpen, openNewSchemaDialog, closeNewSchemaDialog] =
     useDialog();
@@ -100,7 +103,7 @@ export default function Schemas() {
               name: "Match Number",
               type: "number",
               required: true,
-              props: { min: 1, max:  100},
+              props: { min: 1, max: 100 },
             },
             {
               id: 2,
@@ -115,6 +118,23 @@ export default function Schemas() {
     } as Schema);
     closeNewSchemaDialog();
     await refreshSchemas();
+  };
+
+  const handleCopySchema = async (schemaToCopy: Schema) => {
+    let trimmedName = `${schemaToCopy.name} - Copy`.trim();
+
+    // Make sure the name is always unique
+    while (checkSchemaNameExists(trimmedName)) {
+      trimmedName = `${trimmedName} - Copy`.trim();
+    }
+
+    await saveSchema({
+      ...schemaToCopy,
+      name: trimmedName,
+    });
+    closeNewSchemaDialog();
+    await refreshSchemas();
+    toggleCopySuccess();
   };
 
   const handleRenameSchema = async (newSchemaName: string) => {
@@ -139,6 +159,7 @@ export default function Schemas() {
       ...schemaToRename.schema,
       name: trimmedName,
     };
+
     await saveSchema(newSchema);
     await deleteSchema(schemaToRename);
 
@@ -278,6 +299,14 @@ export default function Schemas() {
                     <IconButton
                       onClick={(e) => {
                         e.stopPropagation();
+                        handleCopySchema(s.schema);
+                      }}
+                    >
+                      <ContentCopyIcon />
+                    </IconButton>
+                    <IconButton
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setSchemaToShare(s.schema);
                         openShareDialog();
                       }}
@@ -328,6 +357,18 @@ export default function Schemas() {
         Create New Schema
       </Button>
 
+      <Snackbar
+        open={copySuccess}
+        onClose={toggleCopySuccess}
+        autoHideDuration={1200}
+        slots={{ transition: Slide }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert onClose={toggleCopySuccess} severity="success" variant="filled">
+          Schema copied successfully!
+        </Alert>
+      </Snackbar>
+
       {/* New Schema Dialog */}
       <CreateDialog
         open={newSchemaDialogOpen}
@@ -337,7 +378,6 @@ export default function Schemas() {
         label="Schema Name"
         actionButtonText="Create"
       />
-
       {/* Rename Schema Dialog */}
       <RenameDialog
         open={schemaRenameDialogOpen}
