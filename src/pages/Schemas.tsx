@@ -384,7 +384,7 @@ export default function Schemas() {
         label="New Schema Name"
         actionButtonText="Copy"
         textBoxPlaceHolder={(() => {
-          var trimmedName = schemaToCopy?.name.trim() || "";
+          let trimmedName = schemaToCopy?.name.trim() || "";
           if (!trimmedName) return "";
           var copyName = `${trimmedName} - Copy`;
           while (checkSchemaNameExists(copyName)) {
