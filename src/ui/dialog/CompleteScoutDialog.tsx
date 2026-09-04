@@ -4,14 +4,15 @@ import {
   Typography,
   Button,
   useTheme,
-  useMediaQuery,
   Box,
   DialogTitle,
+  Stack,
 } from "@mui/material";
 import CheckCircleIcon from "@mui/icons-material/CheckCircleRounded";
 import CloseIcon from "@mui/icons-material/CloseRounded";
+import TouchAppIcon from "@mui/icons-material/TouchAppRounded";
 import { saveQrCode } from "../../utils/QrUtils";
-import MatchDataReview from "../scout/MatchDataReview";
+import QrCode from "../qr/ClickableQrCode";
 
 interface CompleteScoutDialogProps {
   open: boolean;
@@ -28,12 +29,9 @@ export default function CompleteScoutDialog({
   onClose,
   onComplete,
   qrCode,
-  schema,
-  matchData,
   autosave,
 }: CompleteScoutDialogProps) {
   const theme = useTheme();
-  const isLandscape = useMediaQuery("(orientation: landscape)");
 
   const handleComplete = async () => {
     if (autosave) {
@@ -64,77 +62,50 @@ export default function CompleteScoutDialog({
       <DialogTitle
         sx={{
           fontWeight: 600,
-          pb: 1,
+          pb: 0.5,
+          textAlign: "center",
         }}
       >
         Complete Scout
       </DialogTitle>
-      <DialogContent
-        sx={{
-          display: "flex",
-          flexDirection: isLandscape ? "row" : "column",
-          gap: 3,
-          overflow: "auto",
-          flex: 1,
-        }}
-      >
-        {/* QR Code Section */}
-        <Box
-          sx={{
-            flexShrink: 1, // Changed from 0 to 1
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 2,
-            minWidth: isLandscape ? "100px" : "100%", // Reduced from 300px
-            maxWidth: isLandscape ? "30%" : "100%", // Added max width constraint
-          }}
-        >
+      <DialogContent sx={{ pt: 0, pb: 3 }}>
+        <Stack spacing={2.5} alignItems="center">
+          {/* The card keeps the QR visually separate from the dialog chrome. */}
           <Box
             sx={{
-              borderRadius: 3,  
-              overflow: "hidden",
-              border: `2px solid ${theme.palette.divider}`,
-              boxShadow: `0 4px 12px ${theme.palette.primary.main}15`,
-              position: "relative",
+              width: "min(100%, 340px)",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
             }}
           >
-            <img
-              src={`data:image/svg+xml;base64,${btoa(qrCode.image)}`}
-              alt="QR Code"
-              style={{
-                width: "100%", // Changed from fixed values
-                maxWidth: isLandscape ? "250px" : "400px", // Responsive max width
-                display: "block",
-              }}
+            <QrCode
+              data={qrCode.image}
             />
           </Box>
           <Typography
             variant="body2"
-            color="text.secondary"
+            color="text.primary"
             textAlign="center"
-            sx={{ maxWidth: "300px" }}
+            sx={{ fontWeight: 600, overflowWrap: "anywhere" }}
           >
             {qrCode.name}
           </Typography>
-        </Box>
 
-        {/* Data Overview Section */}
-        <Box
-          sx={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            minWidth: 0,
-            overflow: "auto",
-          }}
-        >
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-            Match Data Overview
-          </Typography>
-          <MatchDataReview schema={schema} values={matchData} />
-        </Box>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0.75,
+              color: "text.secondary",
+            }}
+          >
+            <TouchAppIcon fontSize="small" />
+            <Typography variant="body2" textAlign="center">
+              Tap the QR code to enlarge it for scanning
+            </Typography>
+          </Box>
+        </Stack>
       </DialogContent>
 
       {/* Actions */}
