@@ -20,6 +20,7 @@ import { useState, useEffect, useMemo } from "react";
 import DownloadIcon from "@mui/icons-material/DownloadRounded";
 import CopyIcon from "@mui/icons-material/ContentCopyRounded";
 import DeleteIcon from "@mui/icons-material/DeleteRounded";
+import TouchAppIcon from "@mui/icons-material/TouchAppRounded";
 import ArchiveIcon from "@mui/icons-material/ArchiveRounded";
 import UnarchiveIcon from "@mui/icons-material/UnarchiveRounded";
 import CheckCircleIcon from "@mui/icons-material/CheckCircleRounded";
@@ -48,6 +49,7 @@ import MatchPreviewPanel from "../scout/MatchPreviewPanel";
 import { formatValue } from "../scout/MatchDataReview";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import useDialog from "../../hooks/useDialog";
+import QrCode from "../qr/ClickableQrCode";
 
 interface ShareDialogProps {
   open: boolean;
@@ -197,7 +199,7 @@ export default function ShareDialog(props: ShareDialogProps) {
   const currentIndex = useMemo(() => {
     if (!currentQrCode || !navigationQrCodesSync.length) return -1;
     return navigationQrCodesSync.findIndex(
-      (qr) => qr.name === currentQrCode.name
+      (qr) => qr.name === currentQrCode.name,
     );
   }, [currentQrCode, navigationQrCodesSync]);
 
@@ -244,7 +246,7 @@ export default function ShareDialog(props: ShareDialogProps) {
           } else {
             await markQrCodeAsUnscanned(qrCode.name);
           }
-        })
+        }),
       );
 
       // Clear pending changes
@@ -326,7 +328,7 @@ export default function ShareDialog(props: ShareDialogProps) {
     try {
       const decoded = await decodeQrWithSchemas(
         displayQrCode.data,
-        availableSchemas
+        availableSchemas,
       );
       const hash = getSchemaHashFromQrString(displayQrCode.data) ?? "";
       const codeSchema = await getSchemaFromHash(hash, availableSchemas);
@@ -335,7 +337,7 @@ export default function ShareDialog(props: ShareDialogProps) {
         await writeText(displayQrCode.data);
       } else {
         const values = matchDataJsonToMap(
-          reconstructMatchDataFromArray(codeSchema, decoded.data)
+          reconstructMatchDataFromArray(codeSchema, decoded.data),
         );
         const lines = codeSchema.sections.flatMap((section) => [
           `[${section.title}]`,
@@ -448,160 +450,174 @@ export default function ShareDialog(props: ShareDialogProps) {
                 : { width: "100%" }),
             }}
           >
-          {mode === "match" && (
-            <Tabs
-              value={activeTab}
-              onChange={(_, next) => setActiveTab(next)}
-              variant="fullWidth"
-            >
-              <Tab label="QR Code" value="qr" sx={{ minHeight: 48 }} />
-              <Tab label="Match Data" value="data" sx={{ minHeight: 48 }} />
-            </Tabs>
-          )}
+            {mode === "match" && (
+              <Tabs
+                value={activeTab}
+                onChange={(_, next) => setActiveTab(next)}
+                variant="fullWidth"
+              >
+                <Tab label="QR Code" value="qr" sx={{ minHeight: 48 }} />
+                <Tab label="Match Data" value="data" sx={{ minHeight: 48 }} />
+              </Tabs>
+            )}
 
-          {/*
+            {/*
             The scroller. Given a real height by the pane above rather than left to
             size itself: a flex child with overflow and no minHeight collapses to its
             content, and the match data ended up in a scroll box with no room to
             scroll in — top and bottom bounds landing on the same pixel.
           */}
-          <Box
-            sx={{
-              width: "100%",
-              ...(isLandscape
-                ? { flex: "1 1 auto", minHeight: 0, overflowY: "auto" }
-                : {}),
-            }}
-          >
-          {mode === "match" && activeTab === "data" ? (
-            <Box sx={{ width: "100%", overflow: isLandscape ? "visible" : "auto" }}>
-              <MatchPreviewPanel qrCode={currentQrCode!} />
-            </Box>
-          ) : (
-          <Box
-            sx={{
-              display: "flex",
-              flexDirection: isLandscape ? "row" : "column",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 3,
-              width: "100%",
-            }}
-          >
-          {/* QR Image with Navigation */}
-          <Box
-            sx={{
-              flexShrink: 0,
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              alignItems: "center",
-              gap: 1,
-            }}
-          >
-            {mode === "match" && navigationQrCodesSync.length > 1 && (
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 1,
-                  width: "100%",
-                }}
-              >
-                <IconButton
-                  onClick={handleNavigatePrevious}
-                  disabled={!canNavigatePrevious}
-                  sx={{
-                    color: theme.palette.primary.main,
-                    "&:disabled": {
-                      color: theme.palette.action.disabled,
-                    },
-                  }}
-                >
-                  <ArrowBackIcon />
-                </IconButton>
-                <Typography
-                  variant="body2"
-                  color="text.secondary"
-                  sx={{ minWidth: "80px", textAlign: "center" }}
-                >
-                  {currentIndex >= 0 && navigationQrCodesSync.length > 0
-                    ? `${currentIndex + 1} / ${navigationQrCodesSync.length}`
-                    : ""}
-                </Typography>
-                <IconButton
-                  onClick={handleNavigateNext}
-                  disabled={!canNavigateNext}
-                  sx={{
-                    color: theme.palette.primary.main,
-                    "&:disabled": {
-                      color: theme.palette.action.disabled,
-                    },
-                  }}
-                >
-                  <ArrowForwardIcon />
-                </IconButton>
-              </Box>
-            )}
             <Box
               sx={{
-                flexShrink: 0,
-                display: "flex",
-                justifyContent: "center",
-                alignItems: "center",
+                width: "100%",
+                ...(isLandscape
+                  ? { flex: "1 1 auto", minHeight: 0, overflowY: "auto" }
+                  : {}),
               }}
             >
-              {loading ? (
+              {mode === "match" && activeTab === "data" ? (
                 <Box
                   sx={{
-                    width: isLandscape ? "40vh" : "70vw",
-                    maxWidth: "min(300px, 100%)",
-                    aspectRatio: "1/1",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    border: `2px solid ${theme.palette.divider}`,
-                    borderRadius: 3,
+                    width: "100%",
+                    overflow: isLandscape ? "visible" : "auto",
                   }}
                 >
-                  <Typography variant="body1" color="text.secondary">
-                    Generating QR...
-                  </Typography>
-                </Box>
-              ) : qrCodeImage ? (
-                <Box
-                  sx={{
-                    borderRadius: 3,
-                    overflow: "hidden",
-                    border: `2px solid ${theme.palette.divider}`,
-                    boxShadow: `0 4px 12px ${theme.palette.primary.main}15`,
-                    position: "relative",
-                  }}
-                >
-                  <img
-                    src={`data:image/svg+xml;base64,${btoa(qrCodeImage)}`}
-                    alt="QR Code"
-                    style={{
-                      width: isLandscape ? "40vh" : "70vw",
-                      maxWidth: "min(300px, 100%)",
-                      display: "block",
-                    }}
-                  />
+                  <MatchPreviewPanel qrCode={currentQrCode!} />
                 </Box>
               ) : (
-                <Typography
-                  variant="subtitle1"
-                  sx={{ color: theme.palette.error.main }}
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: isLandscape ? "row" : "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 3,
+                    width: "100%",
+                  }}
                 >
-                  Failed to generate QR code
-                </Typography>
+                  {/* QR Image with Navigation */}
+                  <Box
+                    sx={{
+                      flexShrink: 0,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      gap: 1,
+                    }}
+                  >
+                    {mode === "match" && navigationQrCodesSync.length > 1 && (
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          gap: 1,
+                          width: "100%",
+                        }}
+                      >
+                        <IconButton
+                          onClick={handleNavigatePrevious}
+                          disabled={!canNavigatePrevious}
+                          sx={{
+                            color: theme.palette.primary.main,
+                            "&:disabled": {
+                              color: theme.palette.action.disabled,
+                            },
+                          }}
+                        >
+                          <ArrowBackIcon />
+                        </IconButton>
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          sx={{ minWidth: "80px", textAlign: "center" }}
+                        >
+                          {currentIndex >= 0 && navigationQrCodesSync.length > 0
+                            ? `${currentIndex + 1} / ${
+                                navigationQrCodesSync.length
+                              }`
+                            : ""}
+                        </Typography>
+                        <IconButton
+                          onClick={handleNavigateNext}
+                          disabled={!canNavigateNext}
+                          sx={{
+                            color: theme.palette.primary.main,
+                            "&:disabled": {
+                              color: theme.palette.action.disabled,
+                            },
+                          }}
+                        >
+                          <ArrowForwardIcon />
+                        </IconButton>
+                      </Box>
+                    )}
+                    <Box
+                      sx={{
+                        flexShrink: 0,
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                    >
+                      {loading ? (
+                        <Box
+                          sx={{
+                            width: isLandscape ? "40vh" : "70vw",
+                            maxWidth: "min(300px, 100%)",
+                            aspectRatio: "1/1",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            border: `2px solid ${theme.palette.divider}`,
+                            borderRadius: 3,
+                          }}
+                        >
+                          <Typography variant="body1" color="text.secondary">
+                            Generating QR...
+                          </Typography>
+                        </Box>
+                      ) : qrCodeImage ? (
+                        <Stack spacing={2.5} alignItems="center">
+                          <Box
+                            sx={{
+                              borderRadius: 3,
+                              overflow: "hidden",
+                              border: `2px solid ${theme.palette.divider}`,
+                              boxShadow: `0 4px 12px ${theme.palette.primary.main}15`,
+                              position: "relative",
+                            }}
+                          >
+                            <QrCode data={qrCodeImage} />
+                          </Box>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 0.75,
+                              color: "text.secondary",
+                            }}
+                          >
+                            <TouchAppIcon fontSize="small" />
+                            <Typography variant="body2" textAlign="center">
+                              Tap the QR code to enlarge it for scanning
+                            </Typography>
+                          </Box>
+                        </Stack>
+                      ) : (
+                        <Typography
+                          variant="subtitle1"
+                          sx={{ color: theme.palette.error.main }}
+                        >
+                          Failed to generate QR code
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+                </Box>
               )}
             </Box>
-          </Box>
-          </Box>
-          )}
-          </Box>
           </Box>
           {/* end content pane */}
 
@@ -769,7 +785,9 @@ export default function ShareDialog(props: ShareDialogProps) {
           <Dialog
             open={deletePopupOpen}
             onClose={closeDeletePopup}
-            slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 'fit-content' } } }}
+            slotProps={{
+              paper: { sx: { borderRadius: 3, minWidth: "fit-content" } },
+            }}
           >
             <DialogTitle
               sx={{
@@ -803,7 +821,9 @@ export default function ShareDialog(props: ShareDialogProps) {
           <Dialog
             open={archivePopupOpen}
             onClose={closeArchivePopup}
-            slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 'fit-content' } } }}
+            slotProps={{
+              paper: { sx: { borderRadius: 3, minWidth: "fit-content" } },
+            }}
           >
             <DialogTitle
               sx={{
@@ -836,7 +856,9 @@ export default function ShareDialog(props: ShareDialogProps) {
           <Dialog
             open={unarchivePopupOpen}
             onClose={closeUnarchivePopup}
-            slotProps={{ paper: { sx: { borderRadius: 3, minWidth: 'fit-content' } } }}
+            slotProps={{
+              paper: { sx: { borderRadius: 3, minWidth: "fit-content" } },
+            }}
           >
             <DialogTitle
               sx={{
