@@ -31,6 +31,7 @@ import {
 } from "../../utils/QrUtils";
 import { getSchemaFromHash } from "../../utils/SchemaUtils";
 import { useSchema } from "../../context/SchemaContext";
+import ClickableQrCode from "../qr/ClickableQrCode";
 
 interface BatchQrDialogProps {
   open: boolean;
@@ -90,19 +91,20 @@ export default function BatchQrDialog({
         if (qrCodes.length === 0) throw new Error("No matches selected");
 
         const schemaHash = getSchemaHashFromQrString(qrCodes[0].data);
-        if (!schemaHash) throw new Error("Selected codes are not FarmHand codes");
+        if (!schemaHash)
+          throw new Error("Selected codes are not FarmHand codes");
 
         const schema = await getSchemaFromHash(schemaHash, availableSchemas);
         if (!schema) {
           throw new Error(
-            `No schema on this device matches hash ${schemaHash}. Import the schema QR code first.`
+            `No schema on this device matches hash ${schemaHash}. Import the schema QR code first.`,
           );
         }
 
         // A batch carries one schema hash, so codes from another schema are left out
         // rather than silently mislabelled.
         const usable = qrCodes.filter(
-          (c) => getSchemaHashFromQrString(c.data) === schemaHash
+          (c) => getSchemaHashFromQrString(c.data) === schemaHash,
         );
 
         // Reuse each code's saved bytes verbatim. Decoding and re-encoding would
@@ -117,7 +119,11 @@ export default function BatchQrDialog({
           entries.push(raw);
         }
 
-        const built = await buildBatchQrCodes({ schemaHash, entries, maxPerCode });
+        const built = await buildBatchQrCodes({
+          schemaHash,
+          entries,
+          maxPerCode,
+        });
         const images = await renderBatchChunks(built.chunks);
 
         if (!cancelled) {
@@ -177,7 +183,11 @@ export default function BatchQrDialog({
 
         {state.kind === "ready" && (
           <Stack spacing={2} alignItems="center">
-            <Typography variant="body2" color="text.secondary" textAlign="center">
+            <Typography
+              variant="body2"
+              color="text.secondary"
+              textAlign="center"
+            >
               {qrCodes.length - state.skipped} match
               {qrCodes.length - state.skipped !== 1 ? "es" : ""} in{" "}
               {state.chunks.length} code{state.chunks.length !== 1 ? "s" : ""} (
@@ -186,16 +196,17 @@ export default function BatchQrDialog({
 
             {state.limitedByCapacity && (
               <Alert severity="info" sx={{ borderRadius: 2, width: "100%" }}>
-                These matches are large enough that fewer than {maxPerCode} fit per
-                code. Split across {state.chunks.length} codes to stay scannable.
+                These matches are large enough that fewer than {maxPerCode} fit
+                per code. Split across {state.chunks.length} codes to stay
+                scannable.
               </Alert>
             )}
 
             {state.skipped > 0 && (
               <Alert severity="warning" sx={{ borderRadius: 2, width: "100%" }}>
                 {state.skipped} selected code
-                {state.skipped !== 1 ? "s were" : " was"} recorded with a different
-                schema and left out — a batch carries one schema.
+                {state.skipped !== 1 ? "s were" : " was"} recorded with a
+                different schema and left out — a batch carries one schema.
               </Alert>
             )}
 
@@ -206,11 +217,7 @@ export default function BatchQrDialog({
                 overflow: "hidden",
               }}
             >
-              <img
-                src={`data:image/svg+xml;base64,${btoa(state.images[page])}`}
-                alt={`Batch QR ${page + 1}`}
-                style={{ width: "100%", maxWidth: 340, display: "block" }}
-              />
+              <ClickableQrCode data={state.images[page]} />
             </Box>
 
             <Stack direction="row" spacing={1} alignItems="center">
