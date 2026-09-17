@@ -5,21 +5,29 @@
       "title": "Match Info",
       "fields": [
         {
-          "id": 1,
+          "id": 10,
           "name": "Match Number",
           "type": "number",
           "required": true,
-          "props": { "min": 0, "max": 0 }
+          "props": {
+            "min": 0,
+            "max": 0,
+            "pullFromTBA": false
+          }
         },
         {
-          "id": 2,
+          "id": 11,
           "name": "Team Number",
           "type": "number",
           "required": true,
-          "props": { "min": 1, "max": 100000 }
+          "props": {
+            "min": 1,
+            "max": 100000,
+            "pullFromTBA": false
+          }
         },
         {
-          "id": 13,
+          "id": 12,
           "name": "Robot Construction",
           "type": "dropdown",
           "required": true,
@@ -34,11 +42,15 @@
           "doubleWidth": true
         },
         {
-          "id": 16,
+          "id": 13,
           "name": "Starting Positions",
           "type": "grid",
           "required": true,
-          "props": { "rows": 3, "cols": 6, "cellLabel": "coordinates" },
+          "props": {
+            "rows": 3,
+            "cols": 6,
+            "cellLabel": "coordinates"
+          },
           "note": "Each square is a field tile. \"2,1\" is Loading Zone, \"2,5\" is Garden.",
           "doubleWidth": true
         }
@@ -48,19 +60,28 @@
       "title": "Attributes",
       "fields": [
         {
-          "id": 7,
+          "id": 20,
           "name": "Drivetrain",
           "type": "dropdown",
           "required": true,
-          "props": { "options": ["Tank", "Mechanum", "X-Drive"] }
+          "props": {
+            "options": [
+              "Tank",
+              "Mechanum",
+              "X-Drive"
+            ]
+          }
         },
         {
-          "id": 8,
+          "id": 21,
           "name": "Max Pieces Held",
           "type": "counter",
           "required": false,
-          "props": { "default": 4, "min": 0, "max": 4 },
-          "note": ""
+          "props": {
+            "default": 4,
+            "min": 0,
+            "max": 4
+          }
         }
       ]
     },
@@ -68,32 +89,56 @@
       "title": "Gameplay",
       "fields": [
         {
-          "id": 3,
+          "id": 30,
           "name": "Collect Pollen",
           "type": "multiplechoice",
           "required": true,
-          "props": { "options": ["No", "Floor", "Floor & Flower"] }
+          "props": { "options": [
+            "No",
+            "Floor",
+            "Floor & Flower"
+          ]
+        }
         },
         {
-          "id": 4,
+          "id": 31,
           "name": "Collect Nectar",
           "type": "multiplechoice",
           "required": true,
-          "props": { "options": ["No", "Yes"] }
+          "props": {
+            "options": [
+              "No",
+              "Yes"
+            ]
+          }
         },
         {
-          "id": 5,
+          "id": 32,
           "name": "Use Pollen",
           "type": "multiplechoice",
           "required": true,
-          "props": { "options": ["No", "Hive", "Flower", "Both"] }
+          "props": {
+            "options": [
+              "No",
+              "Hive",
+              "Flower",
+              "Both"
+            ]
+          }
         },
         {
-          "id": 6,
+          "id": 33,
           "name": "Use Nectar",
           "type": "multiplechoice",
           "required": true,
-          "props": { "options": ["No", "Hive", "Flower", "Both"] }
+          "props": {
+            "options": [
+              "No",
+              "Hive",
+              "Flower",
+              "Both"
+            ]
+          }
         }
       ]
     },
@@ -101,32 +146,39 @@
       "title": "Autonomous",
       "fields": [
         {
-          "id": 9,
+          "id": 40,
           "name": "Moves",
           "type": "checkbox",
           "required": false,
-          "props": { "options": ["None"] }
+          "props": {}
         },
         {
-          "id": 10,
+          "id": 41,
           "name": "Parks",
           "type": "checkbox",
           "required": false,
           "props": {}
         },
         {
-          "id": 11,
+          "id": 42,
           "name": "Shoots to Hive",
           "type": "checkbox",
           "required": false,
           "props": {}
         },
         {
-          "id": 12,
+          "id": 43,
           "name": "Extra Pollen",
           "type": "multiplechoice",
           "required": true,
-          "props": { "options": ["No", "From Garden", "From Flower", "Either"] }
+          "props": {
+            "options": [
+              "No",
+              "From Garden",
+              "From Flower",
+              "Either"
+            ]
+          }
         }
       ]
     },
@@ -134,20 +186,27 @@
       "title": "Other",
       "fields": [
         {
-          "id": 14,
+          "id": 50,
           "name": "Vibe Check",
           "type": "slider",
           "required": false,
-          "props": { "step": 1, "min": 1, "max": 5, "default": 3 },
+          "props": {
+            "step": 1,
+            "min": 1,
+            "max": 5,
+            "default": 3
+          },
           "doubleWidth": true,
           "note": "1 = Bad Vibes, 5 = Best Friends"
         },
         {
-          "id": 15,
+          "id": 51,
           "name": "Comments",
           "type": "text",
           "required": false,
-          "props": { "multiline": false },
+          "props": {
+            "multiline": false
+          },
           "doubleWidth": true
         }
       ]
