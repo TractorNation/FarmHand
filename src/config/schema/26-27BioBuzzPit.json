@@ -1,0 +1,156 @@
+{
+  "name": "26-27 BioBuzz Pit",
+  "sections": [
+    {
+      "title": "Match Info",
+      "fields": [
+        {
+          "id": 1,
+          "name": "Match Number",
+          "type": "number",
+          "required": true,
+          "props": { "min": 0, "max": 0 }
+        },
+        {
+          "id": 2,
+          "name": "Team Number",
+          "type": "number",
+          "required": true,
+          "props": { "min": 1, "max": 100000 }
+        },
+        {
+          "id": 13,
+          "name": "Robot Construction",
+          "type": "dropdown",
+          "required": true,
+          "props": {
+            "options": [
+              "Base Kit Bot",
+              "Upgraded Kit Bot",
+              "EveryBot/Ri3D",
+              "Custom"
+            ]
+          },
+          "doubleWidth": true
+        },
+        {
+          "id": 16,
+          "name": "Starting Positions",
+          "type": "grid",
+          "required": true,
+          "props": { "rows": 3, "cols": 6, "cellLabel": "coordinates" },
+          "note": "Each square is a field tile. \"2,1\" is Loading Zone, \"2,5\" is Garden.",
+          "doubleWidth": true
+        }
+      ]
+    },
+    {
+      "title": "Attributes",
+      "fields": [
+        {
+          "id": 7,
+          "name": "Drivetrain",
+          "type": "dropdown",
+          "required": true,
+          "props": { "options": ["Tank", "Mechanum", "X-Drive"] }
+        },
+        {
+          "id": 8,
+          "name": "Max Pieces Held",
+          "type": "counter",
+          "required": false,
+          "props": { "default": 4, "min": 0, "max": 4 },
+          "note": ""
+        }
+      ]
+    },
+    {
+      "title": "Gameplay",
+      "fields": [
+        {
+          "id": 3,
+          "name": "Collect Pollen",
+          "type": "multiplechoice",
+          "required": true,
+          "props": { "options": ["No", "Floor", "Floor & Flower"] }
+        },
+        {
+          "id": 4,
+          "name": "Collect Nectar",
+          "type": "multiplechoice",
+          "required": true,
+          "props": { "options": ["No", "Yes"] }
+        },
+        {
+          "id": 5,
+          "name": "Use Pollen",
+          "type": "multiplechoice",
+          "required": true,
+          "props": { "options": ["No", "Hive", "Flower", "Both"] }
+        },
+        {
+          "id": 6,
+          "name": "Use Nectar",
+          "type": "multiplechoice",
+          "required": true,
+          "props": { "options": ["No", "Hive", "Flower", "Both"] }
+        }
+      ]
+    },
+    {
+      "title": "Autonomous",
+      "fields": [
+        {
+          "id": 9,
+          "name": "Moves",
+          "type": "checkbox",
+          "required": false,
+          "props": { "options": ["None"] }
+        },
+        {
+          "id": 10,
+          "name": "Parks",
+          "type": "checkbox",
+          "required": false,
+          "props": {}
+        },
+        {
+          "id": 11,
+          "name": "Shoots to Hive",
+          "type": "checkbox",
+          "required": false,
+          "props": {}
+        },
+        {
+          "id": 12,
+          "name": "Extra Pollen",
+          "type": "multiplechoice",
+          "required": true,
+          "props": { "options": ["No", "From Garden", "From Flower", "Either"] }
+        }
+      ]
+    },
+    {
+      "title": "Other",
+      "fields": [
+        {
+          "id": 14,
+          "name": "Vibe Check",
+          "type": "slider",
+          "required": false,
+          "props": { "step": 1, "min": 1, "max": 5, "default": 3 },
+          "doubleWidth": true,
+          "note": "1 = Bad Vibes, 5 = Best Friends"
+        },
+        {
+          "id": 15,
+          "name": "Comments",
+          "type": "text",
+          "required": false,
+          "props": { "multiline": false },
+          "doubleWidth": true
+        }
+      ]
+    }
+  ]
+}
