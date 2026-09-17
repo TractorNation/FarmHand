@@ -91,6 +91,7 @@ Arch and Fedora equivalents.
    ```
 
 4. **Build for production:**
+
    ```shell
    npm run build
    npm run tauri build
@@ -106,7 +107,7 @@ Arch and Fedora equivalents.
 4. Select your **scouting schema** (e.g., "2025 Reefscape")
 5. Configure the total number of scout devices your team is using
 
-![Settings Screenshot](screenshots/DeviceSettings.png) 
+![Settings Screenshot](screenshots/DeviceSettings.png)
 
 ### Scouting a Match
 
@@ -124,7 +125,7 @@ Arch and Fedora equivalents.
 - **Archive**: Access completed matches for long-term storage
 - **Schemas**: Create and edit custom scouting schemas in Settings
 
-![Dashboard Screenshot](screenshots/DashboardPage.png) 
+![Dashboard Screenshot](screenshots/DashboardPage.png)
 
 For more detailed instructions, check out the **Help** page within the app!
 
